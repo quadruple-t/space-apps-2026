@@ -9,6 +9,8 @@ export type LunarSite = {
   longitudeDeg: number;
   coordinateReference: string;
   provenance: "user" | "illustrative" | "scientific";
+  elevationMeters?: number | null;
+  slopeDeg?: number | null;
 };
 
 export type CelestialState = {
@@ -32,6 +34,12 @@ export type MissionMetrics = {
   longestBlackoutHours?: number;
   elevationMeters?: number;
   slopeDeg?: number;
+  /** Actual interval the values cover (ISO 8601 UTC). Present for scientific metrics. */
+  intervalStart?: string;
+  intervalEnd?: string;
+  /** Horizon source and calculation assumptions, shown beside the numbers. */
+  horizonSource?: string;
+  assumptions?: string[];
   provenance: "illustrative" | "scientific";
 };
 

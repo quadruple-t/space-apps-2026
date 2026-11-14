@@ -1,0 +1,79 @@
+{
+  "_note": "Fact sheets (prompt §11.5; docs/research/power-costs-outcomes.md §3-6, sites.md §3). Each row carries its quote and source key. Rows with `fx` get approxUsd computed by 60_curated.py from the FRED annual averages in `fxRates` and are labelled 'approx.'.",
+  "fxRates": {
+    "INR": {"2019": 70.3777, "2023": 82.5708, "source": "fredInr"},
+    "JPY": {"2023": 140.5001, "2024": 151.4551, "source": "fredJpy"}
+  },
+  "sheets": [
+    {
+      "id": "impact-costs",
+      "title": "What a lunar landing attempt costs",
+      "rows": [
+        {"label": "Headline", "value": "A single lunar landing attempt typically costs on the order of $100 million.", "unit": null, "quote": "Order-of-magnitude statement supported by Beresheet (~$100M), Peregrine ($107.9M task order) and IM-1 ($122.0M task order); counter-examples: Chandrayaan-3 (~$30M excl. launch) and IM-2 PRIME-1 ($50.0M).", "source": "oigIg24013", "tier": "A", "note": "Not a rule: costs range from about $30M to about $140M among documented attempts."},
+        {"label": "Beresheet (2019, crashed)", "value": 100, "unit": "million", "currency": "USD", "approxUsd": 100000000, "quote": "The mission cost about $100 million", "source": "apBeresheet", "tier": "C", "note": "Includes launch; press figure."},
+        {"label": "Chandrayaan-2 project (2019; lander crashed, orbiter succeeded)", "value": 603, "unit": "crore", "currency": "INR", "fx": {"amount": 6030000000, "currency": "INR", "year": "2019"}, "quote": "approved cost ... Rs. 603 Crore (excluding launch cost)", "source": "pib1592495", "tier": "A", "note": "Includes the orbiter."},
+        {"label": "Chandrayaan-2 launch vehicle (GSLV Mk III M1)", "value": 367, "unit": "crore", "currency": "INR", "fx": {"amount": 3670000000, "currency": "INR", "year": "2019"}, "quote": "GSLV MK III M1 vehicle is Rs. 367 Crore", "source": "pib1592495", "tier": "A"},
+        {"label": "Chandrayaan-3 (2023, success)", "value": 250, "unit": "crore", "currency": "INR", "fx": {"amount": 2500000000, "currency": "INR", "year": "2023"}, "quote": "The approved cost of Chandrayaan-3 is Rs. 250 Crores (Excluding Launch Vehicle Cost)", "source": "pib1945483", "tier": "A"},
+        {"label": "SLIM total development (2024, landed in wrong attitude)", "value": 14.9, "unit": "billion", "currency": "JPY", "fx": {"amount": 14900000000, "currency": "JPY", "year": "2024"}, "quote": "Total project development cost 14.9 billion yen", "source": "jaxaSlimReview", "tier": "A", "note": "About $106M at the 2023 rate; budget at project start was ¥18.05B."},
+        {"label": "Peregrine Mission One (2024, never reached the Moon)", "value": 107.9, "unit": "million", "currency": "USD", "approxUsd": 107900000, "quote": "OIG Table 2: Astrobotic TO2-AB, $79.5M initial, $107.9M current task order value", "source": "oigIg24013", "tier": "A", "note": "NASA task-order (delivery) value, not the full mission cost to the vendor."},
+        {"label": "IM-1 Odysseus (2024, landed and tipped)", "value": 122.0, "unit": "million", "currency": "USD", "approxUsd": 122000000, "quote": "CLPS paid Intuitive Machines about $122 million", "source": "oigIg24013", "tier": "A", "note": "Task-order value. NASA's six IM-1 instruments cost the agency about $9.5 million."},
+        {"label": "IM-2 PRIME-1 task order (2025, landed on its side)", "value": 50.0, "unit": "million", "currency": "USD", "approxUsd": 50000000, "quote": "Intuitive Machines (PRIME-1) October 2020 47.0 50.0", "source": "oigIg24013", "tier": "A", "note": "Task-order value."},
+        {"label": "Blue Ghost Mission 1 (2025, success)", "value": 101.5, "unit": "million", "currency": "USD", "approxUsd": 101500000, "quote": "OIG Table 2: Firefly TO19D, $93.3M initial, $101.5M current", "source": "oigIg24013", "tier": "A", "note": "Task-order value."},
+        {"label": "CLPS contract cap", "value": 2.6, "unit": "billion", "currency": "USD", "approxUsd": 2600000000, "quote": "combined maximum contract value of $2.6 billion through 2028", "source": "nasaIm1PressKit", "tier": "A"},
+        {"label": "'Shots on goal'", "value": "NASA informally refers to this risk posture as taking 'shots on goal.'", "unit": null, "quote": "NASA informally refers to this risk posture as taking 'shots on goal.'", "source": "houseCharter2025", "tier": "A", "note": "Quoted from a 2025 House Science Committee hearing charter, not a NASA document."},
+        {"label": "HAKUTO-R Mission 1 cost", "value": "unsourced", "unit": null, "quote": "", "source": "ispaceM1", "tier": "B", "note": "No cost found in an opened source; listed in docs/MISSING_DATA.md."},
+        {"label": "Luna 25 cost", "value": "unsourced", "unit": null, "quote": "", "source": "spacepolicyLuna25", "tier": "C", "note": "No cost found in an opened source; listed in docs/MISSING_DATA.md."}
+      ]
+    },
+    {
+      "id": "landing-record-2019-2026",
+      "title": "Lunar landing attempts, 2019 to Nov 2026",
+      "rows": [
+        {"label": "Tally", "value": "14 attempts: 5 clean soft landings, 3 landed in an unplanned attitude, 5 crashes, 1 never reached the Moon", "unit": null, "quote": "Five clean soft landings (Chang'e-4, Chang'e-5, Chandrayaan-3, Chang'e-6, Blue Ghost M1). Three landed in an unplanned attitude (SLIM, IM-1, IM-2). Five crashes (Beresheet, Chandrayaan-2, HAKUTO-R M1, Luna 25, RESILIENCE). One never reached the Moon (Peregrine).", "source": "spaceReview5344", "tier": "C", "note": "Compiled from the sources in each row; no attempt found 26 Oct-14 Nov 2026."},
+        {"label": "2019-01-03 Chang'e-4", "value": "success", "unit": null, "quote": "Far side, Von Kármán crater", "source": "lroc1090", "tier": "A", "note": "cause class: none"},
+        {"label": "2019-04-11 Beresheet", "value": "crash", "unit": null, "quote": "A software command uploaded to fix a sensor problem started a chain reaction", "source": "planetaryBeresheet", "tier": "C", "note": "cause class: hardware-command"},
+        {"label": "2019-09-07 IST Chandrayaan-2 Vikram", "value": "crash", "unit": null, "quote": "the reduction in velocity was more than the designed value ... Vikram hard landed within 500 m of the designated landing site", "source": "pib1592495", "tier": "A", "note": "cause class: gnc-braking (not a site or date problem)"},
+        {"label": "2020-12-01 Chang'e-5", "value": "success", "unit": null, "quote": "15:11 UTC 01 December 2020", "source": "lroc1172", "tier": "A", "note": "cause class: none"},
+        {"label": "2023-04-26 JST HAKUTO-R M1", "value": "crash", "unit": null, "quote": "simulations ... did not adequately incorporate the lunar environment on the navigation route", "source": "ispaceM1", "tier": "B", "note": "cause class: terrain-software (crater rim on a changed, unsimulated route)"},
+        {"label": "2023-08-19 Luna 25", "value": "crash", "unit": null, "quote": "operated for 127 seconds instead of 84", "source": "spacepolicyLuna25", "tier": "C", "note": "cause class: propulsion-burn (pre-landing orbit)"},
+        {"label": "2023-08-23 Chandrayaan-3", "value": "success", "unit": null, "quote": "On 23rd Aug, 2023, Chandrayaan-3 lander, Vikram, successfully soft-landed on the Moon.", "source": "isroAug2023", "tier": "A", "note": "cause class: none; did not wake after the lunar night"},
+        {"label": "2024-01-08..18 Peregrine M1", "value": "never reached the Moon", "unit": null, "quote": "operated the spacecraft for 10 days and 14 hours", "source": "astroboticPm1", "tier": "B", "note": "cause class: hardware-propulsion (propellant leak, helium valve)"},
+        {"label": "2024-01-20 JST SLIM", "value": "unplanned attitude", "unit": null, "quote": "nozzle separated and thrust was reduced in one of the two main engines", "source": "jaxaSlimReview", "tier": "A", "note": "cause class: hardware-propulsion; landed about 55 m from target; survived 3 lunar nights"},
+        {"label": "2024-02-22 IM-1 Odysseus", "value": "unplanned attitude", "unit": null, "quote": "their laser range finders couldn't be turned on as they had a manual safety switch turned on", "source": "nasaNdlIm1", "tier": "A", "note": "cause class: procedural-sensor; the 12° slope contributed to the tip"},
+        {"label": "2024-06-01 Chang'e-6", "value": "success", "unit": null, "quote": "LROC: lander at 41.6385°S, 206.0148°E", "source": "lroc1374", "tier": "A", "note": "cause class: none"},
+        {"label": "2025-03-02 Blue Ghost M1", "value": "success", "unit": null, "quote": "upright and stable", "source": "nasaBlueGhost", "tier": "A", "note": "cause class: none"},
+        {"label": "2025-03-06 IM-2 Athena", "value": "unplanned attitude", "unit": null, "quote": "With the direction of the sun, the orientation of the solar panels, and extreme cold temperatures in the crater, Intuitive Machines does not expect Athena to recharge", "source": "spacenewsIm2", "tier": "C", "note": "cause class: nav-sensor + lighting/thermal at the landing spot; ended in under 13 h"},
+        {"label": "2025-06-06 JST ispace RESILIENCE", "value": "crash", "unit": null, "quote": "deterioration in the performance ... or the performance itself was lower than expected", "source": "ispaceM2", "tier": "B", "note": "cause class: sensor-hardware (laser rangefinder)"},
+        {"label": "2026 (through 14 Nov)", "value": "no attempts", "unit": null, "quote": "Chang'e-7 postponed 'at least to some time next year'; Blue Moon MK1, Griffin-1, IM-3 and Blue Ghost 2 slipped to 2027.", "source": "spaceReview5344", "tier": "C", "note": "The Space Review checked through 26 Oct 2026; this pipeline found nothing between 26 Oct and 14 Nov 2026."}
+      ]
+    },
+    {
+      "id": "lunar-constants",
+      "title": "Physical constants used by Shadowline",
+      "rows": [
+        {"label": "Total solar irradiance at 1 AU", "value": 1360.8, "unit": "W/m2", "quote": "The most accurate value of total solar irradiance during the 2008 solar minimum period is 1360.8 ± 0.5 W m-2", "source": "kopp2011", "tier": "A", "note": "± 0.5 W/m2"},
+        {"label": "Solar irradiance (NASA fact sheet)", "value": 1361.0, "unit": "W/m2", "quote": "Solar irradiance (W/m2) 1361.0", "source": "nssdcMoon", "tier": "A"},
+        {"label": "Irradiance scaling", "value": "S = S0 x (1 AU / r)^2", "unit": null, "quote": "Inverse-square law; r is the Sun range from the ephemeris. About ±3.4% over a year (1408 W/m2 at perihelion, 1317 at aphelion).", "source": "nssdcEarth", "tier": "A", "note": "derived"},
+        {"label": "Triple-junction cell efficiency (BOL)", "value": 29.2, "unit": "%", "quote": "η (1367 W/m2) [%] 29.2", "source": "azur3g30", "tier": "B", "note": "Bare cell, AM0, 28 °C"},
+        {"label": "Synodic month", "value": 29.53, "unit": "d", "quote": "Synodic period (days) 29.53", "source": "nssdcMoon", "tier": "A"},
+        {"label": "Lunar day or night (half a synodic month)", "value": 14.77, "unit": "d", "quote": "29.53 / 2", "source": "nssdcMoon", "tier": "A", "note": "derived; about 354 h"},
+        {"label": "Equatorial maximum surface temperature", "value": "387-397", "unit": "K", "quote": "∼387–397 K at the equator, dropping to ∼95 K just before sunrise", "source": "williams2017", "tier": "A"},
+        {"label": "Equatorial pre-dawn minimum", "value": 95, "unit": "K", "quote": "dropping to ∼95 K just before sunrise", "source": "williams2017", "tier": "A"},
+        {"label": "Polar cold trap (LCROSS site, subsurface estimate)", "value": 38, "unit": "K", "quote": "subsurface temperatures are estimated to be 38 kelvin", "source": "paige2010Usgs", "tier": "A"},
+        {"label": "Cold-trap threshold", "value": 110, "unit": "K", "quote": "Annual maximum temperature below 110 K, as used by Li et al. 2018 (filter) and Fisher et al. 2017 (reflectance transition).", "source": "li2018", "tier": "A", "note": "Surface ice exposures were found in only about 3.5% of cold traps (Li et al. 2018). Never call a cold trap 'ice-bearing'."},
+        {"label": "Moon reference radius", "value": 1737.4, "unit": "km", "quote": "Center radii : 1737.4, 1737.4, 1737.4 km (Horizons header); LOLA adopts a spherical geometry with a radius of 1737.4 km", "source": "horizonsManual", "tier": "A"}
+      ]
+    },
+    {
+      "id": "artemis-status",
+      "title": "Artemis status (as of 14 Nov 2026)",
+      "rows": [
+        {"label": "Artemis III", "value": "Crewed test flight in low Earth orbit, 2027 (not a landing)", "unit": null, "quote": "Artemis III is now a 2027 low-Earth-orbit test flight (rendezvous and docking with SpaceX and/or Blue Origin landers, plus xEVA suit tests).", "source": "nasa20260227", "tier": "A", "note": "Restated in NASA's 23 Oct 2026 blog."},
+        {"label": "Artemis IV", "value": "First crewed landing, planned early 2028", "unit": null, "quote": "Launch: 'Early 2028'", "source": "nasaArtemisIV", "tier": "A"},
+        {"label": "Candidate landing regions", "value": 9, "unit": "regions", "quote": "the agency has identified nine candidate landing regions near the lunar South Pole", "source": "nasaArtemisIV", "tier": "A", "note": "Named on 28 Oct 2024 'in no priority order'. No coordinates or boundaries published."},
+        {"label": "Region size and sunlight", "value": "about 15 x 15 km; continuous sunlight over a 6.5-day period", "unit": null, "quote": "All 13 regions contain sites that provide continuous access to sunlight throughout a 6.5-day period ... approximately 9.3 by 9.3 miles (15 by 15 kilometers)", "source": "nasa2022Regions", "tier": "A", "note": "From the 2022 list of 13 regions."},
+        {"label": "Restatement", "value": "Artemis III LEO in 2027; Artemis IV first landing in 2028", "unit": null, "quote": "Artemis III ... low Earth orbit in 2027", "source": "nasa20261023", "tier": "A"}
+      ]
+    }
+  ]
+}

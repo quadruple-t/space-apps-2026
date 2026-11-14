@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Shadowline mark: a lunar disc cut by a ridgeline, with the Sun resting on
+ * Lunaris360 mark: a lunar disc cut by a ridgeline, with the Sun resting on
  * the horizon — the moment of grazing light the product is about.
  */
 export function LogoMark({ className }: { className?: string }) {
@@ -27,7 +27,7 @@ export function Logo({ className, showWordmark = true }: { className?: string; s
       <LogoMark />
       {showWordmark && (
         <span className="font-heading text-[0.95rem] font-bold tracking-[0.14em] [font-variation-settings:'wdth'_125]">
-          SHADOWLINE
+          LUNARIS360
         </span>
       )}
     </span>

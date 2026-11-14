@@ -1,0 +1,13 @@
+{
+ "label": "SLDEM2015 (LOLA + SELENE TC), 512 ppd",
+ "kind": "dem",
+ "version": "V2.0 (2015-09-15)",
+ "citation": "Barker, M.K. et al. (2016), Icarus 273:346-355",
+ "doi": "10.1016/j.icarus.2015.07.039",
+ "url": "https://pgda.gsfc.nasa.gov/products/54",
+ "license": null,
+ "usedFor": [
+  "near-field horizon masks for sites within ±60° latitude"
+ ],
+ "retrievedAt": "2026-11-14"
+}

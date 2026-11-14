@@ -1,0 +1,30 @@
+{
+ "kind": "heritage-buffer",
+ "ruleId": "nasa2011-impact-boundary",
+ "name": "Apollo 14 S-IVB Booster Impact: 0.5 km impact-site boundary",
+ "siteId": null,
+ "geometry": {
+  "type": "Circle",
+  "center": {
+   "latDeg": -8.181,
+   "lonDeg": -26.0305
+  },
+  "radiusKm": 0.5
+ },
+ "rationale": "NASA 2011 §A1-3: impact sites have a descent/landing boundary 'extending to a 0.5 km radial distance from the center of the impact site'. The 2011 document names Ranger and S-IVB impact sites. Coordinates: LROC anthropogenic shapefile (Averaged NACs, ±4.5 m). The NASA 2011 recommendations cover U.S. Government artifacts only. The One Small Step Act (Pub. L. 116-275) makes them a condition of NASA contracts; neither it nor the Artemis Accords sets distances.",
+ "sources": [
+  {
+   "label": "NASA (2011, Rev A 28 Oct 2011), Recommendations to Space-Faring Entities: How to Protect and Preserve the Historic and Scientific Value of U.S. Government Lunar Artifacts",
+   "url": "https://www.nasa.gov/pdf/617743main_NASA-USG_LUNAR_HISTORIC_SITES_RevA-508.pdf",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "LROC RDR shapefile, Anthropogenic Features on the Moon (last updated 2026-08-14)",
+   "url": "https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_ANTHROPOGENIC_OBJECTS",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ],
+ "needsData": false
+}

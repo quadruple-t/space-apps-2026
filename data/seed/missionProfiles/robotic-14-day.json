@@ -1,0 +1,41 @@
+{
+ "label": "One-lunar-day robotic mission",
+ "durationHours": 354,
+ "durationNote": "One lunar day = half a synodic month = 29.53 d / 2 ≈ 354 h (NSSDC). The id keeps its original name for URL stability.",
+ "description": "One lunar day of solar-powered work. Battery and steady light matter.",
+ "weights": {
+  "sunlight": 0.25,
+  "earthComms": 0.2,
+  "thermalMargin": 0.1,
+  "batterySurvival": 0.25,
+  "iceAccess": 0.0,
+  "longSunlight": 0.1,
+  "hazardMargin": 0.1
+ },
+ "disqualifiers": [
+  "battery state of charge hits 0% inside window",
+  "landing slope (100 m) above hazardThresholds.landingSlopeMaxDeg"
+ ],
+ "hazardThresholds": {
+  "landingSlopeMaxDeg": 10,
+  "evaSlopeMaxDeg": 20,
+  "sources": [
+   {
+    "label": "NASA, Artemis Human Landing System Update (Dwyer Cianciolo, 1 Aug 2024; NTRS 20240009596)",
+    "url": "https://ntrs.nasa.gov/api/citations/20240009596/downloads/ArtemisHLSUpdate_2024.pdf",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   }
+  ]
+ },
+ "weightsBasis": "assumption",
+ "weightsNote": "Starting values chosen by the team; justified in docs/METHODS.md and tunable in Firestore without a redeploy.",
+ "durationSources": [
+  {
+   "label": "NSSDC Moon fact sheet",
+   "url": "https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ]
+}

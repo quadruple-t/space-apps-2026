@@ -1,0 +1,156 @@
+{
+ "title": "Physical constants used by Shadowline",
+ "rows": [
+  {
+   "label": "Total solar irradiance at 1 AU",
+   "value": 1360.8,
+   "unit": "W/m2",
+   "quote": "The most accurate value of total solar irradiance during the 2008 solar minimum period is 1360.8 ± 0.5 W m-2",
+   "source": {
+    "label": "Kopp & Lean 2011, GRL 38 L01706, doi:10.1029/2010GL045777",
+    "url": "https://espo.nasa.gov/node/30086",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "tier": "A",
+   "note": "± 0.5 W/m2"
+  },
+  {
+   "label": "Solar irradiance (NASA fact sheet)",
+   "value": 1361.0,
+   "unit": "W/m2",
+   "quote": "Solar irradiance (W/m2) 1361.0",
+   "source": {
+    "label": "NSSDC Moon fact sheet",
+    "url": "https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "tier": "A"
+  },
+  {
+   "label": "Irradiance scaling",
+   "value": "S = S0 x (1 AU / r)^2",
+   "unit": null,
+   "quote": "Inverse-square law; r is the Sun range from the ephemeris. About ±3.4% over a year (1408 W/m2 at perihelion, 1317 at aphelion).",
+   "source": {
+    "label": "NSSDC Earth fact sheet",
+    "url": "https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "tier": "A",
+   "note": "derived"
+  },
+  {
+   "label": "Triple-junction cell efficiency (BOL)",
+   "value": 29.2,
+   "unit": "%",
+   "quote": "η (1367 W/m2) [%] 29.2",
+   "source": {
+    "label": "AZUR SPACE 3G30-Advanced triple-junction cell datasheet",
+    "url": "https://www.azurspace.com/media/uploads/file_links/file/bdb_00010893-02-00_3g30-advanced_6x12.pdf",
+    "retrievedAt": "2026-11-14",
+    "tier": "B"
+   },
+   "tier": "B",
+   "note": "Bare cell, AM0, 28 °C"
+  },
+  {
+   "label": "Synodic month",
+   "value": 29.53,
+   "unit": "d",
+   "quote": "Synodic period (days) 29.53",
+   "source": {
+    "label": "NSSDC Moon fact sheet",
+    "url": "https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "tier": "A"
+  },
+  {
+   "label": "Lunar day or night (half a synodic month)",
+   "value": 14.77,
+   "unit": "d",
+   "quote": "29.53 / 2",
+   "source": {
+    "label": "NSSDC Moon fact sheet",
+    "url": "https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "tier": "A",
+   "note": "derived; about 354 h"
+  },
+  {
+   "label": "Equatorial maximum surface temperature",
+   "value": "387-397",
+   "unit": "K",
+   "quote": "∼387–397 K at the equator, dropping to ∼95 K just before sunrise",
+   "source": {
+    "label": "Williams et al. 2017, Icarus 283:300-325, doi:10.1016/j.icarus.2016.08.012",
+    "url": "https://api.semanticscholar.org/",
+    "retrievedAt": "2026-11-14",
+    "tier": "A",
+    "note": "abstract read via the Semantic Scholar API"
+   },
+   "tier": "A"
+  },
+  {
+   "label": "Equatorial pre-dawn minimum",
+   "value": 95,
+   "unit": "K",
+   "quote": "dropping to ∼95 K just before sunrise",
+   "source": {
+    "label": "Williams et al. 2017, Icarus 283:300-325, doi:10.1016/j.icarus.2016.08.012",
+    "url": "https://api.semanticscholar.org/",
+    "retrievedAt": "2026-11-14",
+    "tier": "A",
+    "note": "abstract read via the Semantic Scholar API"
+   },
+   "tier": "A"
+  },
+  {
+   "label": "Polar cold trap (LCROSS site, subsurface estimate)",
+   "value": 38,
+   "unit": "K",
+   "quote": "subsurface temperatures are estimated to be 38 kelvin",
+   "source": {
+    "label": "Paige et al. 2010, Science 330:479 (USGS publication record)",
+    "url": "https://www.usgs.gov/publications/diviner-lunar-radiometer-observations-cold-traps-moons-south-polar-region",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "tier": "A"
+  },
+  {
+   "label": "Cold-trap threshold",
+   "value": 110,
+   "unit": "K",
+   "quote": "Annual maximum temperature below 110 K, as used by Li et al. 2018 (filter) and Fisher et al. 2017 (reflectance transition).",
+   "source": {
+    "label": "Li et al. 2018, PNAS 115(36), doi:10.1073/pnas.1802345115",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/6130389",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "tier": "A",
+   "note": "Surface ice exposures were found in only about 3.5% of cold traps (Li et al. 2018). Never call a cold trap 'ice-bearing'."
+  },
+  {
+   "label": "Moon reference radius",
+   "value": 1737.4,
+   "unit": "km",
+   "quote": "Center radii : 1737.4, 1737.4, 1737.4 km (Horizons header); LOLA adopts a spherical geometry with a radius of 1737.4 km",
+   "source": {
+    "label": "JPL Horizons manual",
+    "url": "https://ssd.jpl.nasa.gov/horizons/manual.html",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "tier": "A"
+  }
+ ],
+ "updatedAt": "2026-11-14T17:49:56Z"
+}

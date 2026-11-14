@@ -1,0 +1,92 @@
+{
+ "label": "JAXA SLIM",
+ "agency": "JAXA",
+ "mission": "SLIM",
+ "fields": {
+  "arrayPowerW": {
+   "value": null,
+   "unit": "W",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "panelAreaM2": {
+   "value": null,
+   "unit": "m2",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "cellEfficiency": {
+   "value": null,
+   "unit": "fraction",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "batteryWh": {
+   "value": null,
+   "unit": "Wh",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "batteryAh": {
+   "value": null,
+   "unit": "Ah",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "busV": {
+   "value": null,
+   "unit": "V",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "baseLoadW": {
+   "value": null,
+   "unit": "W",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "commsLoadW": {
+   "value": null,
+   "unit": "W",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "designLifeHours": {
+   "value": null,
+   "unit": "h",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  }
+ },
+ "facts": [
+  {
+   "text": "Power hardware: a lightweight 'SUS laminated battery' and a 'thin-film solar cell' (first adoption in Japan for curved surfaces) (JAXA).",
+   "sourceIdx": 0
+  },
+  {
+   "text": "'SLIM was therefore not designed to stay active through the night.' (JAXA)",
+   "sourceIdx": 0
+  },
+  {
+   "text": "Array power and battery capacity are unsourced.",
+   "sourceIdx": null
+  }
+ ],
+ "sources": [
+  {
+   "label": "JAXA SLIM project review briefing, Dec 2024",
+   "url": "https://www.isas.jaxa.jp/en/topics/files/SLIM-press-briefing-20241226.pdf",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ]
+}

@@ -1,0 +1,36 @@
+{
+ "kind": "heritage-buffer",
+ "ruleId": "nasa2011-dl-boundary",
+ "name": "Surveyor 7 (Tycho): 2.0 km descent/landing boundary",
+ "siteId": "surveyor-7",
+ "geometry": {
+  "type": "Circle",
+  "center": {
+   "latDeg": -40.9812,
+   "lonDeg": -11.5127
+  },
+  "radiusKm": 2.0
+ },
+ "rationale": "NASA 2011 §A1-3: a descent/landing boundary 'extending to a 2.0 km radial distance from the site where no overflight of a landed spacecraft may occur' (§A2-2). Touchdown targeting must stay at least 2.0 km or 3-sigma of the landing dispersion, whichever is greater (§A2-3). The NASA 2011 recommendations cover U.S. Government artifacts only. The One Small Step Act (Pub. L. 116-275) makes them a condition of NASA contracts; neither it nor the Artemis Accords sets distances.",
+ "sources": [
+  {
+   "label": "NASA (2011, Rev A 28 Oct 2011), Recommendations to Space-Faring Entities: How to Protect and Preserve the Historic and Scientific Value of U.S. Government Lunar Artifacts",
+   "url": "https://www.nasa.gov/pdf/617743main_NASA-USG_LUNAR_HISTORIC_SITES_RevA-508.pdf",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "One Small Step to Protect Human Heritage in Space Act, Pub. L. 116-275 (31 Dec 2020)",
+   "url": "https://www.govinfo.gov/content/pkg/PLAW-116publ275/html/PLAW-116publ275.htm",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ],
+ "needsData": false,
+ "contextRings": [
+  {
+   "radiusKm": 1.5,
+   "label": "Apollo LM rock-ejecta range: rocks 'impacted the lunar surface up to 1.5 km from the LM' (NASA 2011 §A2-3 rationale)"
+  }
+ ]
+}

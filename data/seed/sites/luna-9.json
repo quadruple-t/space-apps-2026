@@ -1,0 +1,42 @@
+{
+ "name": "Luna 9",
+ "family": "luna",
+ "siteKind": "landing",
+ "country": "USSR",
+ "agency": "Soviet space program",
+ "mission": "Luna 9",
+ "landingTimeUtc": "1966-02-03T18:44:52Z",
+ "landingTimePrecision": "second",
+ "outcome": "success",
+ "outcomeDetail": null,
+ "coordinates": {
+  "latDeg": 7.08,
+  "lonDeg": -64.37
+ },
+ "latDeg": 7.08,
+ "lonDeg": -64.37,
+ "coordsVerified": false,
+ "coordsFrame": "unknown",
+ "coordsUncertaintyM": null,
+ "coordsAsPublished": null,
+ "representativePoint": null,
+ "chapterId": null,
+ "blurb": "First soft landing on the Moon. Its exact position has never been located in LROC images, so this Soviet-era coordinate may be off by kilometres.",
+ "sources": [
+  {
+   "label": "NSSDCA, Soviet lunar missions",
+   "url": "https://nssdc.gsfc.nasa.gov/planetary/lunar/lunarussr.html",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ],
+ "terrainSummary": {
+  "hasMask": true,
+  "slope100mDeg": 6.61,
+  "nearestPsrKm": null,
+  "nearestColdTrapKm": null,
+  "insidePsr": null
+ },
+ "notes": [],
+ "updatedAt": "2026-11-14T17:31:42Z"
+}

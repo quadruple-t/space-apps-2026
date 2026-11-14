@@ -1,0 +1,355 @@
+{
+  "_note": "Curated site catalog (prompt section 11.1; values from docs/research/sites.md and power-costs-outcomes.md, retrieved 2026-11-14). Frame: MOON_ME (LROC) unless noted. Sources are keys into refs.json. 10_sites.py cross-checks every site that has lrocObjectId against the LROC anthropogenic shapefile (updated 2026-08-14) and fails if a verified site moves more than 50 m, unless coordsFromShapefile is true (explicit override: the shapefile gives more decimals). Landing times are UTC; date-precision times are stored as a bare ISO date.",
+  "noLandingCheck": {
+    "checkedThrough": "2026-11-14",
+    "result": "No lunar landing attempt found between 26 Oct 2026 and 14 Nov 2026. Blue Ghost Mission 2 and IM-3 are listed as slipped to 2027.",
+    "sources": ["spaceReview5344"]
+  },
+  "sites": [
+    {
+      "id": "apollo-11-tranquility", "name": "Apollo 11 (Tranquility Base)", "family": "apollo", "siteKind": "landing",
+      "country": "USA", "agency": "NASA", "mission": "Apollo 11",
+      "landingTimeUtc": "1969-07-20T20:17:40Z", "landingTimePrecision": "second", "outcome": "success",
+      "outcomeDetail": null,
+      "coordinates": {"latDeg": 0.67416, "lonDeg": 23.47314}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 0.3,
+      "coordsAsPublished": {"latDeg": 0.67408, "lonDeg": 23.47297, "source": "sp4029A11"},
+      "representativePoint": null, "chapterId": "ch1-first-landing",
+      "blurb": "Landed with the Sun about 10° above the horizon, inside a deliberate 5°-14° window so crater shadows showed the hazards. Also Shadowline's validation site.",
+      "timeNote": "Contact Light 20:17:40 UTC (GET 102:45:40); Mission Report touchdown GET 102:45:39.9, given by SP-4029 as 20:17:39 GMT.",
+      "sources": ["lroc2016", "nssdcaA11", "sp4029A11"], "lrocObjectId": "A11_LM"
+    },
+    {
+      "id": "apollo-12-oceanus-procellarum", "name": "Apollo 12 (Oceanus Procellarum)", "family": "apollo", "siteKind": "landing",
+      "country": "USA", "agency": "NASA", "mission": "Apollo 12",
+      "landingTimeUtc": "1969-11-19T06:54:35Z", "landingTimePrecision": "second", "outcome": "success", "outcomeDetail": null,
+      "coordinates": {"latDeg": -3.0128, "lonDeg": -23.4219}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 2.2,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": null,
+      "blurb": "The lowest Sun of any Apollo landing (about 5° in the ALSJ reconstruction), next to Surveyor 3.",
+      "sources": ["lroc2016", "nssdcaA12", "nssdcaSites"], "lrocObjectId": "A12_LM"
+    },
+    {
+      "id": "apollo-14-fra-mauro", "name": "Apollo 14 (Fra Mauro)", "family": "apollo", "siteKind": "landing",
+      "country": "USA", "agency": "NASA", "mission": "Apollo 14",
+      "landingTimeUtc": "1971-02-05T09:18:11Z", "landingTimePrecision": "second", "outcome": "success", "outcomeDetail": null,
+      "coordinates": {"latDeg": -3.64589, "lonDeg": -17.47194}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 0.4,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": null,
+      "blurb": "Crewed landing in the Fra Mauro highlands.",
+      "sources": ["lroc2016", "nssdcaA14"], "lrocObjectId": "A14_LM"
+    },
+    {
+      "id": "apollo-15-hadley-apennine", "name": "Apollo 15 (Hadley-Apennine)", "family": "apollo", "siteKind": "landing",
+      "country": "USA", "agency": "NASA", "mission": "Apollo 15",
+      "landingTimeUtc": "1971-07-30T22:16:29Z", "landingTimePrecision": "second", "outcome": "success", "outcomeDetail": null,
+      "coordinates": {"latDeg": 26.13239, "lonDeg": 3.6333}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 1.0,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": null,
+      "blurb": "First J-mission, landed between Hadley Rille and the Apennine mountains.",
+      "sources": ["lroc2016", "nssdcaA15", "alsjEarthSun"], "lrocObjectId": "A15_LM"
+    },
+    {
+      "id": "apollo-16-descartes", "name": "Apollo 16 (Descartes Highlands)", "family": "apollo", "siteKind": "landing",
+      "country": "USA", "agency": "NASA", "mission": "Apollo 16",
+      "landingTimeUtc": "1972-04-21T02:23:35Z", "landingTimePrecision": "second", "outcome": "success", "outcomeDetail": null,
+      "coordinates": {"latDeg": -8.9734, "lonDeg": 15.5011}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 3.0,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": null,
+      "blurb": "The only Apollo landing in the central highlands.",
+      "sources": ["lroc2016", "nssdcaSites", "nssdcaA16"], "lrocObjectId": "A16_LM"
+    },
+    {
+      "id": "apollo-17-taurus-littrow", "name": "Apollo 17 (Taurus-Littrow)", "family": "apollo", "siteKind": "landing",
+      "country": "USA", "agency": "NASA", "mission": "Apollo 17",
+      "landingTimeUtc": "1972-12-11T19:54:57Z", "landingTimePrecision": "second", "outcome": "success", "outcomeDetail": null,
+      "coordinates": {"latDeg": 20.1911, "lonDeg": 30.7723}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 3.5,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": "ch1-first-landing",
+      "blurb": "The last crewed landing, in a valley ringed by massifs that shape its horizon.",
+      "timeNote": "NSSDCA gives 19:54:57; the ALSJ table gives 19:54:58.",
+      "sources": ["lroc2016", "nssdcaA17", "alsjEarthSun"], "lrocObjectId": "A17_LM"
+    },
+    {
+      "id": "surveyor-1", "name": "Surveyor 1", "family": "surveyor", "siteKind": "landing",
+      "country": "USA", "agency": "NASA/JPL", "mission": "Surveyor 1",
+      "landingTimeUtc": "1966-06-02T06:17:36Z", "landingTimePrecision": "second", "outcome": "success", "outcomeDetail": null,
+      "coordinates": {"latDeg": -2.4745, "lonDeg": -43.3398}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 5.6,
+      "coordsAsPublished": {"latDeg": -2.45, "lonDeg": -43.21, "source": "nssdcaSurveyor"},
+      "representativePoint": null, "chapterId": null,
+      "blurb": "First US soft landing on the Moon.",
+      "sources": ["lroc2016", "nssdcaSurveyor"], "lrocObjectId": "Surveyor1"
+    },
+    {
+      "id": "surveyor-3", "name": "Surveyor 3", "family": "surveyor", "siteKind": "landing",
+      "country": "USA", "agency": "NASA/JPL", "mission": "Surveyor 3",
+      "landingTimeUtc": "1967-04-20T00:04:53Z", "landingTimePrecision": "second", "outcome": "success", "outcomeDetail": null,
+      "coordinates": {"latDeg": -3.0162, "lonDeg": -23.418}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 2.6,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": null,
+      "blurb": "Apollo 12 landed 155 m away; the sandblasting it received is the basis for today's landing stand-off rules.",
+      "sources": ["lroc2016", "nssdcaSurveyor", "nasa2011Heritage"], "lrocObjectId": "Surveyor3"
+    },
+    {
+      "id": "surveyor-5", "name": "Surveyor 5", "family": "surveyor", "siteKind": "landing",
+      "country": "USA", "agency": "NASA/JPL", "mission": "Surveyor 5",
+      "landingTimeUtc": "1967-09-11T00:46:44Z", "landingTimePrecision": "second", "outcome": "success", "outcomeDetail": null,
+      "coordinates": {"latDeg": 1.4551, "lonDeg": 23.1943}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 11.9,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": null,
+      "blurb": "Robotic lander in Mare Tranquillitatis, about 25 km from Tranquility Base.",
+      "sources": ["lroc2016", "nssdcaSurveyor"], "lrocObjectId": "Surveyor5"
+    },
+    {
+      "id": "surveyor-6", "name": "Surveyor 6", "family": "surveyor", "siteKind": "landing",
+      "country": "USA", "agency": "NASA/JPL", "mission": "Surveyor 6",
+      "landingTimeUtc": "1967-11-10T01:01:06Z", "landingTimePrecision": "second", "outcome": "success", "outcomeDetail": null,
+      "coordinates": {"latDeg": 0.4742, "lonDeg": -1.4275}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 6.7,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": null,
+      "blurb": "Made the first lunar 'hop', relaunching its engines to move a few metres.",
+      "sources": ["lroc2016", "nssdcaSurveyor"], "lrocObjectId": "Surveyor6"
+    },
+    {
+      "id": "surveyor-7", "name": "Surveyor 7 (Tycho)", "family": "surveyor", "siteKind": "landing",
+      "country": "USA", "agency": "NASA/JPL", "mission": "Surveyor 7",
+      "landingTimeUtc": "1968-01-10T01:05:36Z", "landingTimePrecision": "second", "outcome": "success", "outcomeDetail": null,
+      "coordinates": {"latDeg": -40.9812, "lonDeg": -11.5127}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 3.5,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": null,
+      "blurb": "Landed on the north rim of Tycho, the only Surveyor in the highlands.",
+      "sources": ["lroc2016", "nssdcaSurveyor"], "lrocObjectId": "Surveyor7"
+    },
+    {
+      "id": "luna-9", "name": "Luna 9", "family": "luna", "siteKind": "landing",
+      "country": "USSR", "agency": "Soviet space program", "mission": "Luna 9",
+      "landingTimeUtc": "1966-02-03T18:44:52Z", "landingTimePrecision": "second", "outcome": "success", "outcomeDetail": null,
+      "coordinates": {"latDeg": 7.08, "lonDeg": -64.37}, "coordsVerified": false, "coordsFrame": "unknown", "coordsUncertaintyM": null,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": null,
+      "blurb": "First soft landing on the Moon. Its exact position has never been located in LROC images, so this Soviet-era coordinate may be off by kilometres.",
+      "sources": ["nssdcaUssr"], "lrocObjectId": null
+    },
+    {
+      "id": "luna-16", "name": "Luna 16", "family": "luna", "siteKind": "landing",
+      "country": "USSR", "agency": "Soviet space program", "mission": "Luna 16",
+      "landingTimeUtc": "1970-09-20T05:18:00Z", "landingTimePrecision": "minute", "outcome": "success", "outcomeDetail": null,
+      "coordinates": {"latDeg": -0.5137, "lonDeg": 56.3638}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 3.7,
+      "coordsAsPublished": {"latDeg": -0.68, "lonDeg": 56.3, "source": "nssdcaUssr"},
+      "representativePoint": null, "chapterId": null,
+      "blurb": "First robotic sample return.",
+      "sources": ["lroc2016", "nssdcaUssr"], "lrocObjectId": "Luna16"
+    },
+    {
+      "id": "luna-17-lunokhod-1", "name": "Luna 17 (Lunokhod 1 lander)", "family": "luna", "siteKind": "landing",
+      "country": "USSR", "agency": "Soviet space program", "mission": "Luna 17",
+      "landingTimeUtc": "1970-11-17T03:47:00Z", "landingTimePrecision": "minute", "outcome": "success", "outcomeDetail": null,
+      "coordinates": {"latDeg": 38.23764, "lonDeg": -35.00163}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 0.5,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": null,
+      "blurb": "Delivered Lunokhod 1, the first rover on another world.",
+      "sources": ["lroc2016", "nssdcaUssr"], "lrocObjectId": "Luna17"
+    },
+    {
+      "id": "lunokhod-1-final", "name": "Lunokhod 1 (final position)", "family": "luna", "siteKind": "rover-final",
+      "country": "USSR", "agency": "Soviet space program", "mission": "Luna 17",
+      "landingTimeUtc": null, "landingTimePrecision": null, "outcome": "success", "outcomeDetail": null,
+      "coordinates": {"latDeg": 38.315, "lonDeg": -35.0081}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 3.8,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": null,
+      "blurb": "Where Lunokhod 1 ended its traverse, not a landing point.",
+      "sources": ["lroc2016"], "lrocObjectId": "Lunokhod1"
+    },
+    {
+      "id": "luna-20", "name": "Luna 20", "family": "luna", "siteKind": "landing",
+      "country": "USSR", "agency": "Soviet space program", "mission": "Luna 20",
+      "landingTimeUtc": "1972-02-21T19:19:00Z", "landingTimePrecision": "minute", "outcome": "success", "outcomeDetail": null,
+      "coordinates": {"latDeg": 3.7863, "lonDeg": 56.6242}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 4.3,
+      "coordsAsPublished": {"latDeg": 3.57, "lonDeg": 56.5, "source": "nssdcaUssr"},
+      "representativePoint": null, "chapterId": null,
+      "blurb": "Highland sample return; its Soviet-era published position is 7.6 km from where LROC found it.",
+      "sources": ["lroc2016", "nssdcaUssr"], "lrocObjectId": "Luna20"
+    },
+    {
+      "id": "luna-21-lunokhod-2", "name": "Luna 21 (Lunokhod 2 lander)", "family": "luna", "siteKind": "landing",
+      "country": "USSR", "agency": "Soviet space program", "mission": "Luna 21",
+      "landingTimeUtc": "1973-01-15T23:35:00Z", "landingTimePrecision": "minute", "outcome": "success", "outcomeDetail": null,
+      "coordinates": {"latDeg": 25.9994, "lonDeg": 30.4076}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 13.4,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": null,
+      "blurb": "Delivered Lunokhod 2 into Le Monnier crater.",
+      "sources": ["lroc2016", "nssdcaUssr"], "lrocObjectId": "Luna21"
+    },
+    {
+      "id": "lunokhod-2-final", "name": "Lunokhod 2 (final position)", "family": "luna", "siteKind": "rover-final",
+      "country": "USSR", "agency": "Soviet space program", "mission": "Luna 21",
+      "landingTimeUtc": null, "landingTimePrecision": null, "outcome": "success", "outcomeDetail": null,
+      "coordinates": {"latDeg": 25.8323, "lonDeg": 30.9222}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 7.5,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": null,
+      "blurb": "Where Lunokhod 2 ended its traverse, not a landing point.",
+      "sources": ["lroc2016"], "lrocObjectId": "Lunokhod2"
+    },
+    {
+      "id": "luna-23", "name": "Luna 23", "family": "luna", "siteKind": "landing",
+      "country": "USSR", "agency": "Soviet space program", "mission": "Luna 23",
+      "landingTimeUtc": null, "landingTimePrecision": null, "outcome": "partial",
+      "outcomeDetail": {"summary": "Landed damaged and returned no sample.", "causeClass": "unknown", "sources": ["lroc2016"]},
+      "coordinates": {"latDeg": 12.6667, "lonDeg": 62.1511}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 3.0,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": null,
+      "blurb": "Landed damaged in Mare Crisium, about 6 km from where Luna 24 later succeeded.",
+      "sources": ["lroc2016"], "lrocObjectId": "Luna23"
+    },
+    {
+      "id": "luna-24-mare-crisium", "name": "Luna 24 (Mare Crisium)", "family": "luna", "siteKind": "landing",
+      "country": "USSR", "agency": "Soviet space program", "mission": "Luna 24",
+      "landingTimeUtc": "1976-08-18T02:00:00Z", "landingTimePrecision": "minute", "outcome": "success", "outcomeDetail": null,
+      "coordinates": {"latDeg": 12.7142, "lonDeg": 62.2129}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 3.7,
+      "coordsAsPublished": {"latDeg": 12.75, "lonDeg": 62.2, "source": "nssdcaUssr"},
+      "representativePoint": null, "chapterId": null,
+      "blurb": "Robotic sample return from an equatorial mare; the last landing for 37 years.",
+      "sources": ["lroc2016", "nssdcaUssr"], "lrocObjectId": "Luna24"
+    },
+    {
+      "id": "luna-25-impact", "name": "Luna 25 (impact crater)", "family": "luna", "siteKind": "impact",
+      "country": "Russia", "agency": "Roscosmos", "mission": "Luna 25",
+      "landingTimeUtc": "2023-08-19T11:58:00Z", "landingTimePrecision": "minute", "outcome": "failure",
+      "outcomeDetail": {"summary": "Crashed during a pre-landing orbit burn: the engine fired for 127 s instead of 84 s. LROC calls this crater 'likely' Luna 25's; the intended site was about 424 km away.", "causeClass": "propulsion-burn", "sources": ["spacepolicyLuna25", "lroc1311"]},
+      "coordinates": {"latDeg": -57.865, "lonDeg": 61.36}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 40,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": null,
+      "blurb": "Russia's first lunar lander since 1976, lost before its landing attempt.",
+      "sources": ["lroc1311", "spacepolicyLuna25"], "lrocObjectId": "Luna25"
+    },
+    {
+      "id": "change-3", "name": "Chang'e-3 (Mare Imbrium)", "family": "change", "siteKind": "landing",
+      "country": "China", "agency": "CNSA", "mission": "Chang'e-3",
+      "landingTimeUtc": "2013-12-14T13:11:00Z", "landingTimePrecision": "approx", "outcome": "success", "outcomeDetail": null,
+      "coordinates": {"latDeg": 44.1214, "lonDeg": -19.5117}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 9.1,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": null,
+      "blurb": "China's first lunar landing, with the Yutu rover.",
+      "timeNote": "Xinhua: powered descent began 'about 21:00' Beijing time and touchdown came 'about 12 minutes later' (about 13:11-13:12 UTC).",
+      "sources": ["lroc2016", "xinhuaCe3"], "lrocObjectId": "ChangE3"
+    },
+    {
+      "id": "change-4-von-karman", "name": "Chang'e-4 (Von Kármán crater)", "family": "change", "siteKind": "landing",
+      "country": "China", "agency": "CNSA", "mission": "Chang'e-4",
+      "landingTimeUtc": "2019-01-03T02:26:00Z", "landingTimePrecision": "minute", "outcome": "success", "outcomeDetail": null,
+      "coordinates": {"latDeg": -45.4561, "lonDeg": 177.5885}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 3,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": "ch2-robotic-explorer",
+      "blurb": "First landing on the far side, where Earth never rises above the horizon, so direct-to-Earth radio is impossible.",
+      "sources": ["lroc1100", "planetaryCe4"], "lrocObjectId": "ChangE4"
+    },
+    {
+      "id": "change-5", "name": "Chang'e-5 (Oceanus Procellarum)", "family": "change", "siteKind": "landing",
+      "country": "China", "agency": "CNSA", "mission": "Chang'e-5",
+      "landingTimeUtc": "2020-12-01T15:11:00Z", "landingTimePrecision": "minute", "outcome": "success", "outcomeDetail": null,
+      "coordinates": {"latDeg": 43.0576, "lonDeg": -51.9161}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 20,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": null,
+      "blurb": "Sample return from young mare basalts.",
+      "sources": ["lroc1172"], "lrocObjectId": "ChangE5"
+    },
+    {
+      "id": "change-6-apollo-basin", "name": "Chang'e-6 (Apollo basin)", "family": "change", "siteKind": "landing",
+      "country": "China", "agency": "CNSA", "mission": "Chang'e-6",
+      "landingTimeUtc": "2024-06-01T22:23:00Z", "landingTimePrecision": "minute", "outcome": "success", "outcomeDetail": null,
+      "coordinates": {"latDeg": -41.6385, "lonDeg": -153.9852}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 30,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": null,
+      "blurb": "First sample return from the far side.",
+      "sources": ["lroc1374", "spacepolicyCe6"], "lrocObjectId": "ChangE6"
+    },
+    {
+      "id": "beresheet-impact", "name": "Beresheet (impact site)", "family": "commercial", "siteKind": "impact",
+      "country": "Israel", "agency": "SpaceIL / IAI", "mission": "Beresheet",
+      "landingTimeUtc": "2019-04-11", "landingTimePrecision": "date", "outcome": "failure",
+      "outcomeDetail": {"summary": "An inertial measurement unit fault, then a command sent to reset it, led to main-engine shutdown during descent.", "causeClass": "hardware-command", "sources": ["planetaryBeresheet"]},
+      "coordinates": {"latDeg": 32.5956, "lonDeg": 19.3496}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 20,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": null,
+      "blurb": "The first privately funded lunar landing attempt.",
+      "sources": ["lroc1101", "planetaryBeresheet"], "lrocObjectId": "Beresheet"
+    },
+    {
+      "id": "chandrayaan-2-vikram", "name": "Chandrayaan-2 Vikram (impact site)", "family": "chandrayaan", "siteKind": "impact",
+      "country": "India", "agency": "ISRO", "mission": "Chandrayaan-2",
+      "landingTimeUtc": "2019-09-06", "landingTimePrecision": "date", "outcome": "failure",
+      "outcomeDetail": {"summary": "Descent-guidance failure: in the second descent phase 'the reduction in velocity was more than the designed value', so the fine-braking phase started outside its design conditions and Vikram hard-landed within 500 m of the designated site. ISRO cites neither the site nor the date.", "causeClass": "gnc-braking", "sources": ["pib1592495", "pib1945483"]},
+      "coordinates": {"latDeg": -70.881, "lonDeg": 22.784}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": null,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": "ch2-robotic-explorer",
+      "blurb": "Lost in final descent near the south pole because of braking performance, not lighting or site choice.",
+      "timeNote": "Powered descent began 7 Sep 2019 IST (6 Sep UTC). The crash time is unsourced.",
+      "sources": ["lroc1131", "nasaVikram", "pib1592495"], "lrocObjectId": "Vikram1"
+    },
+    {
+      "id": "chandrayaan-3-shiv-shakti", "name": "Chandrayaan-3 (Statio Shiv Shakti)", "family": "chandrayaan", "siteKind": "landing",
+      "country": "India", "agency": "ISRO", "mission": "Chandrayaan-3",
+      "landingTimeUtc": "2023-08-23", "landingTimePrecision": "date", "outcome": "success",
+      "outcomeDetail": {"summary": "Soft-landed with the Pragyan rover. Designed for one lunar day (about 14 Earth days); the rover and lander were put to sleep on 2 and 4 Sep 2023 and never answered again.", "causeClass": "none", "sources": ["isroAug2023", "isroCh3Details", "tribuneCh3Sleep"]},
+      "coordinates": {"latDeg": -69.3741, "lonDeg": 32.32}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 50,
+      "coordsAsPublished": {"latDeg": -69.367621, "lonDeg": 32.348126, "source": "isroCh3Details", "note": "ISRO's planned prime landing site, 359 m from where Vikram actually landed"},
+      "representativePoint": null, "chapterId": "ch2-robotic-explorer",
+      "blurb": "Solar-powered and built for one lunar day; it went to sleep as night fell and never woke.",
+      "timeNote": "ISRO's pre-landing estimate: powered descent 'around 1745 Hrs. IST'. The exact touchdown time is unsourced from a primary.",
+      "sources": ["lroc1314", "isroCh3Details", "isroCh3"], "lrocObjectId": "Vikram2", "coordsFromShapefile": true
+    },
+    {
+      "id": "hakuto-r-m1-impact", "name": "HAKUTO-R Mission 1 (probable impact)", "family": "commercial", "siteKind": "impact",
+      "country": "Japan", "agency": "ispace", "mission": "HAKUTO-R Mission 1",
+      "landingTimeUtc": "2023-04-25T16:40:00Z", "landingTimePrecision": "approx", "outcome": "failure",
+      "outcomeDetail": {"summary": "After crossing a roughly 3 km crater rim, the lander's software rejected its altitude data. A landing-site change made after critical design review had not been carried into the simulations of the navigation route.", "causeClass": "terrain-software", "sources": ["ispaceM1"]},
+      "coordinates": {"latDeg": 47.581, "lonDeg": 44.094}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": null,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": null,
+      "blurb": "A crater rim on an unsimulated route confused the lander's altimetry: a real case of terrain on the approach path mattering.",
+      "timeNote": "LROC: 'moments before the touchdown on 25 April at 12:40 p.m. EDT' (16:40 UTC).",
+      "sources": ["lroc1302", "ispaceM1"], "lrocObjectId": "HakutoR1"
+    },
+    {
+      "id": "slim-shioli", "name": "SLIM (near Shioli crater)", "family": "slim", "siteKind": "landing",
+      "country": "Japan", "agency": "JAXA", "mission": "SLIM",
+      "landingTimeUtc": "2024-01-19T15:20:00Z", "landingTimePrecision": "minute", "outcome": "partial",
+      "outcomeDetail": {"summary": "One main-engine nozzle separated at about 50 m altitude and the lander touched down in an unplanned attitude about 55 m from target. Its solar cells faced west, so it made no power until the Sun's direction changed; it later survived three lunar nights.", "causeClass": "hardware-propulsion", "sources": ["jaxaSlimReview", "jaxa20240125", "jaxa20240826"]},
+      "coordinates": {"latDeg": -13.316, "lonDeg": 25.251}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": null,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": "ch2-robotic-explorer",
+      "blurb": "A pinpoint landing in the wrong attitude: its panels faced away from the Sun until the Sun moved.",
+      "sources": ["lroc1358", "jaxa20240125", "jaxaSlimReview"], "lrocObjectId": "SLIM"
+    },
+    {
+      "id": "im-1-odysseus", "name": "IM-1 Odysseus (near Malapert A)", "family": "clps", "siteKind": "landing",
+      "country": "USA", "agency": "Intuitive Machines / NASA CLPS", "mission": "IM-1",
+      "landingTimeUtc": "2024-02-22T23:24:00Z", "landingTimePrecision": "minute", "outcome": "partial",
+      "outcomeDetail": {"summary": "The laser rangefinders could not be used because a manual safety switch had been left on, and the software patch to use NASA's NDL instead had errors. Odysseus came down fast on a 12° slope, broke at least one leg and came to rest tilted about 30°. It operated about seven Earth days, until the Sun left its one illuminated panel.", "causeClass": "procedural-sensor", "sources": ["nasaNdlIm1", "spacenewsIm1", "nasaIm1Science"]},
+      "coordinates": {"latDeg": -80.13, "lonDeg": 1.44}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": 150,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": "ch2-robotic-explorer",
+      "blurb": "Tipped over near the south pole, so a single sunlit panel set how long it could live.",
+      "sources": ["nasaLroIm1", "nasaIm1Science"], "lrocObjectId": "IM1", "coordsFromShapefile": true
+    },
+    {
+      "id": "blue-ghost-m1", "name": "Blue Ghost Mission 1 (Mare Crisium)", "family": "clps", "siteKind": "landing",
+      "country": "USA", "agency": "Firefly Aerospace / NASA CLPS", "mission": "Blue Ghost Mission 1",
+      "landingTimeUtc": "2025-03-02T08:34:00Z", "landingTimePrecision": "minute", "outcome": "success", "outcomeDetail": null,
+      "coordinates": {"latDeg": 18.5623, "lonDeg": 61.8103}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": null,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": null,
+      "blurb": "Landed upright and worked through a full lunar day plus about five hours into the night.",
+      "sources": ["lroc1407", "nasaBlueGhost", "fireflyBgm1Ops"], "lrocObjectId": "BlueGhost1"
+    },
+    {
+      "id": "im-2-athena", "name": "IM-2 Athena (Mons Mouton area)", "family": "clps", "siteKind": "landing",
+      "country": "USA", "agency": "Intuitive Machines / NASA CLPS", "mission": "IM-2",
+      "landingTimeUtc": "2025-03-06T17:30:00Z", "landingTimePrecision": "approx", "outcome": "partial",
+      "outcomeDetail": {"summary": "Landed on its side in a shadowed crater about 20 m across, after 'noisy' laser-altimeter data may have contributed. With the Sun's direction, panel orientation and extreme cold in the crater, it could not recharge; operations ended in under 13 hours.", "causeClass": "nav-sensor+lighting-thermal", "sources": ["nasaIm2End", "spacenewsIm2", "lroc1408"]},
+      "coordinates": {"latDeg": -84.7906, "lonDeg": 29.1957}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": null,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": "ch2-robotic-explorer",
+      "blurb": "Came down in a shadowed crater and lost power within hours: where you end up decides whether you get power.",
+      "timeNote": "NASA: 'approximately 11:30 a.m. March 6' with no time zone; the same release uses CST elsewhere, giving about 17:30 UTC.",
+      "sources": ["lroc1408", "nasaIm2End"], "lrocObjectId": "IM2"
+    },
+    {
+      "id": "hakuto-r-m2-resilience-impact", "name": "HAKUTO-R Mission 2 RESILIENCE (impact site)", "family": "commercial", "siteKind": "impact",
+      "country": "Japan", "agency": "ispace", "mission": "HAKUTO-R Mission 2",
+      "landingTimeUtc": "2025-06-05T18:13:00Z", "landingTimePrecision": "minute", "outcome": "failure",
+      "outcomeDetail": {"summary": "Hard landing: the laser rangefinder's performance deteriorated, or was lower than expected, during descent.", "causeClass": "sensor-hardware", "sources": ["ispaceM2"]},
+      "coordinates": {"latDeg": 60.4445, "lonDeg": -4.588}, "coordsVerified": true, "coordsFrame": "MOON_ME", "coordsUncertaintyM": null,
+      "coordsAsPublished": null, "representativePoint": null, "chapterId": null,
+      "blurb": "ispace's second attempt, in Mare Frigoris.",
+      "sources": ["lroc1456", "ispaceM2"], "lrocObjectId": "HakutoR2"
+    }
+  ],
+  "artemisRegions": {
+    "_note": "Nine Artemis-era candidate regions (NASA, 28 Oct 2024, 'in no priority order'); quoted on NASA's Artemis IV page as the candidate regions for the first crewed landing. NASA has never published coordinates. Each region is about 15 x 15 km, within 6° of the pole (NASA 2022). representativePoint is NOT a region centroid; the UI must label it 'approximate region reference'.",
+    "commonSources": ["nasa2024Regions", "nasaArtemisIV", "nasa2022Regions", "nasa20260227"],
+    "regions": [
+      {"id": "artemis-peak-near-cabeus-b", "name": "Peak near Cabeus B", "point": {"latDeg": -82.26, "lonDeg": -54.58}, "method": "nearest named feature centre (NOT a region centroid): Cabeus B crater", "sources": ["gazCabeusB"]},
+      {"id": "artemis-haworth", "name": "Haworth", "point": {"latDeg": -86.764, "lonDeg": -22.78}, "method": "centre of the PGDA product-78 5 m DEM tile 'Haworth' (derived from the GeoTIFF header; NOT a region centroid)", "sources": ["pgda78", "pgda78Readme"], "pgda78Tile": "Haworth"},
+      {"id": "artemis-malapert-massif", "name": "Malapert Massif", "point": {"latDeg": -85.995, "lonDeg": -0.24}, "method": "centre of the PGDA product-78 5 m DEM tile 'Site23 Malapert massif' (NOT a region centroid)", "sources": ["pgda78", "pgda78Readme"], "pgda78Tile": "Site23"},
+      {"id": "artemis-mons-mouton-plateau", "name": "Mons Mouton Plateau", "point": {"latDeg": -84.6, "lonDeg": 31.0}, "method": "nearest named feature centre (NOT a region centroid): Mons Mouton, USGS Gazetteer feature 16070 (130 km mountain; the plateau region is on it)", "sources": ["gazMonsMouton"]},
+      {"id": "artemis-mons-mouton", "name": "Mons Mouton", "point": {"latDeg": -85.427, "lonDeg": 31.74}, "method": "centre of the PGDA product-78 5 m DEM tile 'Site20 Leibnitz beta plateau' (NOT a region centroid). NASA SVS 5074 confirms Mons Mouton was 'sometimes known informally as Leibnitz Beta'.", "sources": ["pgda78", "pgda78Readme", "svsMonsMouton"], "pgda78Tile": "Site20v2"},
+      {"id": "artemis-nobile-rim-1", "name": "Nobile Rim 1", "point": {"latDeg": -85.438, "lonDeg": 37.37}, "method": "centre of the PGDA product-78 5 m DEM tile 'Site06 Nobile rim 1' (NOT a region centroid)", "sources": ["pgda78", "pgda78Readme"], "pgda78Tile": "Site06"},
+      {"id": "artemis-nobile-rim-2", "name": "Nobile Rim 2", "point": {"latDeg": -83.954, "lonDeg": 58.82}, "method": "centre of the PGDA product-78 5 m DEM tile 'DM2 Nobile rim 2' (NOT a region centroid)", "sources": ["pgda78", "pgda78Readme"], "pgda78Tile": "DM2"},
+      {"id": "artemis-de-gerlache-rim-2", "name": "de Gerlache Rim 2", "point": {"latDeg": -88.48, "lonDeg": -88.34}, "method": "nearest named feature centre (NOT a region centroid): de Gerlache crater. The region is on the rim; the PGDA tile is ambiguous between Site11 and SL2.", "sources": ["gazDeGerlache"]},
+      {"id": "artemis-slater-plain", "name": "Slater Plain", "point": {"latDeg": -88.08, "lonDeg": 111.29}, "method": "nearest named feature centre (NOT a region centroid): Slater crater", "sources": ["gazSlater"]}
+    ]
+  }
+}

@@ -1,0 +1,109 @@
+{
+ "order": 3,
+ "title": "Lunar Base",
+ "era": "Artemis era",
+ "concept": "Ice, long-duration sunlight and survival",
+ "unlocksTool": "base-scoring",
+ "featuredSiteIds": [
+  "artemis-peak-near-cabeus-b",
+  "artemis-haworth",
+  "artemis-malapert-massif",
+  "artemis-mons-mouton-plateau",
+  "artemis-mons-mouton",
+  "artemis-nobile-rim-1",
+  "artemis-nobile-rim-2",
+  "artemis-de-gerlache-rim-2",
+  "artemis-slater-plain"
+ ],
+ "steps": [
+  {
+   "id": "ch3-s1",
+   "prompt": "Find a ridge that stays lit for the longest stretch.",
+   "focus": "sun-elevation",
+   "expects": "choice"
+  },
+  {
+   "id": "ch3-s2",
+   "prompt": "Now find the nearest cold trap. How far is it?",
+   "focus": "ice-access",
+   "expects": "slider"
+  },
+  {
+   "id": "ch3-s3",
+   "prompt": "Rank two candidate sites for a long-term base.",
+   "focus": "score",
+   "expects": "choice"
+  }
+ ],
+ "debrief": {
+  "headline": "A base needs light, cold traps nearby and a safe landing zone",
+  "whatHappened": "Long-term sites trade near-continuous sunlight on ridges against access to permanently shadowed cold traps, while keeping landing exhaust away from them. Cold traps are places cold enough for ice to survive (annual maximum below 110 K); that is not the same as detected ice.",
+  "realMission": "Artemis IV candidate regions (first crewed landing, planned 2028)",
+  "keyNumbers": [
+   {
+    "label": "Candidate regions",
+    "value": "continuous sunlight over a 6.5-day period; each about 15 x 15 km",
+    "sourceNote": "NASA, 19 Aug 2022 (13-region list).",
+    "sources": [
+     {
+      "label": "NASA, candidate regions for landing next Americans on the Moon (19 Aug 2022)",
+      "url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
+      "retrievedAt": "2026-11-14",
+      "tier": "A"
+     }
+    ]
+   },
+   {
+    "label": "Current regions",
+    "value": "nine",
+    "sourceNote": "NASA, 28 Oct 2024; quoted on the Artemis IV page.",
+    "sources": [
+     {
+      "label": "NASA, update on Artemis III Moon landing regions (28 Oct 2024)",
+      "url": "https://www.prnewswire.com/news-releases/nasa-provides-update-on-artemis-iii-moon-landing-regions-302288659.html",
+      "retrievedAt": "2026-11-14",
+      "tier": "A"
+     },
+     {
+      "label": "NASA, Artemis IV mission page",
+      "url": "https://www.nasa.gov/mission/artemis-iv/",
+      "retrievedAt": "2026-11-14",
+      "tier": "A"
+     }
+    ]
+   },
+   {
+    "label": "Landing slope limit",
+    "value": "below 10° over 100 m",
+    "sourceNote": "NASA Artemis HLS Update, 1 Aug 2024.",
+    "sources": [
+     {
+      "label": "NASA, Artemis Human Landing System Update (Dwyer Cianciolo, 1 Aug 2024; NTRS 20240009596)",
+      "url": "https://ntrs.nasa.gov/api/citations/20240009596/downloads/ArtemisHLSUpdate_2024.pdf",
+      "retrievedAt": "2026-11-14",
+      "tier": "A"
+     }
+    ]
+   },
+   {
+    "label": "Cold traps",
+    "value": "annual maximum below 110 K; surface ice seen in only about 3.5% of cold traps",
+    "sourceNote": "Diviner (Paige et al. 2010); Li et al. 2018.",
+    "sources": [
+     {
+      "label": "Diviner Polar Resource Product, south (Paige et al. 2010, Science, doi:10.1126/science.1187726; LRO-L-DLRE-5-PRP-V2.0)",
+      "url": "https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_prp/dlre_prp_south.tab",
+      "retrievedAt": "2026-11-14",
+      "tier": "A"
+     },
+     {
+      "label": "Li et al. 2018, PNAS 115(36), doi:10.1073/pnas.1802345115",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/6130389",
+      "retrievedAt": "2026-11-14",
+      "tier": "A"
+     }
+    ]
+   }
+  ]
+ }
+}

@@ -35,7 +35,7 @@ export function Navbar() {
         aria-label="Primary"
         className="mx-auto flex h-full max-w-[1320px] items-center justify-between gap-6 px-5 sm:px-8 lg:px-12"
       >
-        <Link href="/" aria-label="Shadowline home" className="rounded-sm">
+        <Link href="/" aria-label="Lunaris360 home" className="rounded-sm">
           <Logo />
         </Link>
 
@@ -82,7 +82,7 @@ export function Navbar() {
                 <Logo />
               </div>
               <SheetTitle className="sr-only">Navigation</SheetTitle>
-              <SheetDescription className="sr-only">Jump to a section or open a Shadowline experience.</SheetDescription>
+              <SheetDescription className="sr-only">Jump to a section or open a Lunaris360 experience.</SheetDescription>
               <ul className="flex flex-col px-3 py-4">
                 {NAV_LINKS.map((link) => (
                   <li key={link.href}>

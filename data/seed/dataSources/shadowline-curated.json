@@ -1,0 +1,17 @@
+{
+ "label": "Shadowline curated site, preset, fact and story tables",
+ "kind": "catalog",
+ "version": "2026-11-14",
+ "citation": "docs/research/*.md and docs/SOURCES.md",
+ "doi": null,
+ "url": null,
+ "license": null,
+ "usedFor": [
+  "sites",
+  "landerPresets",
+  "facts",
+  "storyChapters",
+  "missionProfiles"
+ ],
+ "retrievedAt": "2026-11-14"
+}

@@ -1,0 +1,33 @@
+{
+ "label": "Short landing",
+ "durationHours": 48,
+ "description": "Land, operate briefly, done. Sun angle at touchdown and Earth comms matter most.",
+ "weights": {
+  "sunlight": 0.3,
+  "earthComms": 0.3,
+  "thermalMargin": 0.2,
+  "batterySurvival": 0.0,
+  "iceAccess": 0.0,
+  "longSunlight": 0.0,
+  "hazardMargin": 0.2
+ },
+ "disqualifiers": [
+  "sun below horizon mask at landing time",
+  "Earth below horizon mask at landing time",
+  "landing slope (100 m) above hazardThresholds.landingSlopeMaxDeg"
+ ],
+ "hazardThresholds": {
+  "landingSlopeMaxDeg": 10,
+  "evaSlopeMaxDeg": 20,
+  "sources": [
+   {
+    "label": "NASA, Artemis Human Landing System Update (Dwyer Cianciolo, 1 Aug 2024; NTRS 20240009596)",
+    "url": "https://ntrs.nasa.gov/api/citations/20240009596/downloads/ArtemisHLSUpdate_2024.pdf",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   }
+  ]
+ },
+ "weightsBasis": "assumption",
+ "weightsNote": "Starting values chosen by the team; justified in docs/METHODS.md and tunable in Firestore without a redeploy."
+}

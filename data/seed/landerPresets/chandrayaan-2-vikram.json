@@ -1,0 +1,84 @@
+{
+ "label": "Chandrayaan-2 Vikram lander",
+ "agency": "ISRO",
+ "mission": "Chandrayaan-2",
+ "fields": {
+  "arrayPowerW": {
+   "value": 650,
+   "unit": "W",
+   "basis": "sourced",
+   "sourceIdx": 0,
+   "note": "ISRO: electric power generation '650 W'"
+  },
+  "panelAreaM2": {
+   "value": null,
+   "unit": "m2",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "cellEfficiency": {
+   "value": null,
+   "unit": "fraction",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "batteryWh": {
+   "value": null,
+   "unit": "Wh",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "batteryAh": {
+   "value": null,
+   "unit": "Ah",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "busV": {
+   "value": null,
+   "unit": "V",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "baseLoadW": {
+   "value": null,
+   "unit": "W",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "commsLoadW": {
+   "value": null,
+   "unit": "W",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "designLifeHours": {
+   "value": 336,
+   "unit": "h",
+   "basis": "derived",
+   "sourceIdx": 0,
+   "note": "ISRO: 'one lunar day, which is equivalent to about 14 Earth days'; 14 x 24 h"
+  }
+ },
+ "facts": [
+  {
+   "text": "Vikram mass 1,471 kg (ISRO).",
+   "sourceIdx": 0
+  }
+ ],
+ "sources": [
+  {
+   "label": "ISRO, Chandrayaan-2 spacecraft",
+   "url": "https://www.isro.gov.in/chandrayan_spacecraft.html",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ]
+}
