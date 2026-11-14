@@ -10,33 +10,10 @@ import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle, SheetTri
 import { LAUNCH_HREF, NAV_LINKS } from "@/data/site";
 import { cn } from "@/lib/utils";
 
-/** Highlights the landing-page section currently under the nav. */
-function useActiveSection(enabled: boolean) {
-  const [active, setActive] = useState<string | null>(null);
-  useEffect(() => {
-    if (!enabled) return;
-    const sections = NAV_LINKS.map((l) => (l.sectionId ? document.getElementById(l.sectionId) : null)).filter(
-      (el): el is HTMLElement => !!el,
-    );
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) setActive(e.target.id);
-        });
-      },
-      { rootMargin: "-45% 0px -50% 0px" },
-    );
-    sections.forEach((s) => observer.observe(s));
-    return () => observer.disconnect();
-  }, [enabled]);
-  return enabled ? active : null;
-}
-
 export function Navbar() {
   const pathname = usePathname();
   const isHome = pathname === "/";
   const [scrolled, setScrolled] = useState(false);
-  const active = useActiveSection(isHome);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -64,7 +41,7 @@ export function Navbar() {
 
         <ul className="hidden items-center gap-1 md:flex">
           {NAV_LINKS.map((link) => {
-            const isActive = active === link.sectionId;
+            const isActive = pathname === link.href;
             return (
               <li key={link.href}>
                 <Link
@@ -112,6 +89,7 @@ export function Navbar() {
                     <SheetClose asChild>
                       <Link
                         href={link.href}
+                        aria-current={pathname === link.href ? "page" : undefined}
                         className="flex h-12 items-center rounded-sm px-3 font-heading text-lg font-semibold uppercase tracking-wide text-bone [font-variation-settings:'wdth'_115] hover:bg-bone/5"
                       >
                         {link.label}

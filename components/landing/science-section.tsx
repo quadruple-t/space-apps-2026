@@ -7,11 +7,13 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { DATA_SOURCES } from "@/data/site";
 import { METHOD_STEPS, SCIENCE_TOPICS } from "@/data/science";
+import { ChapterTrail } from "./chapter-trail";
 
 export function ScienceSection() {
   return (
     <section id="how-it-works" aria-labelledby="science-title" className="relative border-t border-line py-24 sm:py-32">
       <PageContainer>
+        <ChapterTrail active="science" />
         <Reveal>
           <SectionHeading id="science-title" title="Built on real lunar data.">
             <p>
@@ -24,7 +26,7 @@ export function ScienceSection() {
         </Reveal>
 
         {/* Horizon-mask explainer */}
-        <Reveal className="mt-16 rounded-xl border border-line bg-charcoal/40 p-5 sm:p-8">
+        <Reveal className="mission-panel mt-16 border border-line bg-charcoal/40 p-5 sm:p-8">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
             <h3 className="type-heading text-xl text-bone sm:text-2xl">The horizon mask</h3>
             <p className="text-sm text-muted-foreground">One site, every direction, one line.</p>

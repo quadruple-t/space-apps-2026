@@ -11,14 +11,14 @@ export const SITE = {
   hackathon: "NASA Space Apps Challenge 2026",
 } as const;
 
-export type NavLink = { label: string; href: string; sectionId?: string };
+export type NavLink = { label: string; href: string };
 
-/** Primary nav — anchors resolve against the landing page from any route. */
+/** Primary navigation between the four main product areas. */
 export const NAV_LINKS: NavLink[] = [
-  { label: "Overview", href: "/#overview", sectionId: "overview" },
-  { label: "The Mission", href: "/#mission", sectionId: "mission" },
-  { label: "How It Works", href: "/#how-it-works", sectionId: "how-it-works" },
-  { label: "Explore", href: "/#explore", sectionId: "explore" },
+  { label: "Overview", href: "/" },
+  { label: "Mission Control", href: "/mission-control" },
+  { label: "Mission", href: "/mission" },
+  { label: "Explore", href: "/explore" },
 ];
 
 export const LAUNCH_HREF = "/explore";
@@ -107,9 +107,9 @@ export const FOOTER_LINKS = {
     { label: "Mission Comparison", href: "/compare" },
   ],
   project: [
-    { label: "Overview", href: "/#overview" },
-    { label: "The science", href: "/science" },
-    { label: "Data sources", href: "/science#data-sources" },
+    { label: "Overview", href: "/" },
+    { label: "Mission Control", href: "/mission-control" },
+    { label: "Data sources", href: "/mission-control#data-sources" },
   ],
   resources: [
     { label: "LOLA data (PDS)", href: "https://pds-geosciences.wustl.edu/missions/lro/lola.htm" },

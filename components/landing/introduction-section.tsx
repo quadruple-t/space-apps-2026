@@ -20,10 +20,10 @@ const STEPS = [
 
 export function IntroductionSection() {
   return (
-    <section id="mission" aria-labelledby="mission-title" className="relative border-t border-line py-24 sm:py-32">
+    <section id="overview-guide" aria-labelledby="mission-title" className="relative border-t border-line py-24 sm:py-32">
       <PageContainer>
         <Reveal>
-          <SectionHeading id="mission-title" title="See the mission from the surface.">
+          <SectionHeading id="mission-title" title="How to use Shadowline.">
             <p>
               Shadowline turns complex lunar environmental data into a place you can stand in. Instead of reading
               tables of angles, you look across the terrain from a candidate landing site and see the Sun, the

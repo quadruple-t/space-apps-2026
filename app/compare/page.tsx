@@ -92,7 +92,7 @@ export default function ComparePage() {
               Mission comparison is in development. No sites have been analysed, so every metric is empty by design.
             </DevelopmentNotice>
             <Button asChild size="lg" variant="outline">
-              <Link href="/science">How the metrics will be computed</Link>
+              <Link href="/mission-control">How the metrics will be computed</Link>
             </Button>
           </div>
         </PageContainer>
