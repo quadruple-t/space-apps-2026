@@ -64,9 +64,9 @@ export type OrbitVectors = { moon: VectorEntry[]; sun: VectorEntry[]; stepHours:
 /** Geocentric Moon and Sun positions over the mission (km, ecliptic). */
 export function useOrbitVectors(startIso: string, hours: number) {
   const stepHours = hours > 45 * 24 ? 6 : 1
-  // Pad by a day either side so interpolation and the trailing orbit trace have data.
-  const padded = new Date(Date.parse(startIso) - 24 * 3_600_000).toISOString()
-  const { start, stop } = window_(padded, hours + 48)
+  // A day past the end so the motion arrow (drawn ahead of the Moon) has data.
+  // No pad before the start: it would fall outside the prefetched window.
+  const { start, stop } = window_(startIso, hours + 24)
   const key = `${start},${stop},${stepHours}`
   return useFetched<OrbitVectors>(key, async () => {
     const base = { type: "VECTORS", start, stop, step: `${stepHours}h` }

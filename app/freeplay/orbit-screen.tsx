@@ -2,6 +2,7 @@
 
 import { List } from "lucide-react";
 import { ConditionsReadout } from "@/components/freeplay/conditions-readout";
+import { DailyGraphs, GraphTabs, PanelSettings } from "@/components/freeplay/graphs-panel";
 import { OrbitDiagram } from "@/components/freeplay/orbit-diagram";
 import { PresetsPanel } from "@/components/freeplay/presets-panel";
 import { TimeControls } from "@/components/freeplay/time-controls";
@@ -21,6 +22,7 @@ export function OrbitScreen() {
   const startIso = useFreeplay((s) => s.startIso);
   const durationHours = useFreeplay((s) => s.durationHours);
   const elapsedHours = useFreeplay((s) => s.elapsedHours);
+  const graphTab = useFreeplay((s) => s.graphTab);
   const tMs = currentTimeMs({ startIso, elapsedHours });
   const startMs = Date.parse(startIso);
 
@@ -31,9 +33,10 @@ export function OrbitScreen() {
   const now = samples?.length ? sampleAt(samples, index) : null;
 
   return <div className="grid h-full min-h-0 grid-cols-1 gap-2 overflow-y-auto p-2 md:grid-cols-[minmax(0,1fr)_minmax(360px,44%)] md:grid-rows-[minmax(0,1fr)_auto] md:overflow-hidden lg:grid-cols-[10.5rem_minmax(0,1fr)_minmax(380px,42%)]">
-    {/* Left sidebar: graph tabs (step 7) */}
-    <aside className="hud-panel hidden p-3 lg:block" aria-label="Graphs">
+    {/* Left sidebar: graph tabs */}
+    <aside className="hud-panel hidden flex-col gap-2 p-3 lg:flex" aria-label="Graphs">
       <h2 className="type-data text-[0.6rem] uppercase tracking-[0.16em] text-retro-purple">Graphs</h2>
+      <GraphTabs vertical />
     </aside>
 
     {/* Main: orbit diagram */}
@@ -44,17 +47,26 @@ export function OrbitScreen() {
         : <Status loading={vectors.loading} error={vectors.error} what="Moon and Sun positions" />}
     </section>
 
-    {/* Right: readouts + graphs */}
-    <section className="hud-panel flex min-h-0 flex-col gap-2 overflow-y-auto p-3 md:row-span-1" aria-label="Conditions and graphs">
-      {now && samples ? <ConditionsReadout samples={samples} index={index} sunEl={now.sunEl} earthEl={now.earthEl} />
-        : <Status loading={series.loading} error={series.error} what={`Sun and Earth angles at ${site.name}`} />}
-    </section>
+    {/* Right column (full height): readouts + graphs, compact presets at the bottom */}
+    <div className="flex min-h-0 flex-col gap-2 md:col-start-2 md:row-span-2 md:row-start-1 lg:col-start-3">
+      <section className="hud-panel flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-3" aria-label="Conditions and graphs">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="lg:hidden"><GraphTabs /></div>
+          <span className="type-data text-[0.56rem] text-muted-foreground">JPL Horizons{series.source ? ` · ${series.source}` : ""}</span>
+          <PanelSettings />
+        </div>
+        {now && samples ? <ConditionsReadout samples={samples} index={index} sunEl={now.sunEl} earthEl={now.earthEl} />
+          : <Status loading={series.loading} error={series.error} what={`Sun and Earth angles at ${site.name}`} />}
+        {graphTab === "daily"
+          ? samples && <DailyGraphs samples={samples} siteId={site.id} startMs={startMs} tMs={tMs} />
+          : <p className="text-xs text-muted-foreground">Yearly graphs</p>}
+      </section>
+      <PresetsPanel compact className="hidden max-h-[28%] shrink-0 md:flex" />
+    </div>
 
     {/* Bottom bar: time controls across sidebar + main */}
-    <div className="md:col-span-1 lg:col-span-2"><TimeControls /></div>
+    <div className="md:col-start-1 md:row-start-2 lg:col-span-2"><TimeControls /></div>
 
-    {/* Bottom-right: compact presets */}
-    <PresetsPanel compact className="hidden max-h-[30vh] md:flex" />
     <Sheet>
       <SheetTrigger asChild>
         <button type="button" className="flex items-center justify-center gap-1.5 rounded bg-retro-purple px-3 py-2 text-[0.62rem] font-semibold uppercase tracking-[0.1em] text-void md:hidden"><List size={14} />Presets</button>
