@@ -42,7 +42,7 @@
    "tier": "A"
   }
  ],
- "computedAt": "2026-11-14T18:04:29Z",
+ "computedAt": "2026-11-14T19:10:49Z",
  "pipelineVersion": "2026.11.14-1",
  "notes": [
   "North of 60°N SLDEM2015 has no coverage, so the near field uses LOLA LDEM_512 (gridded LOLA tracks, many interpolated pixels); its height error is an assumed 5 m.",

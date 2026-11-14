@@ -48,6 +48,9 @@ export function Freeplay() {
 
   const activeTerrain = useMemo(() => interpolateTerrain(SCAFFOLD_MOON_GRID, activeSite.latitudeDeg, activeSite.longitudeDeg), [activeSite.latitudeDeg, activeSite.longitudeDeg]);
   const environmentSite = useMemo(() => phase === "choose" ? site : activeSite, [phase, site, activeSite]);
+  const displayElevation = environmentSite.provenance === "scientific" && environmentSite.elevationMeters != null ? environmentSite.elevationMeters : activeTerrain.elevationMeters;
+  const displaySlope = environmentSite.provenance === "scientific" && environmentSite.slopeDeg != null ? environmentSite.slopeDeg : activeTerrain.slopeDeg;
+  const terrainLabel = environmentSite.provenance === "scientific" ? "LOLA DEM" : "Scaffold";
   const utcDay = timestamp.toISOString().slice(0, 10);
   const updateCelestial = useCallback(async (selectedSite: LunarSite, date: Date) => {
     const request = ++celestialRequest.current;
@@ -194,8 +197,8 @@ export function Freeplay() {
           <Readout label="Sun azimuth" value={celestial?`${celestial.sun.azimuthDeg.toFixed(1)}°`:"—"} tone="red"/>
           <Readout label="Earth elevation" value={celestial?angle(celestial.earth.elevationDeg):"—"} tone="blue"/>
           <Readout label="Earth azimuth" value={celestial?`${celestial.earth.azimuthDeg.toFixed(1)}°`:"—"} tone="blue"/>
-          <Readout label="Elevation · scaffold" value={`${Math.round(activeTerrain.elevationMeters).toLocaleString()} m`}/>
-          <Readout label="Slope · scaffold" value={`${activeTerrain.slopeDeg.toFixed(1)}°`}/>
+          <Readout label={`Elevation · ${terrainLabel}`} value={`${Math.round(displayElevation).toLocaleString()} m`}/>
+          <Readout label={`Slope · ${terrainLabel}`} value={`${displaySlope.toFixed(1)}°`}/>
         </div>
         <div className="mt-3 border-t border-line/80 pt-2 text-[0.58rem] text-muted-foreground">{dataError?"Science provider unavailable":`${metrics?.horizonSource ?? "Horizon pending"} · JPL Horizons ephemeris · rendered terrain is procedural`}</div>
       </section>
@@ -214,7 +217,7 @@ export function Freeplay() {
     {phase === "explore" && mobileTelemetryOpen && <div className="fixed inset-0 z-[45] grid place-items-center bg-void/65 px-4 py-8 backdrop-blur-sm xl:hidden" onMouseDown={(event)=>{if(event.target===event.currentTarget)setMobileTelemetryOpen(false);}}>
       <aside role="dialog" aria-label="Local lunar conditions" aria-modal="true" className="hud-panel w-[min(340px,calc(100vw-2rem))] space-y-3 p-4">
         <div className="flex items-center justify-between"><div><div className="type-data text-[0.58rem] uppercase tracking-[0.14em] text-retro-blue">Telemetry</div><h2 className="type-heading mt-1 text-sm text-bone">Local conditions</h2></div><button type="button" aria-label="Close telemetry" onClick={()=>setMobileTelemetryOpen(false)} className="grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><X size={15}/></button></div>
-        <div className="grid grid-cols-2 gap-1.5"><Readout label="Sun elevation" value={celestial?angle(celestial.sun.elevationDeg):"—"} tone="red"/><Readout label="Sun azimuth" value={celestial?`${celestial.sun.azimuthDeg.toFixed(1)}°`:"—"} tone="red"/><Readout label="Earth elevation" value={celestial?angle(celestial.earth.elevationDeg):"—"} tone="blue"/><Readout label="Elevation" value={`${Math.round(activeTerrain.elevationMeters).toLocaleString()} m`}/></div>
+        <div className="grid grid-cols-2 gap-1.5"><Readout label="Sun elevation" value={celestial?angle(celestial.sun.elevationDeg):"—"} tone="red"/><Readout label="Sun azimuth" value={celestial?`${celestial.sun.azimuthDeg.toFixed(1)}°`:"—"} tone="red"/><Readout label="Earth elevation" value={celestial?angle(celestial.earth.elevationDeg):"—"} tone="blue"/><Readout label={`Elevation · ${terrainLabel}`} value={`${Math.round(displayElevation).toLocaleString()} m`}/></div>
       </aside>
     </div>}
 

@@ -9,6 +9,8 @@ export type LunarSite = {
   longitudeDeg: number;
   coordinateReference: string;
   provenance: "user" | "illustrative" | "scientific";
+  elevationMeters?: number | null;
+  slopeDeg?: number | null;
 };
 
 export type CelestialState = {

@@ -52,7 +52,13 @@
    "tier": "A"
   }
  ],
- "terrainSummary": null,
+ "terrainSummary": {
+  "hasMask": true,
+  "slope100mDeg": 0.11,
+  "nearestPsrKm": null,
+  "nearestColdTrapKm": null,
+  "insidePsr": null
+ },
  "notes": [
   "Elevation = shapefile RADIUS (SLDEM) minus 1,737,400 m."
  ],

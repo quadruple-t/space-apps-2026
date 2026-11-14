@@ -11,6 +11,7 @@ The Next.js REST API exposes the seeded Firestore catalog and science calculatio
 | `GET /api/v1/catalog/sites/{id}` | Site details and its precomputed terrain mask |
 | `GET /api/v1/catalog/meta` | Dataset version and collection counts |
 | `GET /api/v1/science/celestial?siteId=&time=` | Topocentric Sun/Earth azimuth, elevation, and terrain visibility |
+| `GET /api/v1/science/timeline?siteId=&start=&stepMinutes=1` | One-day celestial timeline for smooth client playback |
 | `GET /api/v1/science/horizon?siteId=` | Site horizon mask |
 | `GET /api/v1/science/metrics?siteId=&start=&durationHours=` | Sampled sunlight and direct-to-Earth availability metrics |
 | `GET /api/v1/science/compare?siteIds=a,b&start=&durationHours=` | Same mission-window metrics for two or three sites |

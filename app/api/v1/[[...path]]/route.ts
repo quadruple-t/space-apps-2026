@@ -1,4 +1,4 @@
-import { FieldValue } from "firebase-admin/firestore";
+import { FieldPath, FieldValue } from "firebase-admin/firestore";
 import { adminDb, verifyFirebaseToken } from "@/lib/firebase/admin";
 import { errorJson, json, serialize } from "@/lib/api/http";
 import { decodeFloat32, decodeInt16, decodeUint8 } from "@/lib/bytes";
@@ -68,7 +68,7 @@ export async function GET(request: Request, context: { params: Promise<{ path?: 
     const db = adminDb();
     const url = new URL(request.url);
 
-    if (path.length === 0 || root === "manifest") return json({ version: "v1", basePath: "/api/v1", resources: ["catalog/sites", "catalog/meta", "science/celestial", "science/horizon", "science/metrics", ...Object.keys(PUBLIC_COLLECTIONS), "users/{uid}/sessions", "users/{uid}/reports", "users/{uid}/progress"] });
+    if (path.length === 0 || root === "manifest") return json({ version: "v1", basePath: "/api/v1", resources: ["catalog/sites", "catalog/meta", "science/celestial", "science/horizon", "science/metrics", "science/compare", "science/timeline", ...Object.keys(PUBLIC_COLLECTIONS), "users/{uid}/sessions", "users/{uid}/reports", "users/{uid}/progress"] });
     if (root === "catalog") {
       if (id === "sites" && !child) {
         const snap = await db.doc("catalog/siteIndex").get();
@@ -108,7 +108,7 @@ export async function GET(request: Request, context: { params: Promise<{ path?: 
         }));
         return json({ sites: calls, interval: { start: url.searchParams.get("start"), durationHours: url.searchParams.get("durationHours") ?? "24" } });
       }
-      if (!["celestial", "horizon", "metrics"].includes(id ?? "")) return errorJson("Unknown science resource", 404);
+      if (!["celestial", "horizon", "metrics", "timeline"].includes(id ?? "")) return errorJson("Unknown science resource", 404);
       const lat = Number(url.searchParams.get("lat"));
       const lon = Number(url.searchParams.get("lon"));
       const siteId = url.searchParams.get("siteId");
@@ -118,11 +118,14 @@ export async function GET(request: Request, context: { params: Promise<{ path?: 
       const startMs = Date.parse(timestamp);
       const durationHours = Number(url.searchParams.get("durationHours") ?? 24);
       if (id === "metrics" && (!(durationHours > 0) || durationHours > 720)) return errorJson("durationHours must be greater than 0 and at most 720");
-      const endMs = id === "metrics" ? startMs + durationHours * 3_600_000 : startMs;
-      if (startMs < Date.parse(MAIN_SERIES_START) || endMs > Date.parse(MAIN_SERIES_END)) return errorJson(`Stored JPL Horizons ephemeris covers ${MAIN_SERIES_START} through ${MAIN_SERIES_END}`, 422);
+      const endMs = id === "metrics" || id === "timeline" ? startMs + (id === "timeline" ? 24 : durationHours) * 3_600_000 : startMs;
+      const availableEndMs = id === "timeline" ? Math.min(endMs, Date.parse(MAIN_SERIES_END)) : endMs;
+      if (startMs < Date.parse(MAIN_SERIES_START) || availableEndMs > Date.parse(MAIN_SERIES_END) || (id !== "timeline" && endMs > Date.parse(MAIN_SERIES_END))) return errorJson(`Stored JPL Horizons ephemeris covers ${MAIN_SERIES_START} through ${MAIN_SERIES_END}`, 422);
+      const stepMinutes = Number(url.searchParams.get("stepMinutes") ?? 1);
+      if (id === "timeline" && (!Number.isInteger(stepMinutes) || stepMinutes < 1 || stepMinutes > 60)) return errorJson("stepMinutes must be an integer from 1 to 60");
       const fromIso = new Date(startMs).toISOString();
-      const toIso = new Date(endMs).toISOString();
-      const chunkIds = monthChunkIds(fromIso, toIso);
+      const toIso = new Date(availableEndMs).toISOString();
+      const chunkIds = monthChunkIds(fromIso, toIso).filter((chunkId) => chunkId <= "2030-12");
       const siteSnap = siteId ? await db.doc(`sites/${siteId}`).get() : null;
       if (siteId && !siteSnap?.exists) return errorJson("Site not found", 404);
       const position = siteSnap?.data()?.coordinates as { latDeg?: number; lonDeg?: number } | undefined;
@@ -163,11 +166,20 @@ export async function GET(request: Request, context: { params: Promise<{ path?: 
         }
       }
       const frame = siteFrame(latitude, longitude);
-      if (id === "horizon") return mask.source === "none" ? json({ horizon: null, source: horizonSource, provenance: "scientific" }) : json({ horizon: { azimuthStepDeg: mask.binDeg, elevationsDeg: Array.from({ length: Math.round(360 / mask.binDeg) }, (_, i) => maskAt(mask.maskElevationDeg, mask.binDeg, i * mask.binDeg)) }, source: horizonSource, provenance: "scientific" });
+      if (id === "horizon") return mask.source === "none" ? json({ horizon: null, source: horizonSource, provenance: "scientific" }) : json({ horizon: { azimuthStepDeg: mask.binDeg, elevationsDeg: Array.from({ length: Math.round(360 / mask.binDeg) }, (_, i) => maskAt(mask.maskElevationDeg, mask.binDeg, i * mask.binDeg)), provenance: "scientific" }, source: horizonSource, provenance: "scientific" });
       if (id === "celestial") {
         const { sun, earth } = series.at(startMs);
         const sunAe = azElFromCartesian(frame, sun), earthAe = azElFromCartesian(frame, earth);
         return json({ timestamp: fromIso, sun: { ...sunAe, visible: isAboveMask(mask, sunAe.azimuthDeg, sunAe.elevationDeg) }, earth: { ...earthAe, visible: isAboveMask(mask, earthAe.azimuthDeg, earthAe.elevationDeg) }, horizonSource, provenance: "scientific" });
+      }
+      if (id === "timeline") {
+        const samples = [];
+        for (let t = startMs; t <= availableEndMs; t += stepMinutes * 60_000) {
+          const { sun, earth } = series.at(t);
+          const sunAe = azElFromCartesian(frame, sun), earthAe = azElFromCartesian(frame, earth);
+          samples.push({ timestamp: new Date(t).toISOString(), sun: { ...sunAe, visible: isAboveMask(mask, sunAe.azimuthDeg, sunAe.elevationDeg) }, earth: { ...earthAe, visible: isAboveMask(mask, earthAe.azimuthDeg, earthAe.elevationDeg) } });
+        }
+        return json({ intervalStart: fromIso, intervalEnd: toIso, stepMinutes, horizonSource, samples, provenance: "scientific" });
       }
       const sunlit: boolean[] = [], earthVisible: boolean[] = [];
       for (let t = startMs; t < endMs; t += 600_000) {
@@ -216,8 +228,12 @@ export async function GET(request: Request, context: { params: Promise<{ path?: 
       return snap.exists ? json(docValue(snap)) : errorJson("Document not found", 404);
     }
     const limit = Math.min(MAX_LIMIT, Math.max(1, Number(url.searchParams.get("limit") ?? MAX_LIMIT) || MAX_LIMIT));
-    const snap = await db.collection(collectionName).limit(limit).get();
-    return json({ items: snap.docs.map(docValue), count: snap.size, limit, hasMore: snap.size === limit });
+    const cursor = url.searchParams.get("cursor");
+    if (cursor && !validId(cursor)) return errorJson("Invalid cursor", 400);
+    let query = db.collection(collectionName).orderBy(FieldPath.documentId()).limit(limit);
+    if (cursor) query = query.startAfter(cursor);
+    const snap = await query.get();
+    return json({ items: snap.docs.map(docValue), count: snap.size, limit, hasMore: snap.size === limit, nextCursor: snap.docs.at(-1)?.id ?? null });
   } catch (error) {
     console.error("GET /api/v1 failed", error);
     return errorJson("Data service unavailable", 503);

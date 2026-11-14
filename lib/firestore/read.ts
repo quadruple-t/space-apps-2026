@@ -3,7 +3,7 @@
  * (with the document path) when a field has the wrong type, so a bad seed shows up as a
  * clear message instead of NaN in a chart. Works with client and Admin SDK values.
  */
-import type { BytesLike } from "@/lib/bytes";
+import { base64ToU8, type BytesLike } from "@/lib/bytes";
 import { DocumentShapeError } from "./errors";
 
 export type Data = Record<string, unknown>;
@@ -95,12 +95,14 @@ export class Reader {
 
   bytes(key: string): BytesLike {
     const v = this.data[key];
+    if (typeof v === "string") return base64ToU8(v);
     return isBytesLike(v) ? v : this.fail(key, "Bytes");
   }
 
   bytesOrNull(key: string): BytesLike | null {
     const v = this.data[key];
     if (v === undefined || v === null) return null;
+    if (typeof v === "string") return base64ToU8(v);
     return isBytesLike(v) ? v : this.fail(key, "Bytes or null");
   }
 

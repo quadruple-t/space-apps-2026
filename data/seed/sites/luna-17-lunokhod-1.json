@@ -43,7 +43,13 @@
    "tier": "A"
   }
  ],
- "terrainSummary": null,
+ "terrainSummary": {
+  "hasMask": true,
+  "slope100mDeg": 1.84,
+  "nearestPsrKm": null,
+  "nearestColdTrapKm": null,
+  "insidePsr": null
+ },
  "notes": [
   "Elevation = shapefile RADIUS (NAC DTM + Laser Ranging) minus 1,737,400 m."
  ],
