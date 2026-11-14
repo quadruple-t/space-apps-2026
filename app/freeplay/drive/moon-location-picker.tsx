@@ -180,7 +180,7 @@ export function MoonLocationPicker({ selectedSite, onSelect, onContinue, sunAzim
         <div className="flex flex-col gap-3">
           <div>
             <MoonSunDiagram latitudeDeg={selectedSite.latitudeDeg} longitudeDeg={selectedSite.longitudeDeg} sunAzimuthDeg={sunAzimuthDeg} sunElevationDeg={sunElevationDeg}/>
-            <Link href={`/explore/approach?${new URLSearchParams({ lat: String(selectedSite.latitudeDeg), lon: String(selectedSite.longitudeDeg), name: selectedSite.name })}`}
+            <Link href={`/freeplay/approach?${new URLSearchParams({ lat: String(selectedSite.latitudeDeg), lon: String(selectedSite.longitudeDeg), name: selectedSite.name })}`}
               className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded border border-retro-purple/50 bg-retro-purple/10 px-3 py-2 text-[0.62rem] uppercase tracking-[0.1em] text-retro-purple hover:bg-retro-purple/20">
               Plan a mission at this site: sunlight &amp; Earth over time <ArrowRight size={13}/>
             </Link>
