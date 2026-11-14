@@ -39,6 +39,7 @@ function OrbitScreenFor({ site }: { site: FreeplaySite }) {
   const durationHours = useFreeplay((s) => s.durationHours);
   const elapsedHours = useFreeplay((s) => s.elapsedHours);
   const graphTab = useFreeplay((s) => s.graphTab);
+  const setElapsed = useFreeplay((s) => s.setElapsed);
   const tMs = currentTimeMs({ startIso, elapsedHours });
   const startMs = Date.parse(startIso);
 
@@ -62,7 +63,8 @@ function OrbitScreenFor({ site }: { site: FreeplaySite }) {
     <section className="hud-panel relative h-[52vh] min-h-[300px] overflow-hidden md:h-auto md:min-h-[320px]" aria-label="Orbit diagram">
       {mission.data
         ? <OrbitDiagram series={mission.data.series} site={site} tMs={tMs} missionStartMs={startMs} missionEndMs={missionEndMs}
-            sunUp={now ? sunUp(now) : null} earthUp={now ? earthUp(now) : null} />
+            sunUp={now ? sunUp(now) : null} earthUp={now ? earthUp(now) : null}
+            onSeek={(t) => setElapsed((t - startMs) / 3_600_000)} />
         : <Status loading={mission.loading} error={mission.error} what="Moon and Sun positions" />}
     </section>
 
