@@ -79,10 +79,10 @@ export default function MissionPage() {
             </DevelopmentNotice>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg">
-                <Link href="/#mission">See the concept</Link>
+                <Link href="/">See the overview</Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <Link href="/science">Read the science</Link>
+                <Link href="/mission-control">Learn the science</Link>
               </Button>
             </div>
           </div>
