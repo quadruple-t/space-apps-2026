@@ -85,6 +85,7 @@ export function Navbar() {
                     <SheetClose asChild>
                       <Link
                         href={link.href}
+                        aria-current={pathname === link.href ? "page" : undefined}
                         className="flex h-12 items-center rounded-sm px-3 font-heading text-lg font-semibold uppercase tracking-wide text-bone [font-variation-settings:'wdth'_115] hover:bg-bone/5"
                       >
                         {link.label}

@@ -36,11 +36,12 @@ npm run lint       # ESLint (Next.js + React Compiler rules)
 
 | Route      | Purpose                                                   |
 | ---------- | --------------------------------------------------------- |
-| `/`        | Landing page                                              |
+| `/`        | Overview and how to use Lunaris360                         |
 | `/mission` | Guided Mission: six interactive lessons across the First Landing, Robotic Explorer and Lunar Base chapters, run inside Freeplay at catalog sites |
+| `/mission-control` | Mission Control: learning topics, method and data    |
+| `/how-it-works` | How It Works: the surface view and the modelling approach, moved off the landing page |
 | `/explore` | Freeplay: site and coordinate selection, time controls, first-person/orbit navigation, JPL Horizons Sun/Earth positions, horizon-aware 24-hour metrics where data is available |
 | `/compare` | Mission Comparison shell with an empty state; multi-site comparison is not implemented yet |
-| `/science` | Methodology, data sources and glossary                    |
 
 ## Project structure
 

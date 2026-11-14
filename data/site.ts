@@ -16,6 +16,7 @@ export type NavLink = { label: string; href: string };
 /** Primary navigation routes to distinct pages. */
 export const NAV_LINKS: NavLink[] = [
   { label: "Overview", href: "/" },
+  { label: "Mission Control", href: "/mission-control" },
   { label: "Tutorial", href: "/mission" },
   { label: "How It Works", href: "/how-it-works" },
   { label: "Freeplay", href: "/explore" },
@@ -108,8 +109,8 @@ export const FOOTER_LINKS = {
   ],
   project: [
     { label: "Overview", href: "/" },
-    { label: "The science", href: "/science" },
-    { label: "Data sources", href: "/science#data-sources" },
+    { label: "Mission Control", href: "/mission-control" },
+    { label: "Data sources", href: "/mission-control#data-sources" },
   ],
   resources: [
     { label: "LOLA data (PDS)", href: "https://pds-geosciences.wustl.edu/missions/lro/lola.htm" },

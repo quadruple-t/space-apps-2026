@@ -78,7 +78,7 @@ export function ScienceSection() {
             coverage is missing. The landing preview above remains conceptual.
           </p>
           <Button asChild size="lg" variant="outline">
-            <Link href="/science">Read the methodology</Link>
+            <Link href="/mission-control">Learn more</Link>
           </Button>
         </div>
       </PageContainer>

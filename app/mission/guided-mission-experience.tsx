@@ -29,6 +29,7 @@ export function GuidedMissionExperience() {
             <span className="inline-flex items-center gap-2"><Radio size={15} className="text-retro-blue"/> Apollo · commercial lander · Artemis eras</span>
           </div>
           <button type="button" disabled={tutorial.status === "loading"} onClick={()=>setStarted(true)} className="mt-9 inline-flex h-12 items-center gap-3 rounded-lg bg-retro-purple px-6 type-data text-xs font-semibold uppercase tracking-[.16em] text-void shadow-[0_0_35px_rgba(169,134,255,.24)] transition hover:bg-[#c2abff] disabled:cursor-wait disabled:opacity-60"><Play size={15} fill="currentColor"/> {tutorial.status === "loading" ? "Loading mission data" : "Start guided mission"}</button>
+          <Link href="/mission-control" className="ml-5 inline-flex h-12 items-center type-data text-xs uppercase tracking-[.16em] text-muted-foreground transition hover:text-retro-blue">Learn the science</Link>
           {tutorial.status === "unavailable" && <p role="status" className="mt-3 max-w-xl text-xs leading-relaxed text-retro-red">The site catalog is unavailable, so the mission starts at an illustrative south-pole point without chapter records.</p>}
         </div>
         <div className="relative overflow-hidden rounded-2xl border border-retro-blue/20 bg-[#10101d]/80 p-6 shadow-2xl backdrop-blur sm:p-8">

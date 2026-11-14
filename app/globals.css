@@ -214,6 +214,192 @@
     animation: hud-fade 900ms var(--ease-out-quint) both;
     animation-delay: var(--hud-delay, 900ms);
   }
+
+  /* Mission-control framing and chapter navigation. */
+  .lunar-grid {
+    background-image:
+      linear-gradient(to right, rgb(236 233 226 / 4%) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(236 233 226 / 4%) 1px, transparent 1px);
+    background-position: center center;
+    background-size: 72px 72px;
+    mask-image: linear-gradient(to bottom, black, transparent 92%);
+  }
+
+  .mission-action {
+    clip-path: polygon(0 0, calc(100% - 13px) 0, 100% 13px, 100% 100%, 13px 100%, 0 calc(100% - 13px));
+  }
+
+  .mission-console {
+    position: relative;
+    isolation: isolate;
+    border: 1px solid rgb(236 233 226 / 22%);
+    background: rgb(7 8 9 / 82%);
+    padding: clamp(1rem, 2.2vw, 1.6rem);
+    clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+    box-shadow: 0 22px 90px rgb(0 0 0 / 35%);
+    backdrop-filter: blur(12px);
+  }
+
+  .mission-console::before,
+  .mission-console::after {
+    position: absolute;
+    z-index: -1;
+    width: 5rem;
+    height: 1px;
+    background: var(--sun);
+    content: "";
+    opacity: 0.7;
+  }
+
+  .mission-console::before {
+    left: 1rem;
+    top: 0;
+  }
+
+  .mission-console::after {
+    bottom: 0;
+    right: 1rem;
+    background: var(--earth);
+  }
+
+  .mission-console-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid rgb(236 233 226 / 12%);
+    padding-bottom: 1rem;
+  }
+
+  .route-choice {
+    display: flex;
+    min-height: 6.15rem;
+    align-items: center;
+    gap: 0.85rem;
+    border: 1px solid rgb(236 233 226 / 14%);
+    background: linear-gradient(105deg, rgb(236 233 226 / 5%), rgb(236 233 226 / 1%));
+    padding: 0.7rem 0.8rem;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
+  }
+
+  .route-choice:hover {
+    transform: translateX(3px);
+    border-color: rgb(227 174 79 / 65%);
+    background-color: rgb(227 174 79 / 5%);
+  }
+
+  .route-choice:focus-visible {
+    outline: 2px solid var(--sun);
+    outline-offset: 3px;
+  }
+
+  .route-glyph {
+    display: grid;
+    width: 4.75rem;
+    flex: 0 0 4.75rem;
+    place-items: center;
+    opacity: 0.74;
+    transition: opacity 180ms ease;
+  }
+
+  .route-choice:hover .route-glyph {
+    opacity: 1;
+  }
+
+  .route-arrow {
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    flex: 0 0 2rem;
+    place-items: center;
+    border: 1px solid rgb(236 233 226 / 16%);
+    color: rgb(236 233 226 / 65%);
+    transition: color 180ms ease, border-color 180ms ease, transform 180ms ease;
+  }
+
+  .route-choice:hover .route-arrow {
+    transform: translateX(2px);
+    border-color: rgb(227 174 79 / 65%);
+    color: var(--sun);
+  }
+
+  .chapter-trail {
+    margin-bottom: 3rem;
+  }
+
+  .chapter-trail ol {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    border-block: 1px solid rgb(236 233 226 / 13%);
+    padding-block: 0.75rem;
+  }
+
+  .chapter-trail li {
+    position: relative;
+    min-width: 0;
+  }
+
+  .chapter-trail li:not(:last-child)::after {
+    position: absolute;
+    top: 0.78rem;
+    left: 2.3rem;
+    right: 0.5rem;
+    height: 1px;
+    background: rgb(236 233 226 / 17%);
+    content: "";
+  }
+
+  .chapter-stop {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    width: fit-content;
+    max-width: 100%;
+    align-items: center;
+    gap: 0.55rem;
+    color: rgb(236 233 226 / 52%);
+    transition: color 180ms ease;
+  }
+
+  .chapter-stop:hover,
+  .chapter-stop-active {
+    color: var(--bone);
+  }
+
+  .chapter-node {
+    display: grid;
+    width: 1.65rem;
+    height: 1.65rem;
+    flex: 0 0 1.65rem;
+    place-items: center;
+    border: 1px solid rgb(236 233 226 / 25%);
+    background: var(--void);
+    font-size: 0.62rem;
+    transition: color 180ms ease, border-color 180ms ease, background-color 180ms ease;
+    clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+  }
+
+  .chapter-stop-active .chapter-node {
+    border-color: var(--sun);
+    background: var(--sun);
+    color: var(--void);
+    box-shadow: 0 0 14px rgb(227 174 79 / 28%);
+  }
+
+  .chapter-label {
+    overflow: hidden;
+    font-family: var(--font-plex-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .mission-panel {
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+  }
 }
 
 @keyframes hero-rise {
@@ -270,3 +456,49 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+@media (max-width: 639px) {
+  .chapter-trail {
+    margin-bottom: 2.25rem;
+  }
+
+  .chapter-trail ol {
+    padding-block: 0.65rem;
+  }
+
+  .chapter-trail li:not(:last-child)::after {
+    left: 1.7rem;
+    right: 0.35rem;
+    top: 0.72rem;
+  }
+
+  .chapter-stop {
+    gap: 0.25rem;
+  }
+
+  .chapter-node {
+    width: 1.45rem;
+    height: 1.45rem;
+    flex-basis: 1.45rem;
+    font-size: 0.55rem;
+  }
+
+  .chapter-label {
+    font-size: 0.5rem;
+    letter-spacing: 0.01em;
+  }
+
+  .route-glyph {
+    width: 3.6rem;
+    flex-basis: 3.6rem;
+  }
+}
+
+.mission-flashcard { perspective: 900px; min-height: 17rem; }
+.mission-flashcard-inner { display: grid; min-height: 17rem; transform-style: preserve-3d; transition: transform 500ms cubic-bezier(.2,.8,.2,1); }
+.mission-flashcard-inner[data-flipped="true"] { transform: rotateY(180deg); }
+.mission-flashcard-face { position: relative; grid-area: 1 / 1; display: flex; min-height: 17rem; flex-direction: column; justify-content: center; overflow: hidden; padding: 1.5rem; backface-visibility: hidden; border: 1px solid rgb(167 139 250 / 35%); background: linear-gradient(145deg,#171326,#0b0a10 70%); clip-path: polygon(0 0,calc(100% - 22px) 0,100% 22px,100% 100%,22px 100%,0 calc(100% - 22px)); }
+.mission-flashcard-face:hover { border-color: rgb(196 181 253 / 70%); }
+.mission-flashcard-back { transform: rotateY(180deg); background: linear-gradient(145deg,#211a37,#0b0a10 80%); }
+.mission-flashcard-art { position:absolute; top:1rem; right:1.5rem; font-size:3.5rem; color:#c4b5fd; opacity:.8; text-shadow:0 0 24px #8b5cf6; }
+.mission-flashcard:focus-visible { outline:2px solid #c4b5fd; outline-offset:4px; }
