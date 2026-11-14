@@ -24,7 +24,7 @@ export function SimulatorPreview() {
             <span className="size-2 rounded-full bg-bone/20" />
             <span className="size-2 rounded-full bg-bone/20" />
           </span>
-          <span className="type-data truncate text-xs text-bone/70">shadowline / explore / site-a</span>
+          <span className="type-data truncate text-xs text-bone/70">lunaris360 / explore / site-a</span>
         </div>
         <span className="type-data shrink-0 whitespace-nowrap rounded-sm border border-sun/40 px-2 py-0.5 text-[0.68rem] text-sun">
           Concept interface

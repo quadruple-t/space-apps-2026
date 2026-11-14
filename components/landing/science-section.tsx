@@ -17,7 +17,7 @@ export function ScienceSection() {
             <p>
               Near the pole, latitude tells you very little. What matters is the horizon each site actually sees:
               the crater walls and distant massifs that decide when sunlight arrives and whether Earth is in view.
-              Shadowline is designed to compute that horizon from measured terrain, then present it as something
+              Lunaris360 is designed to compute that horizon from measured terrain, then present it as something
               you can see.
             </p>
           </SectionHeading>

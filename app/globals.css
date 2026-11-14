@@ -3,7 +3,7 @@
 @import "shadcn/tailwind.css";
 
 /*
- * Shadowline design tokens
+ * Lunaris360 design tokens
  * ------------------------------------------------------------------
  * Dark-only palette. Colour is semantic, not decorative:
  *   sun   (coral red) — sunlight and active controls
@@ -20,7 +20,7 @@
   --font-mono: var(--font-plex-mono);
   --font-heading: var(--font-archivo);
 
-  /* Shadowline semantic palette */
+  /* Lunaris360 semantic palette */
   --color-void: var(--void);
   --color-charcoal: var(--charcoal);
   --color-regolith: var(--regolith);
