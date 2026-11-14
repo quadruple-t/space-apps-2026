@@ -19,10 +19,10 @@ export const NAV_LINKS: NavLink[] = [
   { label: "Mission Control", href: "/mission-control" },
   { label: "Tutorial", href: "/mission" },
   { label: "How It Works", href: "/how-it-works" },
-  { label: "Freeplay", href: "/explore" },
+  { label: "Freeplay", href: "/freeplay" },
 ];
 
-export const LAUNCH_HREF = "/explore";
+export const LAUNCH_HREF = "/freeplay";
 
 export type Experience = {
   id: "mission" | "explore" | "compare";
@@ -42,7 +42,7 @@ export const EXPERIENCES: Experience[] = [
     title: "Guided Mission",
     subtitle: "Understand the environment.",
     description:
-      "An interactive tutorial inside the lunar simulation. Six lessons follow the First Landing, Robotic Explorer and Lunar Base chapters at catalog landing sites, covering sunlight, terrain obstruction, Earth visibility and mission windows.",
+      "An interactive tutorial that runs inside Freeplay: the Moon globe, Orbit + Graphs, then the surface drive. Six lessons follow the First Landing, Robotic Explorer and Lunar Base chapters at catalog landing sites, covering sunlight, terrain obstruction, Earth visibility and mission windows.",
     topics: [
       "Solar elevation",
       "Terrain obstruction",
@@ -61,7 +61,7 @@ export const EXPERIENCES: Experience[] = [
     description:
       "Choose a lunar region or coordinates, move around the scene, and change the date and time. Freeplay reads JPL Horizons positions and available LOLA horizon data; the rendered surface remains procedural.",
     cta: "Explore the Moon",
-    href: "/explore",
+    href: "/freeplay/drive",
   },
   {
     id: "compare",
@@ -104,7 +104,7 @@ export const DATA_SOURCES: DataSource[] = [
 export const FOOTER_LINKS = {
   experiences: [
     { label: "Guided Mission", href: "/mission" },
-    { label: "Free Exploration", href: "/explore" },
+    { label: "Free Exploration", href: "/freeplay/drive" },
     { label: "Mission Comparison", href: "/compare" },
   ],
   project: [

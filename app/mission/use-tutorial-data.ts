@@ -1,20 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { catalogToFreeplay, type CatalogSite, type FreeplaySite } from "@/data/sites";
 import type { LunarSite } from "@/integrations/science/types";
+import { fetchCatalogSites } from "@/lib/lunar-data";
 import { CHAPTER_IDS, type ChapterId, type StoryChapter } from "@/lib/model/types";
 
-type CatalogSite = { id: string; name: string; latDeg: number | null; lonDeg: number | null; pointIsApproximate: boolean };
 type CatalogDetail = { site?: { coordinates?: { elevationM?: number | null } | null; terrainSummary?: { slope100mDeg?: number | null } | null }; terrain?: { slope100mDeg?: number | null } | null };
 
 export type TutorialData = {
   status: "loading" | "ready" | "unavailable";
   chapters: Partial<Record<ChapterId, StoryChapter>>;
-  /** Each chapter's featured catalog sites, verified coordinates first. */
-  sites: Partial<Record<ChapterId, LunarSite[]>>;
+  catalog: CatalogSite[];
+  /** Each chapter's featured catalog sites as Freeplay sites, verified coordinates first. */
+  featured: Partial<Record<ChapterId, FreeplaySite[]>>;
 };
-
-const COORDINATE_REFERENCE = "Planetocentric latitude, east-positive longitude";
 
 async function getJson<T>(path: string): Promise<T> {
   const response = await fetch(path);
@@ -22,12 +22,16 @@ async function getJson<T>(path: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-/** Sites with verified coordinates use their catalog record; region references are sent as plain coordinates. */
-function toLunarSite(site: CatalogSite): LunarSite | null {
-  if (site.latDeg === null || site.lonDeg === null) return null;
-  return site.pointIsApproximate
-    ? { id: `approx-${site.id}`, name: `${site.name} (approximate region point)`, latitudeDeg: site.latDeg, longitudeDeg: site.lonDeg, coordinateReference: COORDINATE_REFERENCE, provenance: "illustrative" }
-    : { id: site.id, name: site.name, latitudeDeg: site.latDeg, longitudeDeg: site.lonDeg, coordinateReference: COORDINATE_REFERENCE, provenance: "scientific" };
+/**
+ * The surface drive's science provider addresses catalog sites by id, which the API only
+ * accepts for verified points. Region references and free points are sent as coordinates.
+ */
+export function toDriveSite(site: FreeplaySite, catalog: CatalogSite[]): LunarSite {
+  const { latitudeDeg, longitudeDeg, coordinateReference } = site;
+  const entry = site.catalogId ? catalog.find((candidate) => candidate.id === site.catalogId) : undefined;
+  if (entry && !entry.pointIsApproximate) return { id: entry.id, name: site.name, latitudeDeg, longitudeDeg, coordinateReference, provenance: "scientific" };
+  if (entry) return { id: `approx-${entry.id}`, name: `${site.name} (approximate region point)`, latitudeDeg, longitudeDeg, coordinateReference, provenance: "illustrative" };
+  return { id: site.id, name: site.name, latitudeDeg, longitudeDeg, coordinateReference, provenance: "user" };
 }
 
 /** Adds the catalog's measured elevation and slope to a verified site; other sites are returned unchanged. */
@@ -46,31 +50,23 @@ export async function withTerrainRecord(site: LunarSite): Promise<LunarSite> {
 }
 
 export function useTutorialData(): TutorialData {
-  const [data, setData] = useState<TutorialData>({ status: "loading", chapters: {}, sites: {} });
+  const [data, setData] = useState<TutorialData>({ status: "loading", chapters: {}, catalog: [], featured: {} });
 
   useEffect(() => {
     let active = true;
-    Promise.all([
-      getJson<{ items?: StoryChapter[] }>("/api/v1/chapters"),
-      getJson<{ sites?: CatalogSite[] }>("/api/v1/catalog/sites"),
-    ]).then(async ([chapterPage, catalog]) => {
-      const catalogById = new Map((catalog.sites ?? []).map((site) => [site.id, site]));
+    Promise.all([getJson<{ items?: StoryChapter[] }>("/api/v1/chapters"), fetchCatalogSites()]).then(([chapterPage, sites]) => {
+      const catalog = sites.filter((site) => Number.isFinite(site.latDeg) && Number.isFinite(site.lonDeg));
       const chapters: TutorialData["chapters"] = {};
-      const sites: TutorialData["sites"] = {};
+      const featured: TutorialData["featured"] = {};
       for (const id of CHAPTER_IDS) {
         const chapter = chapterPage.items?.find((item) => item.id === id);
         if (!chapter) continue;
         chapters[id] = chapter;
-        const featured = chapter.featuredSiteIds.flatMap((siteId) => {
-          const site = catalogById.get(siteId);
-          return site ? [toLunarSite(site)].filter((value): value is LunarSite => value !== null) : [];
-        });
-        sites[id] = [...featured.filter((site) => site.provenance === "scientific"), ...featured.filter((site) => site.provenance !== "scientific")];
+        const entries = chapter.featuredSiteIds.flatMap((siteId) => catalog.filter((site) => site.id === siteId));
+        featured[id] = [...entries.filter((site) => !site.pointIsApproximate), ...entries.filter((site) => site.pointIsApproximate)].map((site) => catalogToFreeplay(site));
       }
-      const first = sites[CHAPTER_IDS[0]]?.[0];
-      if (first) sites[CHAPTER_IDS[0]] = [await withTerrainRecord(first), ...sites[CHAPTER_IDS[0]]!.slice(1)];
-      if (active) setData({ status: "ready", chapters, sites });
-    }).catch(() => { if (active) setData({ status: "unavailable", chapters: {}, sites: {} }); });
+      if (active) setData({ status: "ready", chapters, catalog, featured });
+    }).catch(() => { if (active) setData({ status: "unavailable", chapters: {}, catalog: [], featured: {} }); });
     return () => { active = false; };
   }, []);
 

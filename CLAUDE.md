@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Lunaris360: a lunar mission-planning and educational website (NASA Space Apps Challenge 2026). Freeplay uses stored JPL Horizons ephemerides and available precomputed LOLA horizon masks through the versioned science API. The rendered 3D surface is procedural and separate from those horizon calculations. Unsupported locations use a labelled smooth-sphere horizon; never present it as terrain-derived. The Guided Mission is an interactive tutorial that runs Freeplay in guided mode at the story chapters' featured catalog sites, and Mission Comparison is an empty layout. Do not present the app as an operational mission system.
+Lunaris360: a lunar mission-planning and educational website (NASA Space Apps Challenge 2026). Freeplay uses stored JPL Horizons ephemerides and available precomputed LOLA horizon masks through the versioned science API. The rendered 3D surface is procedural and separate from those horizon calculations. Unsupported locations use a labelled smooth-sphere horizon; never present it as terrain-derived. The Guided Mission is an interactive tutorial that docks its lessons beside Freeplay's globe and Orbit + Graphs screens and ends in the surface drive, using the story chapters' featured catalog sites, and Mission Comparison is an empty layout. Do not present the app as an operational mission system.
 
 ## Commands
 
