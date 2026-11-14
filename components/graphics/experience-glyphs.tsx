@@ -14,10 +14,10 @@ function GuidedGlyph() {
   return (
     <svg viewBox="0 0 260 120" className="h-auto w-full" aria-hidden>
       <path d="M0 104 L40 96 L70 88 L104 98 L150 78 L186 70 L220 84 L260 76" {...stroke} />
-      <polyline points={pts.map((p) => p.join(",")).join(" ")} fill="none" stroke="#ff637d" strokeDasharray="3 4" strokeWidth="1.25" />
+      <polyline points={pts.map((p) => p.join(",")).join(" ")} fill="none" stroke="#ff5364" strokeDasharray="3 4" strokeWidth="1.25" />
       {pts.map(([x, y], i) => (
         <g key={i}>
-          <circle cx={x} cy={y} r={i === 0 ? 5 : 3.5} fill={i === 0 ? "#ff637d" : "#050506"} stroke="#ff637d" strokeWidth="1.25" />
+          <circle cx={x} cy={y} r={i === 0 ? 5 : 3.5} fill={i === 0 ? "#ff5364" : "#050506"} stroke="#ff5364" strokeWidth="1.25" />
         </g>
       ))}
     </svg>
@@ -49,9 +49,9 @@ function CompareGlyph() {
     <svg viewBox="0 0 260 120" className="h-auto w-full" aria-hidden>
       <path d="M0 52 L36 44 L70 50 L108 30 L150 40 L190 26 L226 38 L260 32" {...stroke} />
       <path d="M0 100 L40 92 L80 98 L118 82 L150 90 L196 72 L230 86 L260 80" {...stroke} />
-      <line x1="150" y1="14" x2="150" y2="112" stroke="#58c8ff" strokeWidth="1.25" />
-      <circle cx="150" cy="40" r="3.5" fill="#58c8ff" />
-      <circle cx="150" cy="90" r="3.5" fill="#58c8ff" />
+      <line x1="150" y1="14" x2="150" y2="112" stroke="#4b9bff" strokeWidth="1.25" />
+      <circle cx="150" cy="40" r="3.5" fill="#4b9bff" />
+      <circle cx="150" cy="90" r="3.5" fill="#4b9bff" />
       <text x="6" y="20" fontFamily="var(--font-plex-mono)" fontSize="10" fill="#a3a29c">A</text>
       <text x="6" y="72" fontFamily="var(--font-plex-mono)" fontSize="10" fill="#a3a29c">B</text>
     </svg>

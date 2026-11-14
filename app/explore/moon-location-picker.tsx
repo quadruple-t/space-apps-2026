@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, type FormEvent, type KeyboardEvent } from "react";
-import { ArrowRight, MapPin } from "lucide-react";
+import { ArrowRight, MapPin, X } from "lucide-react";
 import type { LunarSite } from "@/integrations/science/types";
 import { interpolateTerrain, MOON_REGIONS, SCAFFOLD_MOON_GRID, type MoonRegion } from "@/integrations/terrain/moon-samples";
 import { MoonSunDiagram } from "@/components/graphics/moon-sun-diagram";
@@ -13,6 +13,7 @@ type Props = {
   sunAzimuthDeg?: number;
   sunElevationDeg?: number;
   mode?: "setup" | "hud";
+  onClose?: () => void;
 };
 const mapX = (longitudeDeg: number) => (longitudeDeg / 360) * 720;
 const mapY = (latitudeDeg: number) => ((90 - latitudeDeg) / 180) * 360;
@@ -50,15 +51,15 @@ function LunarMap({ selectedSite, onSelect }: Pick<Props, "selectedSite" | "onSe
       </g>
       <g strokeDasharray="3 6" strokeOpacity=".46" pointerEvents="none">
         {[90,180,270].map((x)=><path key={`x-${x}`} d={`M${x} 0V360`} stroke="#a986ff"/>)}
-        {[90,180,270].map((y)=><path key={`y-${y}`} d={`M0 ${y}H720`} stroke="#58c8ff"/>)}
+        {[90,180,270].map((y)=><path key={`y-${y}`} d={`M0 ${y}H720`} stroke="#4b9bff"/>)}
       </g>
-      <g pointerEvents="none">{MOON_REGIONS.map((region)=><circle key={region.id} cx={mapX(region.site.longitudeDeg)} cy={mapY(region.site.latitudeDeg)} r="5" fill="#ff637d" stroke="#171224" strokeWidth="2"/>)}</g>
+      <g pointerEvents="none">{MOON_REGIONS.map((region)=><circle key={region.id} cx={mapX(region.site.longitudeDeg)} cy={mapY(region.site.latitudeDeg)} r="5" fill="#ff5364" stroke="#171224" strokeWidth="2"/>)}</g>
       <g transform={`translate(${mapX(selectedSite.longitudeDeg)},${mapY(selectedSite.latitudeDeg)})`} pointerEvents="none"><circle r="12" fill="none" stroke="#e3dcff" strokeWidth="1.5" strokeDasharray="3 3"/><path d="M-6 0H6M0-6V6" stroke="#e3dcff" strokeWidth="1.5"/></g>
     </svg>
   </div>;
 }
 
-export function MoonLocationPicker({ selectedSite, onSelect, onContinue, sunAzimuthDeg, sunElevationDeg, mode = "setup" }: Props) {
+export function MoonLocationPicker({ selectedSite, onSelect, onContinue, sunAzimuthDeg, sunElevationDeg, mode = "setup", onClose }: Props) {
   const selectedRegion = MOON_REGIONS.find((region) => region.site.id === selectedSite.id)?.id ?? null;
   const [name, setName] = useState("");
   const [latitude, setLatitude] = useState("");
@@ -112,7 +113,7 @@ export function MoonLocationPicker({ selectedSite, onSelect, onContinue, sunAzim
   </details>;
 
   if (mode === "hud") return <section className="hud-panel h-full overflow-y-auto p-3 sm:p-4" aria-label="Lunar map and terrain samples">
-    <div><div className="type-data text-[0.58rem] uppercase tracking-[0.16em] text-retro-purple">Navigation map</div><h2 className="type-heading mt-1 text-sm text-bone">Lunar surface</h2></div>
+    <div className="flex items-start justify-between"><div><div className="type-data text-[0.58rem] uppercase tracking-[0.16em] text-retro-purple">Navigation map</div><h2 className="type-heading mt-1 text-sm text-bone">Lunar surface</h2></div>{onClose && <button type="button" aria-label="Close lunar map" onClick={onClose} className="grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><X size={15}/></button>}</div>
     <LunarMap selectedSite={selectedSite} onSelect={(site)=>{onSelect(site);}}/>
     <div className="mt-2 grid grid-cols-3 gap-1.5">{MOON_REGIONS.map((region)=><button key={region.id} type="button" onClick={()=>selectRegion(region)} aria-pressed={selectedRegion===region.id} className={`rounded border px-2 py-1.5 text-left text-[0.63rem] transition ${selectedRegion===region.id?"border-retro-purple/70 bg-retro-purple/10 text-retro-purple":"border-line/80 text-muted-foreground hover:border-retro-blue/60 hover:text-bone"}`}>{region.label}</button>)}</div>
     <div className="mt-3 flex items-center gap-2 border-t border-line/80 pt-3"><MapPin size={14} className="shrink-0 text-retro-red"/><div className="min-w-0 flex-1"><div className="truncate text-xs text-bone">{selectedSite.name}</div><div className="type-data mt-0.5 text-[0.6rem] text-muted-foreground">{selectedSite.latitudeDeg.toFixed(2)}° / {selectedSite.longitudeDeg.toFixed(2)}° E</div></div></div>
