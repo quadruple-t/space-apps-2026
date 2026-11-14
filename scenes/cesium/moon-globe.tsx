@@ -4,16 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import type * as CesiumNS from "cesium";
 import { PRESET_SITES, type FreeplaySite } from "@/data/sites";
 import { useFreeplay } from "@/lib/freeplay-store";
+import { publishAnchor } from "./anchor";
 import { loadCesium, type Cesium } from "./load-cesium";
 import { BASE_LAYER, LAYERS, LUNASERV_WMS, TREK_TEMPLATE } from "./moon-layers";
 
-/** Screen position of the selected site, published every rendered frame. */
-export type Anchor = { x: number; y: number; visible: boolean } | null;
-const anchorListeners = new Set<(a: Anchor) => void>();
-export function subscribeAnchor(fn: (a: Anchor) => void) {
-  anchorListeners.add(fn);
-  return () => { anchorListeners.delete(fn); };
-}
 
 const starImage = (fill: string, stroke: string, size = 28) => {
   const pts = [...Array(10)].map((_, i) => {
@@ -23,6 +17,9 @@ const starImage = (fill: string, stroke: string, size = 28) => {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 28 28"><polygon points="${pts}" fill="${fill}" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/></svg>`;
   return `data:image/svg+xml;base64,${btoa(svg)}`;
 };
+
+/** Pins float slightly above the ellipsoid so the globe doesn't depth-clip them. */
+const PIN_HEIGHT_M = 1500;
 
 const PIN = {
   preset: starImage("#f0ebf7", "#080712"),
@@ -121,11 +118,10 @@ export default function MoonGlobe() {
       // Publish the selected site's screen position for the callout.
       const removePostRender = scene.postRender.addEventListener(() => {
         const s = useFreeplay.getState().site;
-        const pos = C.Cartesian3.fromDegrees(s.longitudeDeg, s.latitudeDeg, 0, moon);
+        const pos = C.Cartesian3.fromDegrees(s.longitudeDeg, s.latitudeDeg, PIN_HEIGHT_M, moon);
         const win = C.SceneTransforms.worldToWindowCoordinates(scene, pos);
         const occluder = new C.EllipsoidalOccluder(moon, viewer.camera.positionWC);
-        const anchor: Anchor = win ? { x: win.x, y: win.y, visible: occluder.isPointVisible(pos) } : null;
-        anchorListeners.forEach((fn) => fn(anchor));
+        publishAnchor(win ? { x: win.x, y: win.y, visible: occluder.isPointVisible(pos) } : null);
       });
 
       const s = useFreeplay.getState().site;
@@ -151,7 +147,7 @@ export default function MoonGlobe() {
     for (const s of all) {
       const selected = s.id === site.id;
       const props = {
-        position: new C.ConstantPositionProperty(C.Cartesian3.fromDegrees(s.longitudeDeg, s.latitudeDeg, 1500, moon)),
+        position: new C.ConstantPositionProperty(C.Cartesian3.fromDegrees(s.longitudeDeg, s.latitudeDeg, PIN_HEIGHT_M, moon)),
         billboard: new C.BillboardGraphics({
           image: selected ? PIN.selected : s.kind === "saved" ? PIN.saved : s.verified ? PIN.preset : PIN.presetUnverified,
           verticalOrigin: C.VerticalOrigin.CENTER,
