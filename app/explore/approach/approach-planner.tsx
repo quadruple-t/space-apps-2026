@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } fro
 import { ArrowLeft, Pause, Play, RotateCcw } from "lucide-react";
 import { MoonSunDiagram } from "@/components/graphics/moon-sun-diagram";
 import { DailySunlightChart, IrradianceChart, SkyTrack } from "@/components/graphics/mission-charts";
-import { VERIFIED_SITES } from "@/data/sites";
+import { DEFAULT_SITE_ID, VERIFIED_SITES } from "@/data/sites";
 import { isoToHorizons, type ObserverEntry } from "@/lib/horizons";
 import {
   buildTimeline, hoursUntilChange, mergeSeries, sampleAt, summarizeByDay,
@@ -61,10 +61,11 @@ export function ApproachPlanner() {
   const fromQuery = qLat !== null && qLon !== null;
 
   // ── Setup form ─────────────────────────────────────────────────────────────
-  const [siteId, setSiteId] = useState(fromQuery ? "custom" : "shackleton");
-  const [name, setName] = useState(params.get("name") ?? "Custom site");
-  const [lat, setLat] = useState(qLat ?? "-89.9");
-  const [lon, setLon] = useState(qLon ?? "0");
+  const defaultSite = VERIFIED_SITES.find((s) => s.id === DEFAULT_SITE_ID) ?? VERIFIED_SITES[0];
+  const [siteId, setSiteId] = useState(fromQuery ? "custom" : defaultSite.id);
+  const [name, setName] = useState(params.get("name") ?? defaultSite.name);
+  const [lat, setLat] = useState(qLat ?? String(defaultSite.latitudeDeg));
+  const [lon, setLon] = useState(qLon ?? String(defaultSite.longitudeDeg));
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
   const [startTime, setStartTime] = useState("00:00");
   const [days, setDays] = useState("30");
