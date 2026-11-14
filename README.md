@@ -1,6 +1,6 @@
-# Shadowline
+# Lunaris360
 
-An interactive 3D mission-planning environment for the lunar south pole. Shadowline shows how terrain
+An interactive 3D mission-planning environment for the lunar south pole. Lunaris360 shows how terrain
 shapes sunlight and direct-to-Earth line of sight at candidate landing sites.
 
 Built for the NASA Space Apps Challenge 2026.

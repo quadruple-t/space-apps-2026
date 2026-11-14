@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Shadowline: a 3D lunar mission-planning website with an immersive Freeplay simulator (NASA Space Apps Challenge 2026). Terrain and displayed science values are illustrative. No LOLA or JPL Horizons data is integrated, so do not present values as measured or operational.
+Lunaris360: a 3D lunar mission-planning website with an immersive Freeplay simulator (NASA Space Apps Challenge 2026). Terrain and displayed science values are illustrative. No LOLA or JPL Horizons data is integrated, so do not present values as measured or operational.
 
 ## Commands
 
