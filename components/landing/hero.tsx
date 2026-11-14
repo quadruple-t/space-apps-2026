@@ -35,7 +35,7 @@ export function Hero() {
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="xl">
-                <Link href="#explore">Explore Lunaris360</Link>
+                <Link href="/freeplay">Launch Freeplay</Link>
               </Button>
               <Button asChild size="xl" variant="outline">
                 <Link href="#mission">Discover the Mission</Link>
