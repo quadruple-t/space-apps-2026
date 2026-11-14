@@ -10,33 +10,10 @@ import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle, SheetTri
 import { NAV_LINKS } from "@/data/site";
 import { cn } from "@/lib/utils";
 
-/** Highlights the landing-page section currently under the nav. */
-function useActiveSection(enabled: boolean) {
-  const [active, setActive] = useState<string | null>(null);
-  useEffect(() => {
-    if (!enabled) return;
-    const sections = NAV_LINKS.map((l) => (l.sectionId ? document.getElementById(l.sectionId) : null)).filter(
-      (el): el is HTMLElement => !!el,
-    );
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) setActive(e.target.id);
-        });
-      },
-      { rootMargin: "-45% 0px -50% 0px" },
-    );
-    sections.forEach((s) => observer.observe(s));
-    return () => observer.disconnect();
-  }, [enabled]);
-  return enabled ? active : null;
-}
-
 export function Navbar() {
   const pathname = usePathname();
   const isHome = pathname === "/";
   const [scrolled, setScrolled] = useState(false);
-  const active = useActiveSection(isHome);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -64,12 +41,12 @@ export function Navbar() {
 
         <ul className="hidden items-center gap-1 md:flex">
           {NAV_LINKS.map((link) => {
-            const isActive = active === link.sectionId;
+            const isActive = pathname === link.href;
             return (
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  aria-current={isActive ? "location" : undefined}
+                  aria-current={isActive ? "page" : undefined}
                   className={cn(
                     "group relative inline-flex h-10 items-center rounded-sm px-3 text-sm transition-colors duration-200",
                     isActive ? "text-bone" : "text-muted-foreground hover:text-bone",
@@ -101,7 +78,7 @@ export function Navbar() {
                 <Logo />
               </div>
               <SheetTitle className="sr-only">Navigation</SheetTitle>
-              <SheetDescription className="sr-only">Jump to a section or open a Shadowline experience.</SheetDescription>
+              <SheetDescription className="sr-only">Open a Shadowline page.</SheetDescription>
               <ul className="flex flex-col px-3 py-4">
                 {NAV_LINKS.map((link) => (
                   <li key={link.href}>

@@ -11,13 +11,13 @@ export const SITE = {
   hackathon: "NASA Space Apps Challenge 2026",
 } as const;
 
-export type NavLink = { label: string; href: string; sectionId?: string };
+export type NavLink = { label: string; href: string };
 
-/** Primary nav — section anchors resolve against the landing page from any route. */
+/** Primary navigation routes to distinct pages. */
 export const NAV_LINKS: NavLink[] = [
-  { label: "Overview", href: "/#overview", sectionId: "overview" },
-  { label: "The Mission", href: "/#mission", sectionId: "mission" },
-  { label: "How It Works", href: "/#how-it-works", sectionId: "how-it-works" },
+  { label: "Overview", href: "/" },
+  { label: "The Mission", href: "/mission" },
+  { label: "How It Works", href: "/how-it-works" },
   { label: "Freeplay", href: "/explore" },
 ];
 
@@ -107,7 +107,7 @@ export const FOOTER_LINKS = {
     { label: "Mission Comparison", href: "/compare" },
   ],
   project: [
-    { label: "Overview", href: "/#overview" },
+    { label: "Overview", href: "/" },
     { label: "The science", href: "/science" },
     { label: "Data sources", href: "/science#data-sources" },
   ],
