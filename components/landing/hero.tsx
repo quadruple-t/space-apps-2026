@@ -3,6 +3,7 @@ import { ArrowDown, ArrowUpRight, ChevronRight } from "lucide-react";
 import { ExperienceGlyph } from "@/components/graphics/experience-glyphs";
 import { PageContainer } from "@/components/layout/page-container";
 import { HeroHud } from "@/components/landing/hero-hud";
+import { Button } from "@/components/ui/button";
 import { LunarSceneLoader } from "@/scenes/lunar/lunar-scene-loader";
 
 const ROUTES = [
@@ -43,10 +44,10 @@ export function Hero() {
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="xl">
-                <Link href="#explore">Explore Lunaris360</Link>
+                <Link href="/explore">Explore Lunaris360</Link>
               </Button>
               <Button asChild size="xl" variant="outline">
-                <Link href="#mission">Discover the Mission</Link>
+                <Link href="/mission">Discover the Mission</Link>
               </Button>
             </div>
           </div>
