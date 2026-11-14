@@ -29,6 +29,7 @@ npm run test:rules # Firestore security-rules tests (starts emulator)
 ## Architecture
 
 - `app/`: routes `/`, `/mission`, `/explore`, `/compare`, `/science`, plus the versioned `/api/v1/` science and catalog API. `/explore` hosts working Freeplay controls; `/mission` is an overview and `/compare` is currently an empty-state shell.
+- Before changing or adding `/api/v1` endpoints, read `docs/API.md`; keep that reference in sync with route behavior, parameters, payloads, and authentication.
 - `scenes/lunar/`: the reusable 3D scene. `lunar-scene.tsx` composes `terrain.ts` (height function and mesh builder), `celestial.tsx` (Sun, Earth, stars), `camera-rig.tsx` and `landing-site.tsx`. `lunar-scene-loader.tsx` loads it client-side via `next/dynamic`.
 - `integrations/science/`: client API adapter and provider types. The API performs authoritative science lookups from Firestore; the illustrative mock provider is not Freeplay's live provider.
 - `lib/ephemeris/`, `lib/terrain/`, `lib/firestore/`: decode stored ephemeris and terrain data, compute local sky positions and test visibility against horizon masks.
