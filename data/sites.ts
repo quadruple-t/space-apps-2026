@@ -13,6 +13,8 @@ export type FreeplaySite = LunarSite & {
   kind: SiteKind
   /** Lunaris360 catalog site id, when the site came from (or was saved from) the catalog */
   catalogId?: string
+  /** false when the catalog marks the point as approximate; the science API rejects those by id */
+  catalogPointVerified?: boolean
 }
 
 export const COORD_REF = "Planetocentric latitude, east-positive longitude (MOON_ME)"
@@ -37,9 +39,10 @@ export function catalogToFreeplay(c: CatalogSite, radiusKm = 5): FreeplaySite {
   return {
     id: `catalog-${c.id}`,
     catalogId: c.id,
+    catalogPointVerified: !c.pointIsApproximate,
     name: c.name,
     latitudeDeg: c.latDeg,
-    longitudeDeg: ((c.lonDeg % 360) + 360) % 360,
+    longitudeDeg: Number((((c.lonDeg % 360) + 360) % 360).toFixed(6)),
     coordinateReference: COORD_REF,
     provenance: "scientific",
     radiusKm,

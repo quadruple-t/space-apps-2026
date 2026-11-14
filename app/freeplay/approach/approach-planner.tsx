@@ -53,7 +53,7 @@ export function ApproachPlanner() {
   // ── Setup form ─────────────────────────────────────────────────────────────
   // Site list: the Lunaris360 catalog (catalog sites have LOLA horizon masks).
   const [catalog, setCatalog] = useState<CatalogSite[]>([]);
-  const [siteId, setSiteId] = useState(fromQuery ? "custom" : DEFAULT_CATALOG_ID);
+  const [siteId, setSiteId] = useState(fromQuery ? (params.get("siteId") ?? "custom") : DEFAULT_CATALOG_ID);
   const [name, setName] = useState(params.get("name") ?? "");
   const [lat, setLat] = useState(qLat ?? "");
   const [lon, setLon] = useState(qLon ?? "");
@@ -67,8 +67,11 @@ export function ApproachPlanner() {
     }).catch(() => {});
     return () => { alive = false; };
   }, [fromQuery]);
-  const [startDate, setStartDate] = useState("2026-12-01");
-  const [startTime, setStartTime] = useState("00:00");
+  // Start time from Freeplay (?t=ISO) when it falls inside the stored coverage.
+  const qTime = Date.parse(params.get("t") ?? "");
+  const startFromQuery = qTime >= Date.parse(COVERAGE_START_ISO) && qTime < Date.parse(COVERAGE_END_ISO) ? new Date(qTime).toISOString() : null;
+  const [startDate, setStartDate] = useState(startFromQuery?.slice(0, 10) ?? "2026-12-01");
+  const [startTime, setStartTime] = useState(startFromQuery?.slice(11, 16) ?? "00:00");
   const [days, setDays] = useState("30");
   const [panel, setPanel] = useState<PanelMode>("vertical");
   const [formError, setFormError] = useState<string | null>(null);
@@ -149,7 +152,7 @@ export function ApproachPlanner() {
     <div className="mx-auto max-w-[1240px]">
       <header className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <Link href="/freeplay/drive" className="type-data inline-flex items-center gap-1.5 text-[0.62rem] uppercase tracking-[0.14em] text-muted-foreground hover:text-bone"><ArrowLeft size={13} /> Surface drive</Link>
+          <Link href="/freeplay" className="type-data inline-flex items-center gap-1.5 text-[0.62rem] uppercase tracking-[0.14em] text-muted-foreground hover:text-bone"><ArrowLeft size={13} /> Freeplay</Link>
           <h1 className="type-heading mt-2 text-2xl text-bone sm:text-4xl">Approach geometry</h1>
           <p className="mt-2 max-w-2xl text-xs leading-relaxed text-muted-foreground sm:text-sm">Pick a site, a landing date and a mission length. Sun and Earth positions come from the team&apos;s stored JPL Horizons ephemeris (2026–2030), hour by hour, and catalog sites use their LOLA terrain horizon. Play it back at any speed to see how much sunlight the site gets, and how strong it is.</p>
         </div>
