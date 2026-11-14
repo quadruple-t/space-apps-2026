@@ -90,7 +90,7 @@ export function Hero() {
           <p className="type-data max-w-2xl text-[0.61rem] leading-relaxed text-bone/45">
             Concept preview. Terrain is procedurally generated and displayed values are illustrative, not mission telemetry or LOLA-derived data.
           </p>
-          <Link href="#overview" className="type-data inline-flex shrink-0 items-center gap-2 text-[0.65rem] uppercase tracking-wider text-bone/65 transition-colors hover:text-sun">
+          <Link href="#overview-guide" className="type-data inline-flex shrink-0 items-center gap-2 text-[0.65rem] uppercase tracking-wider text-bone/65 transition-colors hover:text-sun">
             Continue to briefing <ArrowDown aria-hidden className="size-3.5" />
           </Link>
         </div>
