@@ -21,7 +21,7 @@ export const DURATION_PRESETS = [
 ] as const
 
 
-const STORAGE_KEY = "shadowline-freeplay-v1"
+const STORAGE_KEY = "lunaris360-freeplay-v1"
 
 type Persisted = { savedSites: FreeplaySite[]; panelAreaM2: number; panelEfficiency: number }
 
