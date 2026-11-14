@@ -1,0 +1,90 @@
+{
+ "label": "Chandrayaan-3 Pragyan rover",
+ "agency": "ISRO",
+ "mission": "Chandrayaan-3",
+ "fields": {
+  "arrayPowerW": {
+   "value": 50,
+   "unit": "W",
+   "basis": "sourced",
+   "sourceIdx": 0,
+   "note": "ISRO: '50W' (rover)"
+  },
+  "panelAreaM2": {
+   "value": null,
+   "unit": "m2",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "cellEfficiency": {
+   "value": null,
+   "unit": "fraction",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "batteryWh": {
+   "value": null,
+   "unit": "Wh",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "batteryAh": {
+   "value": 10,
+   "unit": "Ah",
+   "basis": "sourced",
+   "sourceIdx": 1,
+   "note": "Secondary source (The Week, tier C): 'The capacity of the rover battery is 10 Ampere-hour (Ah).'"
+  },
+  "busV": {
+   "value": null,
+   "unit": "V",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "baseLoadW": {
+   "value": null,
+   "unit": "W",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "commsLoadW": {
+   "value": null,
+   "unit": "W",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "designLifeHours": {
+   "value": null,
+   "unit": "h",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  }
+ },
+ "facts": [
+  {
+   "text": "Communicates only with the lander (ISRO).",
+   "sourceIdx": 0
+  }
+ ],
+ "sources": [
+  {
+   "label": "ISRO, Chandrayaan-3 details",
+   "url": "https://www.isro.gov.in/Chandrayaan3_Details.html",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "The Week, Chandrayaan-3 in sleep mode (Pragyan battery)",
+   "url": "https://www.theweek.in/news/sci-tech/2023/09/07/chandrayaan-3-in-sleep-mode-after-14-days-on-the-moon-will-pragyan-rover-wake-up-again.html",
+   "retrievedAt": "2026-11-14",
+   "tier": "C"
+  }
+ ]
+}

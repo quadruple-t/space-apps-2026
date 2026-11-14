@@ -1,0 +1,33 @@
+{
+  "_note": "Mission profiles. Weights are the first prompt's starting values (basis: assumption; justified in docs/METHODS.md) and sum to 1. robotic-14-day uses one lunar day (user decision, 2026-11-14).",
+  "profiles": [
+    {
+      "id": "short-landing", "label": "Short landing", "durationHours": 48,
+      "description": "Land, operate briefly, done. Sun angle at touchdown and Earth comms matter most.",
+      "weights": {"sunlight": 0.3, "earthComms": 0.3, "thermalMargin": 0.2, "batterySurvival": 0.0, "iceAccess": 0.0, "longSunlight": 0.0, "hazardMargin": 0.2},
+      "disqualifiers": ["sun below horizon mask at landing time", "Earth below horizon mask at landing time", "landing slope (100 m) above hazardThresholds.landingSlopeMaxDeg"],
+      "hazardThresholds": {"landingSlopeMaxDeg": 10, "evaSlopeMaxDeg": 20, "sources": ["nasaHls2024"]}
+    },
+    {
+      "id": "robotic-14-day", "label": "One-lunar-day robotic mission", "durationHours": 354,
+      "durationNote": "One lunar day = half a synodic month = 29.53 d / 2 ≈ 354 h (NSSDC). The id keeps its original name for URL stability.",
+      "durationSources": ["nssdcMoon"],
+      "description": "One lunar day of solar-powered work. Battery and steady light matter.",
+      "weights": {"sunlight": 0.25, "earthComms": 0.2, "thermalMargin": 0.1, "batterySurvival": 0.25, "iceAccess": 0.0, "longSunlight": 0.1, "hazardMargin": 0.1},
+      "disqualifiers": ["battery state of charge hits 0% inside window", "landing slope (100 m) above hazardThresholds.landingSlopeMaxDeg"],
+      "hazardThresholds": {"landingSlopeMaxDeg": 10, "evaSlopeMaxDeg": 20, "sources": ["nasaHls2024"]}
+    },
+    {
+      "id": "long-term-base", "label": "Long-term base", "durationHours": 8760,
+      "description": "Year-scale presence. Long continuous sunlight and cold-trap access dominate.",
+      "weights": {"sunlight": 0.15, "earthComms": 0.1, "thermalMargin": 0.05, "batterySurvival": 0.1, "iceAccess": 0.25, "longSunlight": 0.25, "hazardMargin": 0.1},
+      "disqualifiers": [
+        "inside a PSR polygon",
+        "inside the PSR buffer (user parameter, default 2.0 km: NASA 2011 heritage landing stand-off, applied by analogy; not a PSR-protection standard)",
+        "inside any NASA-2011 heritage zone",
+        "landing slope (100 m) above hazardThresholds.landingSlopeMaxDeg"
+      ],
+      "hazardThresholds": {"landingSlopeMaxDeg": 10, "evaSlopeMaxDeg": 20, "sources": ["nasaHls2024"]}
+    }
+  ]
+}

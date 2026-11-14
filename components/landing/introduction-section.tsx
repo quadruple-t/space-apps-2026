@@ -5,16 +5,16 @@ import { SimulatorPreview } from "./simulator-preview";
 
 const STEPS = [
   {
-    title: "Place a landing site",
-    body: "Pick a point on the terrain and stand on it. The surrounding ridges and crater walls become your horizon.",
+    title: "Choose a location",
+    body: "Select a supported site or explore coordinates in the location picker. Terrain detail and horizon coverage vary by location.",
   },
   {
-    title: "Read its horizon",
-    body: "See where the Sun and Earth travel against that horizon, and where the terrain cuts them off.",
+    title: "Set the mission time",
+    body: "Move the clock and inspect JPL Horizons Sun and Earth positions from the selected lunar location.",
   },
   {
-    title: "Judge the conditions",
-    body: "Turn the geometry into mission terms: how long the site stays lit, and when it can talk to Earth.",
+    title: "Inspect the window",
+    body: "Review 24-hour sunlight and Earth-visibility summaries when a suitable horizon mask is available; smooth-horizon results are identified as upper bounds.",
   },
 ];
 
@@ -25,9 +25,10 @@ export function IntroductionSection() {
         <Reveal>
           <SectionHeading id="mission-title" title="See the mission from the surface.">
             <p>
-              Shadowline turns complex lunar environmental data into a place you can stand in. Instead of reading
-              tables of angles, you look across the terrain from a candidate landing site and see the Sun, the
-              Earth and the ridges between them.
+              Freeplay combines time and location controls with a first-person lunar scene. Sun and Earth positions
+              come from JPL Horizons ephemerides; where available, precomputed LOLA horizon masks determine
+              visibility and 24-hour lighting and communications metrics. The rendered ground is procedural, so it
+              is a visual guide rather than a terrain-accurate surface.
             </p>
           </SectionHeading>
         </Reveal>

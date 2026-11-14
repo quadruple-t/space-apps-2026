@@ -1,0 +1,65 @@
+{
+  "_note": "Story chapters (first prompt's chapters with the revision-2 changes in prompt §11.2). keyNumbers cite refs.json keys; a keyNumber with validationCheckId shows the pipeline-computed value beside the historical one.",
+  "chapters": [
+    {
+      "id": "ch1-first-landing", "order": 1, "title": "First Landing", "era": "Apollo era", "concept": "Sun angle and lighting", "unlocksTool": "horizon-dial",
+      "featuredSiteIds": ["apollo-11-tranquility", "apollo-17-taurus-littrow", "apollo-12-oceanus-procellarum"],
+      "steps": [
+        {"id": "ch1-s1", "prompt": "Drag the date. Watch the Sun climb and fall over the horizon.", "focus": "sun-elevation", "expects": "slider"},
+        {"id": "ch1-s2", "prompt": "Why would a crew want long shadows at touchdown?", "focus": "sun-elevation", "expects": "choice"},
+        {"id": "ch1-s3", "prompt": "Pick a landing date with the Sun low but not too low.", "focus": "horizon-mask", "expects": "date-pick"}
+      ],
+      "debrief": {
+        "headline": "Low sun is a tool, not a problem",
+        "whatHappened": "Apollo planners chose landing windows so the Sun sat 5° to 14° above the horizon, which stretches shadows and makes craters and boulders easier to spot. That restriction left a 16-hour window every 29.5 days to land at a given site.",
+        "realMission": "Apollo 11",
+        "keyNumbers": [
+          {"label": "Sun elevation at Apollo 11 touchdown", "value": "10.65°", "sourceNote": "ALSJ, Fjeld and Scotti: a computed reconstruction spot-checked against JPL Horizons, not an in-situ measurement. Shown beside Shadowline's own computed value.", "sources": ["alsjEarthSun"], "validationCheckId": "val-apollo11-sun-elevation"},
+          {"label": "Planned acceptable Sun elevation range", "value": "5°-14°", "sourceNote": "NASA SP-4029, Apollo 11 summary (launch-window planning; planned value 10.8°).", "sources": ["sp4029A11"], "validationCheckId": "val-apollo11-planning-window"},
+          {"label": "Landing opportunity at a given site", "value": "a 16-hour period every 29.5 days", "sourceNote": "NASA SP-4029: 'the sun elevation angle restriction established a 16-hour period, which occurred every 29.5 days'.", "sources": ["sp4029A11"]}
+        ]
+      }
+    },
+    {
+      "id": "ch2-robotic-explorer", "order": 2, "title": "Robotic Explorer", "era": "Commercial landers", "concept": "Solar power, batteries and Earth comms", "unlocksTool": "power-simulator",
+      "featuredSiteIds": ["chandrayaan-3-shiv-shakti", "slim-shioli", "im-1-odysseus", "im-2-athena", "chandrayaan-2-vikram"],
+      "steps": [
+        {"id": "ch2-s1", "prompt": "Your lander has panels and a battery. When does it run out of power?", "focus": "battery-soc", "expects": "slider"},
+        {"id": "ch2-s2", "prompt": "Find the windows when Earth is above the local terrain.", "focus": "earth-visibility", "expects": "choice"},
+        {"id": "ch2-s3", "prompt": "Choose a landing time that gives you both sun and Earth.", "focus": "battery-soc", "expects": "date-pick"}
+      ],
+      "debrief": {
+        "headline": "Power and comms decide how long you live",
+        "whatHappened": "Once a lander is down, where it sits and which way its panels face decide whether it gets power, warmth and a link home. SLIM waited for the Sun to move; IM-2 lay in a shadowed crater and lost power within hours; Chandrayaan-3 was built for one lunar day and slept when night fell.",
+        "realMission": "Chandrayaan-3, SLIM, IM-1 and IM-2 (Chandrayaan-2 as a contrast)",
+        "honestyNote": "Chandrayaan-2 was a descent-guidance failure: ISRO says 'the reduction in velocity was more than the designed value'. Do not present it as a lighting or site failure.",
+        "keyNumbers": [
+          {"label": "Chandrayaan-3 lander power", "value": "738 W; mission life one lunar day (about 14 Earth days)", "sourceNote": "ISRO. It went to sleep in early September 2023 and was never revived (ISRO via PTI).", "sources": ["isroCh3Details", "tribuneCh3Sleep"]},
+          {"label": "SLIM", "value": "landed about 55 m from target; no power until the Sun moved; survived 3 lunar nights", "sourceNote": "JAXA: solar cells 'are currently facing west'; operations resumed 'as the direction of the sun changed'.", "sources": ["jaxa20240125", "jaxaSlimReview", "jaxa20240826"]},
+          {"label": "IM-2 Athena", "value": "landed in a shadowed crater; operations ended in under 13 hours", "sourceNote": "NASA; SpaceNews (company statement on Sun direction, panel orientation and cold).", "sources": ["nasaIm2End", "spacenewsIm2"]},
+          {"label": "IM-1 Odysseus", "value": "about 7 Earth days of operations", "sourceNote": "NASA: ended when 'the sun moved out of view of the one illuminated solar panel'.", "sources": ["nasaIm1Science", "nasaIm2PressKit"]}
+        ]
+      }
+    },
+    {
+      "id": "ch3-lunar-base", "order": 3, "title": "Lunar Base", "era": "Artemis era", "concept": "Ice, long-duration sunlight and survival", "unlocksTool": "base-scoring",
+      "featuredSiteIds": ["artemis-peak-near-cabeus-b", "artemis-haworth", "artemis-malapert-massif", "artemis-mons-mouton-plateau", "artemis-mons-mouton", "artemis-nobile-rim-1", "artemis-nobile-rim-2", "artemis-de-gerlache-rim-2", "artemis-slater-plain"],
+      "steps": [
+        {"id": "ch3-s1", "prompt": "Find a ridge that stays lit for the longest stretch.", "focus": "sun-elevation", "expects": "choice"},
+        {"id": "ch3-s2", "prompt": "Now find the nearest cold trap. How far is it?", "focus": "ice-access", "expects": "slider"},
+        {"id": "ch3-s3", "prompt": "Rank two candidate sites for a long-term base.", "focus": "score", "expects": "choice"}
+      ],
+      "debrief": {
+        "headline": "A base needs light, cold traps nearby and a safe landing zone",
+        "whatHappened": "Long-term sites trade near-continuous sunlight on ridges against access to permanently shadowed cold traps, while keeping landing exhaust away from them. Cold traps are places cold enough for ice to survive (annual maximum below 110 K); that is not the same as detected ice.",
+        "realMission": "Artemis IV candidate regions (first crewed landing, planned 2028)",
+        "keyNumbers": [
+          {"label": "Candidate regions", "value": "continuous sunlight over a 6.5-day period; each about 15 x 15 km", "sourceNote": "NASA, 19 Aug 2022 (13-region list).", "sources": ["nasa2022Regions"]},
+          {"label": "Current regions", "value": "nine", "sourceNote": "NASA, 28 Oct 2024; quoted on the Artemis IV page.", "sources": ["nasa2024Regions", "nasaArtemisIV"]},
+          {"label": "Landing slope limit", "value": "below 10° over 100 m", "sourceNote": "NASA Artemis HLS Update, 1 Aug 2024.", "sources": ["nasaHls2024"]},
+          {"label": "Cold traps", "value": "annual maximum below 110 K; surface ice seen in only about 3.5% of cold traps", "sourceNote": "Diviner (Paige et al. 2010); Li et al. 2018.", "sources": ["divinerPrp", "li2018"]}
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+ "label": "USGS Gazetteer of Planetary Nomenclature",
+ "kind": "catalog",
+ "version": null,
+ "citation": "IAU WGPSN / USGS Astrogeology",
+ "doi": null,
+ "url": "https://planetarynames.wr.usgs.gov/",
+ "license": null,
+ "usedFor": [
+  "Artemis representative points (nearest named feature centres)"
+ ],
+ "retrievedAt": "2026-11-14"
+}

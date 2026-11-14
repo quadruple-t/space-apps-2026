@@ -1,0 +1,30 @@
+{
+ "kind": "heritage-buffer",
+ "ruleId": "nasa2011-artifact-boundary",
+ "name": "Apollo 11 (Tranquility Base): artifact boundary (75 m)",
+ "siteId": "apollo-11-tranquility",
+ "geometry": {
+  "type": "Circle",
+  "center": {
+   "latDeg": 0.67416,
+   "lonDeg": 23.47314
+  },
+  "radiusKm": 0.075
+ },
+ "rationale": "NASA 2011 §A3-1: 'the exclusion zone extends 75 m from the lunar module descent stage; visits to any part of the site are prohibited'. Centred on the LM descent stage (LROC coordinates).",
+ "sources": [
+  {
+   "label": "NASA (2011, Rev A 28 Oct 2011), Recommendations to Space-Faring Entities: How to Protect and Preserve the Historic and Scientific Value of U.S. Government Lunar Artifacts",
+   "url": "https://www.nasa.gov/pdf/617743main_NASA-USG_LUNAR_HISTORIC_SITES_RevA-508.pdf",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "LROC, Coordinates of Lunar Anthropogenic Targets (28 Jul 2016; Wagner et al. 2017, Icarus 283:92-103)",
+   "url": "https://lroc.im-ldi.com/data/support/downloads/2016_LROC_Coordinates_of_Human_Features.pdf",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ],
+ "needsData": false
+}

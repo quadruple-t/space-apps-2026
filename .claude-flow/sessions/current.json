@@ -1,12 +1,13 @@
 {
-  "id": "session-1794670419331",
-  "startedAt": "2026-11-14T15:33:39.331Z",
+  "id": "session-1794679259315",
+  "startedAt": "2026-11-14T18:00:59.315Z",
   "cwd": "/Users/tduba/dev/space-apps-2026",
   "context": {},
   "metrics": {
-    "edits": 9,
+    "edits": 1,
     "commands": 0,
     "tasks": 0,
     "errors": 0
-  }
+  },
+  "restoredAt": "2026-11-14T20:23:25.262Z"
 }

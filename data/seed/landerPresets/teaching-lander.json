@@ -1,0 +1,96 @@
+{
+ "label": "Teaching lander (simulator defaults)",
+ "agency": "Shadowline",
+ "mission": null,
+ "fields": {
+  "arrayPowerW": {
+   "value": null,
+   "unit": "W",
+   "basis": "assumption",
+   "sourceIdx": null,
+   "note": "Team to choose; no published default."
+  },
+  "panelAreaM2": {
+   "value": 1.857,
+   "unit": "m2",
+   "basis": "derived",
+   "sourceIdx": 0,
+   "note": "Derived: area a 29.2%-efficient array needs to produce 738 W (Chandrayaan-3 Vikram) at 1361 W/m2 and normal incidence: 738 / (1361 x 0.292). Not Vikram's real panel area."
+  },
+  "cellEfficiency": {
+   "value": 0.292,
+   "unit": "fraction",
+   "basis": "sourced",
+   "sourceIdx": 1,
+   "note": "Triple-junction cell, 29.2% BOL at 1367 W/m2, AM0, 28 °C (AZUR SPACE 3G30-Advanced datasheet). Bare cell; packing and degradation not included."
+  },
+  "batteryWh": {
+   "value": null,
+   "unit": "Wh",
+   "basis": "assumption",
+   "sourceIdx": null,
+   "note": "Team to choose; no published source for a teaching default."
+  },
+  "batteryAh": {
+   "value": null,
+   "unit": "Ah",
+   "basis": "assumption",
+   "sourceIdx": null,
+   "note": "Team to choose."
+  },
+  "busV": {
+   "value": null,
+   "unit": "V",
+   "basis": "assumption",
+   "sourceIdx": null,
+   "note": "Team to choose."
+  },
+  "baseLoadW": {
+   "value": null,
+   "unit": "W",
+   "basis": "assumption",
+   "sourceIdx": null,
+   "note": "Team to choose; no lander base load is published in the sources found."
+  },
+  "commsLoadW": {
+   "value": null,
+   "unit": "W",
+   "basis": "assumption",
+   "sourceIdx": null,
+   "note": "Team to choose; no lander comms load is published in the sources found."
+  },
+  "designLifeHours": {
+   "value": null,
+   "unit": "h",
+   "basis": "assumption",
+   "sourceIdx": null,
+   "note": "Set by the chosen mission profile."
+  }
+ },
+ "facts": [
+  {
+   "text": "Array power model: P = S(r) x A x eta x cos(incidence) x packing/degradation factor, with S(r) = S0 (1 AU / r)^2 and r from the ephemeris. The packing/degradation factor is a model assumption.",
+   "sourceIdx": 2
+  }
+ ],
+ "sources": [
+  {
+   "label": "ISRO, Chandrayaan-3 details",
+   "url": "https://www.isro.gov.in/Chandrayaan3_Details.html",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "AZUR SPACE 3G30-Advanced triple-junction cell datasheet",
+   "url": "https://www.azurspace.com/media/uploads/file_links/file/bdb_00010893-02-00_3g30-advanced_6x12.pdf",
+   "retrievedAt": "2026-11-14",
+   "tier": "B"
+  },
+  {
+   "label": "NSSDC Moon fact sheet",
+   "url": "https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ]
+}

@@ -1,0 +1,14 @@
+{
+ "label": "LOLA GDR cylindrical LDEM_64 (64 ppd)",
+ "kind": "dem",
+ "version": "LRO-L-LOLA-4-GDR-V1.0",
+ "citation": "LOLA Science Team, PDS Geosciences Node",
+ "doi": null,
+ "url": "https://imbrium.mit.edu/DATA/LOLA_GDR/CYLINDRICAL/IMG/",
+ "license": null,
+ "usedFor": [
+  "far-field horizon for non-polar sites",
+  "near field above 60°N"
+ ],
+ "retrievedAt": "2026-11-14"
+}

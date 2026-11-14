@@ -13,12 +13,12 @@ export function ScienceSection() {
     <section id="how-it-works" aria-labelledby="science-title" className="relative border-t border-line py-24 sm:py-32">
       <PageContainer>
         <Reveal>
-          <SectionHeading id="science-title" title="Built on real lunar data.">
+          <SectionHeading id="science-title" title="Real ephemerides. Clear provenance.">
             <p>
               Near the pole, latitude tells you very little. What matters is the horizon each site actually sees:
               the crater walls and distant massifs that decide when sunlight arrives and whether Earth is in view.
-              Shadowline is designed to compute that horizon from measured terrain, then present it as something
-              you can see.
+              Freeplay uses JPL Horizons ephemerides and available precomputed LOLA horizon masks. When a terrain
+              mask is unavailable, it labels the smooth-sphere fallback and treats visibility shares as upper bounds.
             </p>
           </SectionHeading>
         </Reveal>
@@ -27,7 +27,7 @@ export function ScienceSection() {
         <Reveal className="mt-16 rounded-xl border border-line bg-charcoal/40 p-5 sm:p-8">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
             <h3 className="type-heading text-xl text-bone sm:text-2xl">The horizon mask</h3>
-            <p className="text-sm text-muted-foreground">One site, every direction, one line.</p>
+            <p className="text-sm text-muted-foreground">How an elevation mask describes terrain obstruction.</p>
           </div>
           <HorizonProfile className="mt-6" showLegend height={260} />
           <ol className="mt-10 grid gap-8 border-t border-line pt-8 md:grid-cols-3">
@@ -53,7 +53,7 @@ export function ScienceSection() {
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">{d.role}</p>
                   </div>
-                  <StatusBadge className="shrink-0">Planned integration</StatusBadge>
+                  <StatusBadge className="shrink-0">Used in Freeplay</StatusBadge>
                 </li>
               ))}
             </ul>
@@ -73,7 +73,9 @@ export function ScienceSection() {
 
         <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="max-w-xl text-sm text-muted-foreground">
-            The visuals on this page are illustrative. Real terrain and ephemeris data have not been integrated yet.
+            Freeplay calculations use cached JPL Horizons ephemerides and available LOLA horizon masks. The 3D surface
+            is procedural; results identify their horizon source, including the smooth-sphere fallback where terrain
+            coverage is missing. The landing preview above remains conceptual.
           </p>
           <Button asChild size="lg" variant="outline">
             <Link href="/science">Read the methodology</Link>
