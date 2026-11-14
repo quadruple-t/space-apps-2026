@@ -35,12 +35,12 @@ export function StoryPage({ lesson, chapter, onPrevious, onNext }: { lesson: Gui
           <div className="mt-8 border-l-2 border-retro-blue/70 pl-4 text-sm leading-relaxed text-bone/85">
             {isDebrief ? <><strong className="font-medium">Tool unlocked: </strong>{chapter?.unlocksTool === "horizon-dial" ? "Lunar horizon explorer" : chapter?.unlocksTool === "power-simulator" ? "Power and communication explorer" : "Mining base suitability assessment"}.</> : <><strong className="font-medium">Your role: </strong>{chapterLabel.era} mission planner.</>}
           </div>
-          {isFinal && <div className="mt-7 flex items-start gap-3 rounded-lg border border-retro-blue/25 bg-retro-blue/5 p-4 text-sm leading-relaxed text-muted-foreground"><CheckCircle2 className="mt-0.5 shrink-0 text-retro-blue" size={18}/><span>Mission Control contains the map, illumination, terrain, and visibility tools used throughout this journey.</span></div>}
+          {isFinal && <div className="mt-7 flex items-start gap-3 rounded-lg border border-retro-blue/25 bg-retro-blue/5 p-4 text-sm leading-relaxed text-muted-foreground"><CheckCircle2 className="mt-0.5 shrink-0 text-retro-blue" size={18}/><span>Freeplay contains the map, illumination, terrain, and visibility tools used throughout this journey. Mission Control explains the science behind them.</span></div>}
         </div>
       </section>
       <div className="flex items-center justify-between border-t border-line pt-6">
         <button type="button" onClick={onPrevious} disabled={!onPrevious} className="text-sm text-muted-foreground transition hover:text-bone disabled:invisible">Previous page</button>
-        {isFinal ? <Link href="/mission-control" className="inline-flex items-center gap-2 rounded-lg bg-retro-purple px-5 py-3 text-sm font-medium text-void transition hover:bg-[#c2abff]">Enter Mission Control <ArrowRight size={16}/></Link> : <button type="button" onClick={onNext} className="inline-flex items-center gap-2 rounded-lg bg-retro-purple px-5 py-3 text-sm font-medium text-void transition hover:bg-[#c2abff]">{isDebrief ? "Begin next chapter" : "Continue mission"} <ArrowRight size={16}/></button>}
+        {isFinal ? <Link href="/freeplay" className="inline-flex items-center gap-2 rounded-lg bg-retro-purple px-5 py-3 text-sm font-medium text-void transition hover:bg-[#c2abff]">Enter Freeplay <ArrowRight size={16}/></Link> : <button type="button" onClick={onNext} className="inline-flex items-center gap-2 rounded-lg bg-retro-purple px-5 py-3 text-sm font-medium text-void transition hover:bg-[#c2abff]">{isDebrief ? "Begin next chapter" : "Continue mission"} <ArrowRight size={16}/></button>}
       </div>
     </div>
   </main>;
