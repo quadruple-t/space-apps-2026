@@ -1,0 +1,120 @@
+{
+ "checks": [
+  {
+   "id": "val-apollo11-sun-elevation",
+   "site": "apollo-11-tranquility",
+   "time": "1969-07-20T20:17:39Z",
+   "quantity": "sun-elevation-deg",
+   "computed": 10.703,
+   "historical": 10.65,
+   "delta": 0.053,
+   "status": "pass"
+  },
+  {
+   "id": "val-apollo11-sun-azimuth",
+   "site": "apollo-11-tranquility",
+   "time": "1969-07-20T20:17:39Z",
+   "quantity": "sun-azimuth-deg",
+   "computed": 88.805,
+   "historical": 88.81,
+   "delta": -0.005,
+   "status": "pass"
+  },
+  {
+   "id": "val-apollo11-planning-window",
+   "site": "apollo-11-tranquility",
+   "time": "1969-07-20T20:17:39Z",
+   "quantity": "sun-elevation-deg",
+   "computed": 10.703,
+   "historical": null,
+   "delta": null,
+   "status": "pass"
+  },
+  {
+   "id": "val-apollo12-sun-elevation",
+   "site": "apollo-12-oceanus-procellarum",
+   "time": "1969-11-19T06:54:36Z",
+   "quantity": "sun-elevation-deg",
+   "computed": 5.148,
+   "historical": 5.19,
+   "delta": -0.042,
+   "status": "pass"
+  },
+  {
+   "id": "val-apollo14-sun-elevation",
+   "site": "apollo-14-fra-mauro",
+   "time": "1971-02-05T09:18:13Z",
+   "quantity": "sun-elevation-deg",
+   "computed": 10.349,
+   "historical": 10.36,
+   "delta": -0.011,
+   "status": "pass"
+  },
+  {
+   "id": "val-apollo15-sun-elevation",
+   "site": "apollo-15-hadley-apennine",
+   "time": "1971-07-30T22:16:29Z",
+   "quantity": "sun-elevation-deg",
+   "computed": 12.024,
+   "historical": 12.05,
+   "delta": -0.026,
+   "status": "pass"
+  },
+  {
+   "id": "val-apollo16-sun-elevation",
+   "site": "apollo-16-descartes",
+   "time": "1972-04-21T02:23:35Z",
+   "quantity": "sun-elevation-deg",
+   "computed": 14.761,
+   "historical": 14.76,
+   "delta": 0.001,
+   "status": "pass"
+  },
+  {
+   "id": "val-apollo17-sun-elevation",
+   "site": "apollo-17-taurus-littrow",
+   "time": "1972-12-11T19:54:58Z",
+   "quantity": "sun-elevation-deg",
+   "computed": 13.35,
+   "historical": 13.33,
+   "delta": 0.02,
+   "status": "pass"
+  }
+ ],
+ "litFractions": [
+  {
+   "site": "artemis-de-gerlache-rim-2",
+   "name": "de Gerlache Rim 2",
+   "lat": -88.48,
+   "lon": -88.34,
+   "computed": 0.0,
+   "wac": 0.0,
+   "wacNeighbourhoodMin": 0.0,
+   "wacNeighbourhoodMax": 0.0,
+   "approx": true
+  },
+  {
+   "site": "artemis-slater-plain",
+   "name": "Slater Plain",
+   "lat": -88.08,
+   "lon": 111.29,
+   "computed": 0.0,
+   "wac": 0.0,
+   "wacNeighbourhoodMin": 0.0,
+   "wacNeighbourhoodMax": 0.0,
+   "approx": true
+  }
+ ],
+ "gridLitCrosscheck": {
+  "nCells": 2869,
+  "correlation": 0.9578589392008143,
+  "meanAbsDiff": 0.019081038023701542,
+  "meanDiff": 0.007386925770730706,
+  "medianAbsDiff": 0.00848637258961854,
+  "p95AbsDiff": 0.0769848203670219,
+  "meanComputed": 0.12121123484542892,
+  "meanWac": 0.11382430907469822,
+  "fracWithin0p1": 0.9696758452422447,
+  "note": "2 km grid cells with centre poleward of 88\u00b0S (minus a 300 m edge margin); WAC value at the cell's 100 m pixel; computed uses a 1 m observer and a point-source Sun."
+ }
+}

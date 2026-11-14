@@ -2,8 +2,8 @@
  "siteId": "apollo-16-descartes",
  "time": "1972-04-21T02:23:35Z",
  "quantity": "sun-elevation-deg",
- "computed": null,
- "computedBy": null,
+ "computed": 14.761,
+ "computedBy": "pipeline 80_validate.py @ 9f03127",
  "historical": 14.76,
  "historicalKind": "computed-reconstruction",
  "historicalSource": {
@@ -13,8 +13,8 @@
   "tier": "B"
  },
  "toleranceDeg": 0.5,
- "deltaDeg": null,
- "status": "pending",
- "note": "Pending: computed by 80_validate.py.",
+ "deltaDeg": 0.001,
+ "status": "pass",
+ "note": "Computed 14.761° vs ALSJ computed reconstruction 14.76°: delta +0.001° (tolerance ±0.5°). The historical value is a reconstruction, not an in-situ measurement. With the ALSJ table's older site coordinates (-8.9914, 15.5144) the pipeline gives 14.772° (+0.012° from the LROC-coordinate value).",
  "range": null
 }

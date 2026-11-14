@@ -29,6 +29,7 @@ from shapely.geometry import Polygon, MultiPolygon
 from pipeline.common import CACHE, SEED, b64, cached, log, now_iso, ref, write_doc
 from pipeline.geo import ll_to_xy, xy_to_ll
 
+ZONE_MIN_AREA_KM2 = 100.0     # only the largest PSRs become protectionZones (full set is in psrLayer)
 MIN_AREA_KM2 = 0.002          # 5 pixels at 20 m (Barker 2023 false-positive guidance)
 COLD_K = 110.0
 SIMPLIFY_M = 50.0
@@ -150,7 +151,7 @@ def main():
 
     areas = np.array([float(r.get("area_km2") or g.area / 1e6) for g, r in zip(big, big_rec)])
     fracs = [cold_fraction(g, tree, dt) for g in big]
-    names = [str(r.get("name") or "").strip() for r in big_rec]
+    names = [str(r.get("name") or "").strip().strip('"').strip() for r in big_rec]
 
     # --- full PSR set for distances --------------------------------------------------------------
     log("40_psr: reading all PSRs (this is the 154 MB shapefile)")
@@ -217,7 +218,7 @@ def main():
         p.unlink()
     nz = 0
     for i, g in enumerate(big):
-        if not names[i]:
+        if areas[i] < ZONE_MIN_AREA_KM2:
             continue
         zg = shapely.simplify(g, ZONE_SIMPLIFY_M, preserve_topology=True)
         parts = list(zg.geoms) if isinstance(zg, MultiPolygon) else [zg]
@@ -226,7 +227,7 @@ def main():
         lat, lon = xy_to_ll(ex[:, 0], ex[:, 1])
         slug = "".join(ch if ch.isalnum() else "-" for ch in names[i].lower()).strip("-")
         write_doc("protectionZones", f"psr-{slug}-{i}", {
-            "kind": "psr-ice", "ruleId": "psr-buffer-by-analogy", "name": f"{names[i]} PSR",
+            "kind": "psr-ice", "ruleId": "psr-buffer-by-analogy", "name": f"PSR {names[i]} ({areas[i]:.0f} km²)",
             "siteId": None,
             "geometry": {"type": "Polygon", "rings": [{"points": [{"latDeg": round(float(a), 6), "lonDeg": round(float(b), 6)} for a, b in zip(lat, lon)]}]},
             "rationale": "Permanently shadowed region (PGDA product 90). No published distance supports a PSR buffer; NASA OTPS (2022) says no distance can eliminate ejecta impacts entirely. The stand-off is a user parameter defaulting to 2.0 km, the NASA 2011 heritage landing stand-off applied by analogy, with the 1.5 km Apollo rock-ejecta range as a secondary ring. Neither is a PSR-protection standard. Cold-trap fraction: Diviner annual maximum below 110 K; a cold trap is not detected ice.",
@@ -236,7 +237,7 @@ def main():
             "geometryNote": f"Largest part of the PSR outline, simplified to {ZONE_SIMPLIFY_M:g} m. Full outlines are in psrLayer.",
         })
         nz += 1
-    log(f"40_psr: {nz} named PSR zones; cold-trap fraction computed for {sum(f is not None for f in fracs)}/{len(big)} PSRs > 1 km2")
+    log(f"40_psr: {nz} PSR zones (> 100 km²); cold-trap fraction computed for {sum(f is not None for f in fracs)}/{len(big)} PSRs > 1 km2")
 
 
 if __name__ == "__main__":

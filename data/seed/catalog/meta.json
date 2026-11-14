@@ -1,20 +1,22 @@
 {
-  "datasetVersion": "2026-11-14",
-  "generatedAt": "2026-11-14T19:07:10Z",
-  "pipelineGitSha": "101ed76",
-  "pipelineVersion": "1",
-  "counts": {
-    "catalog": 2,
-    "dataSources": 15,
-    "ephemerisGlobal": 91,
-    "facts": 4,
-    "landerPresets": 8,
-    "missionProfiles": 3,
-    "protectionZones": 1556,
-    "psrLayer": 4,
-    "sites": 43,
-    "sites/terrain": 43,
-    "storyChapters": 3,
-    "validationChecks": 8
-  }
+ "datasetVersion": "2026-11-14",
+ "generatedAt": "2026-11-14T22:26:33Z",
+ "pipelineGitSha": "9f03127",
+ "pipelineVersion": "2026.11.14-1",
+ "counts": {
+  "catalog": 3,
+  "dataSources": 15,
+  "demo": 1,
+  "ephemerisGlobal": 91,
+  "facts": 4,
+  "landerPresets": 8,
+  "missionProfiles": 3,
+  "protectionZones": 64,
+  "psrLayer": 4,
+  "sites": 43,
+  "sites/terrain": 43,
+  "storyChapters": 3,
+  "terrainGrid": 169,
+  "validationChecks": 10
+ }
 }

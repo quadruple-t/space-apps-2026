@@ -2,8 +2,8 @@
  "siteId": "apollo-17-taurus-littrow",
  "time": "1972-12-11T19:54:58Z",
  "quantity": "sun-elevation-deg",
- "computed": null,
- "computedBy": null,
+ "computed": 13.35,
+ "computedBy": "pipeline 80_validate.py @ 9f03127",
  "historical": 13.33,
  "historicalKind": "computed-reconstruction",
  "historicalSource": {
@@ -13,8 +13,8 @@
   "tier": "B"
  },
  "toleranceDeg": 0.5,
- "deltaDeg": null,
- "status": "pending",
- "note": "Pending: computed by 80_validate.py.",
+ "deltaDeg": 0.02,
+ "status": "pass",
+ "note": "Computed 13.350° vs ALSJ computed reconstruction 13.33°: delta +0.020° (tolerance ±0.5°). The historical value is a reconstruction, not an in-situ measurement. With the ALSJ table's older site coordinates (20.1653, 30.7658) the pipeline gives 13.347° (-0.003° from the LROC-coordinate value).",
  "range": null
 }

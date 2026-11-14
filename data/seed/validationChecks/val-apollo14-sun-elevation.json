@@ -2,8 +2,8 @@
  "siteId": "apollo-14-fra-mauro",
  "time": "1971-02-05T09:18:13Z",
  "quantity": "sun-elevation-deg",
- "computed": null,
- "computedBy": null,
+ "computed": 10.349,
+ "computedBy": "pipeline 80_validate.py @ 9f03127",
  "historical": 10.36,
  "historicalKind": "computed-reconstruction",
  "historicalSource": {
@@ -13,8 +13,8 @@
   "tier": "B"
  },
  "toleranceDeg": 0.5,
- "deltaDeg": null,
- "status": "pending",
- "note": "Pending: computed by 80_validate.py.",
+ "deltaDeg": -0.011,
+ "status": "pass",
+ "note": "Computed 10.349° vs ALSJ computed reconstruction 10.36°: delta -0.011° (tolerance ±0.5°). The historical value is a reconstruction, not an in-situ measurement. With the ALSJ table's older site coordinates (-3.6733, -17.4653) the pipeline gives 10.355° (+0.006° from the LROC-coordinate value).",
  "range": null
 }
