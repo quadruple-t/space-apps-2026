@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Activity, ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Clock3, Crosshair, Globe2, Map, Pause, Play, RotateCcw, ZoomIn, ZoomOut, X } from "lucide-react";
 import type { CameraMode, MoveCommand } from "@/scenes/lunar/camera-rig";
+import { horizonsScienceProvider } from "@/integrations/science/horizons-provider";
 import { mockScienceProvider } from "@/integrations/science/mock-provider";
 import type { CelestialState, LunarSite, MissionMetrics } from "@/integrations/science/types";
 import { interpolateTerrain, MOON_REGIONS, SCAFFOLD_MOON_GRID, type TerrainSample } from "@/integrations/terrain/moon-samples";
@@ -52,7 +53,7 @@ export function Freeplay() {
   const updateCelestial = useCallback(async (selectedSite: LunarSite, date: Date) => {
     const request = ++celestialRequest.current;
     try {
-      const result = await mockScienceProvider.getCelestialState(selectedSite, date.toISOString());
+      const result = await horizonsScienceProvider.getCelestialState(selectedSite, date.toISOString());
       if (request === celestialRequest.current) setCelestial(result);
     } catch {
       if (request === celestialRequest.current) { setCelestial(null); setDataError(true); }
@@ -67,7 +68,7 @@ export function Freeplay() {
     setDataError(false);
     const startIso = `${day}T00:00:00.000Z`;
     try {
-      const result = await mockScienceProvider.getMissionMetrics(selectedSite, startIso, 24);
+      const result = await horizonsScienceProvider.getMissionMetrics(selectedSite, startIso, 24);
       if (result) metricsCache.current.set(cacheKey, result);
       if (request === metricRequest.current) setMetrics(result);
     } catch {
