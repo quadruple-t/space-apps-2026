@@ -1,7 +1,7 @@
 "use client"
 
 import { create } from "zustand"
-import { DEFAULT_SITE_ID, PRESET_SITES, type FreeplaySite } from "@/data/sites"
+import type { FreeplaySite } from "@/data/sites"
 import { DEMO_START_ISO } from "@/lib/prefetch"
 
 export type FreeplayView = "globe" | "orbit"
@@ -44,7 +44,8 @@ function savePersisted(p: Persisted) {
 
 type FreeplayState = {
   view: FreeplayView
-  site: FreeplaySite
+  /** null until the user picks a point on the globe or one of their saved sites */
+  site: FreeplaySite | null
   calloutOpen: boolean
   savedSites: FreeplaySite[]
   hydrated: boolean
@@ -65,7 +66,7 @@ type FreeplayState = {
   selectCustom: (latitudeDeg: number, longitudeDeg: number) => void
   setRadius: (km: number) => void
   setCalloutOpen: (open: boolean) => void
-  saveCurrentSite: () => void
+  saveCurrentSite: (name: string) => void
   renameSaved: (id: string, name: string) => void
   setSavedRadius: (id: string, km: number) => void
   deleteSaved: (id: string) => void
@@ -82,7 +83,8 @@ type FreeplayState = {
   hydrate: () => void
 }
 
-const defaultSite = PRESET_SITES.find((s) => s.id === DEFAULT_SITE_ID) ?? PRESET_SITES[0]
+const DEFAULT_RADIUS_KM = 10
+const COORD_REF = "Planetocentric latitude, east-positive longitude (ME frame)"
 const round = (n: number, d = 4) => Number(n.toFixed(d))
 
 export const useFreeplay = create<FreeplayState>((set, get) => {
@@ -93,7 +95,7 @@ export const useFreeplay = create<FreeplayState>((set, get) => {
 
   return {
     view: "globe",
-    site: defaultSite,
+    site: null,
     calloutOpen: false,
     savedSites: [],
     hydrated: false,
@@ -122,25 +124,28 @@ export const useFreeplay = create<FreeplayState>((set, get) => {
         calloutOpen: true,
         site: {
           id: `custom-${lat}-${lon}`, name: "Custom site", latitudeDeg: lat, longitudeDeg: lon,
-          radiusKm: get().site.radiusKm, program: "—", country: "—", verified: false,
-          source: "Picked on the globe", coordinateReference: defaultSite.coordinateReference,
+          radiusKm: get().site?.radiusKm ?? DEFAULT_RADIUS_KM, program: "—", country: "—", verified: false,
+          source: "Picked on the globe", coordinateReference: COORD_REF,
           provenance: "user", kind: "custom",
         },
       })
     },
     setRadius: (km) => {
+      const current = get().site
+      if (!current) return
       const radiusKm = Math.max(0.1, Math.min(500, km))
-      const site = { ...get().site, radiusKm }
+      const site = { ...current, radiusKm }
       set({ site })
       if (site.kind === "saved") get().setSavedRadius(site.id, radiusKm)
     },
     setCalloutOpen: (calloutOpen) => set({ calloutOpen }),
-    saveCurrentSite: () => {
+    saveCurrentSite: (name) => {
       const { site, savedSites } = get()
+      if (!site) return
       const saved: FreeplaySite = {
         ...site, kind: "saved", provenance: "user",
         id: `saved-${Date.now().toString(36)}`,
-        name: site.kind === "custom" ? `Site ${savedSites.length + 1}` : `${site.name} (copy)`,
+        name: name.trim() || `Site ${savedSites.length + 1}`,
       }
       set({ savedSites: [...savedSites, saved], site: saved })
       persist()
@@ -148,7 +153,7 @@ export const useFreeplay = create<FreeplayState>((set, get) => {
     renameSaved: (id, name) => {
       set((s) => ({
         savedSites: s.savedSites.map((x) => (x.id === id ? { ...x, name } : x)),
-        site: s.site.id === id ? { ...s.site, name } : s.site,
+        site: s.site?.id === id ? { ...s.site, name } : s.site,
       }))
       persist()
     },
@@ -159,7 +164,7 @@ export const useFreeplay = create<FreeplayState>((set, get) => {
     deleteSaved: (id) => {
       set((s) => ({
         savedSites: s.savedSites.filter((x) => x.id !== id),
-        site: s.site.id === id ? { ...s.site, kind: "custom", id: `custom-${s.site.latitudeDeg}-${s.site.longitudeDeg}` } : s.site,
+        site: s.site?.id === id ? { ...s.site, kind: "custom", name: "Custom site", id: `custom-${s.site.latitudeDeg}-${s.site.longitudeDeg}` } : s.site,
       }))
       persist()
     },

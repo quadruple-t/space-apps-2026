@@ -2,7 +2,9 @@
 
 Everything Freeplay shows that comes from outside this repo, and where it was checked. Coordinates are planetocentric latitude and east-positive longitude (0–360°) in the mean Earth/polar axis (ME) frame unless noted.
 
-## Preset landing sites (`data/sites.ts`)
+## Reference landing sites (`data/sites.ts`)
+
+Freeplay starts with no presets: users pick points on the globe and name the ones they save. This verified list backs the prefetched demo data, the validation tests and `/explore/approach`.
 
 | Site | Lat (°) | Lon (°E) | Status | Source |
 |---|---|---|---|---|

@@ -37,7 +37,9 @@ export function FreeplayApp() {
         </div>
       </div>
       <div className="type-data min-w-0 truncate text-[0.62rem] text-muted-foreground">
-        <span className="text-bone">{site.name}</span> · {site.latitudeDeg.toFixed(3)}°, {site.longitudeDeg.toFixed(3)}° E · r {site.radiusKm} km
+        {site
+          ? <><span className="text-bone">{site.name}</span> · {site.latitudeDeg.toFixed(3)}°, {site.longitudeDeg.toFixed(3)}° E · r {site.radiusKm} km</>
+          : "No site selected · click the Moon to pick one"}
       </div>
     </header>
     <div className="relative min-h-0 flex-1">

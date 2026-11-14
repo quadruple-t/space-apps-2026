@@ -42,7 +42,7 @@ export function GlobeScreen() {
         <SheetContent side="bottom" className="max-h-[70dvh] gap-0 p-0">
           <SheetTitle className="sr-only">Presets</SheetTitle>
           <SheetDescription className="sr-only">Landing sites and your saved sites</SheetDescription>
-          <PresetsPanel compact collapsible={false} className="max-h-[70dvh] rounded-none border-0" />
+          <PresetsPanel collapsible={false} className="max-h-[70dvh] rounded-none border-0" />
         </SheetContent>
       </Sheet>
     </div>

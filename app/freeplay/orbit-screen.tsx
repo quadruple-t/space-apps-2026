@@ -1,6 +1,7 @@
 "use client";
 
-import { List } from "lucide-react";
+import { Globe2, List } from "lucide-react";
+import type { FreeplaySite } from "@/data/sites";
 import { ConditionsReadout } from "@/components/freeplay/conditions-readout";
 import { DailyGraphs, GraphTabs, PanelSettings, YearlyGraphs } from "@/components/freeplay/graphs-panel";
 import { OrbitDiagram } from "@/components/freeplay/orbit-diagram";
@@ -19,6 +20,20 @@ function Status({ loading, error, what }: { loading: boolean; error: string | nu
 
 export function OrbitScreen() {
   const site = useFreeplay((s) => s.site);
+  const setView = useFreeplay((s) => s.setView);
+  if (!site) return <div className="grid h-full place-items-center p-4">
+    <div className="hud-panel w-full max-w-md p-5 text-center">
+      <Globe2 className="mx-auto text-retro-purple" size={22} aria-hidden />
+      <h2 className="type-heading mt-2 text-base text-bone">Pick a site first</h2>
+      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">The orbit view and graphs follow one landing site. Click anywhere on the Moon, or choose one of your saved sites.</p>
+      <button type="button" onClick={() => setView("globe")} className="mt-4 rounded bg-retro-purple px-4 py-2 text-[0.62rem] font-semibold uppercase tracking-[0.1em] text-void hover:bg-[#c2aaff]">Go to the globe</button>
+      <PresetsPanel collapsible={false} className="mt-4 max-h-60 text-left" />
+    </div>
+  </div>;
+  return <OrbitScreenFor site={site} />;
+}
+
+function OrbitScreenFor({ site }: { site: FreeplaySite }) {
   const startIso = useFreeplay((s) => s.startIso);
   const durationHours = useFreeplay((s) => s.durationHours);
   const elapsedHours = useFreeplay((s) => s.elapsedHours);
@@ -64,7 +79,7 @@ export function OrbitScreen() {
             ? <YearlyGraphs samples={year.data} siteId={site.id} startMs={startMs} tMs={tMs} missionEndMs={startMs + durationHours * 3_600_000} />
             : <Status loading={year.loading} error={year.error} what="a year of hourly data (custom sites can take up to a minute)" />}
       </section>
-      <PresetsPanel compact className="hidden max-h-[28%] shrink-0 md:flex" />
+      <PresetsPanel className="hidden max-h-[28%] shrink-0 md:flex" />
     </div>
 
     {/* Bottom bar: time controls across sidebar + main */}
@@ -77,7 +92,7 @@ export function OrbitScreen() {
       <SheetContent side="bottom" className="max-h-[70dvh] gap-0 p-0">
         <SheetTitle className="sr-only">Presets</SheetTitle>
         <SheetDescription className="sr-only">Landing sites and your saved sites</SheetDescription>
-        <PresetsPanel compact collapsible={false} className="max-h-[70dvh] rounded-none border-0" />
+        <PresetsPanel collapsible={false} className="max-h-[70dvh] rounded-none border-0" />
       </SheetContent>
     </Sheet>
   </div>;

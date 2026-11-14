@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type * as CesiumNS from "cesium";
-import { PRESET_SITES, type FreeplaySite } from "@/data/sites";
+import type { FreeplaySite } from "@/data/sites";
 import { useFreeplay } from "@/lib/freeplay-store";
 import { publishAnchor } from "./anchor";
 import { loadCesium, type Cesium } from "./load-cesium";
@@ -21,9 +21,11 @@ const starImage = (fill: string, stroke: string, size = 28) => {
 /** Pins float slightly above the ellipsoid so the globe doesn't depth-clip them. */
 const PIN_HEIGHT_M = 1500;
 
+/** Wheel/pinch zoom limits: close enough for a landing radius, far enough to see the whole Moon. */
+const MIN_ALTITUDE_M = 1_500;
+const MAX_ALTITUDE_M = 7_000_000;
+
 const PIN = {
-  preset: starImage("#f0ebf7", "#080712"),
-  presetUnverified: starImage("#b2abc4", "#080712"),
   saved: starImage("#a986ff", "#080712"),
   selected: starImage("#ff5364", "#fff2f5", 36),
 };
@@ -66,6 +68,8 @@ export default function MoonGlobe() {
         baseLayerPicker: false, geocoder: false, homeButton: false, sceneModePicker: false,
         navigationHelpButton: false, animation: false, timeline: false, fullscreenButton: false,
         infoBox: false, selectionIndicator: false, skyAtmosphere: false,
+        // Cesium only adds its Tycho-2 star background for Earth, so add it explicitly.
+        skyBox: C.SkyBox.createEarthSkyBox(),
         // Continuous rendering: on-demand mode misses async pin images and circle geometry.
         creditContainer: credit,
       });
@@ -77,6 +81,22 @@ export default function MoonGlobe() {
       if (scene.moon) scene.moon.show = false;
       if (scene.sun) scene.sun.show = false;
       scene.backgroundColor = C.Color.fromCssColorString("#080712");
+
+      // Wheel zoom moves straight toward/away from the Moon's centre. Cesium's default
+      // zooms toward the cursor, which swings the camera around the Moon when zooming out.
+      const ssc = scene.screenSpaceCameraController;
+      ssc.zoomEventTypes = [C.CameraEventType.PINCH];
+      ssc.minimumZoomDistance = MIN_ALTITUDE_M;
+      ssc.maximumZoomDistance = MAX_ALTITUDE_M;
+      const onWheel = (e: WheelEvent) => {
+        e.preventDefault();
+        const pos = viewer.camera.positionWC;
+        const altitude = moon.cartesianToCartographic(pos)?.height ?? MAX_ALTITUDE_M;
+        const target = Math.min(MAX_ALTITUDE_M, Math.max(MIN_ALTITUDE_M, altitude * Math.exp(e.deltaY * 0.0012)));
+        const towardCentre = C.Cartesian3.normalize(C.Cartesian3.negate(pos, new C.Cartesian3()), new C.Cartesian3());
+        viewer.camera.move(towardCentre, altitude - target);
+      };
+      scene.canvas.addEventListener("wheel", onWheel, { passive: false });
 
       // Overlay layers: created hidden, toggled by the store.
       for (const def of LAYERS) {
@@ -106,7 +126,7 @@ export default function MoonGlobe() {
         const id = picked?.id instanceof C.Entity ? picked.id.id : null;
         const { savedSites, selectSite, selectCustom, site: current } = useFreeplay.getState();
         if (id && id !== "radius") {
-          const hit = [...PRESET_SITES, ...savedSites].find((s) => s.id === id) ?? (current.id === id ? current : null);
+          const hit = savedSites.find((s) => s.id === id) ?? (current?.id === id ? current : null);
           if (hit) { selectSite(hit, true); return; }
         }
         const cart = viewer.camera.pickEllipsoid(e.position, moon);
@@ -118,16 +138,20 @@ export default function MoonGlobe() {
       // Publish the selected site's screen position for the callout.
       const removePostRender = scene.postRender.addEventListener(() => {
         const s = useFreeplay.getState().site;
+        if (!s) { publishAnchor(null); return; }
         const pos = C.Cartesian3.fromDegrees(s.longitudeDeg, s.latitudeDeg, PIN_HEIGHT_M, moon);
         const win = C.SceneTransforms.worldToWindowCoordinates(scene, pos);
         const occluder = new C.EllipsoidalOccluder(moon, viewer.camera.positionWC);
         publishAnchor(win ? { x: win.x, y: win.y, visible: occluder.isPointVisible(pos) } : null);
       });
 
+      // Open on the whole Moon (near side, tilted toward the south pole) with stars around it.
       const s = useFreeplay.getState().site;
-      viewer.camera.setView({ destination: C.Cartesian3.fromDegrees(s.longitudeDeg, s.latitudeDeg, 3_200_000, moon) });
+      viewer.camera.setView({ destination: s
+        ? C.Cartesian3.fromDegrees(s.longitudeDeg, s.latitudeDeg, 3_200_000, moon)
+        : C.Cartesian3.fromDegrees(10, -35, 5_200_000, moon) });
       setReady(true);
-      cleanup = () => { removePostRender(); handler.destroy(); viewer.destroy(); };
+      cleanup = () => { scene.canvas.removeEventListener("wheel", onWheel); removePostRender(); handler.destroy(); viewer.destroy(); };
     }).catch((e: unknown) => { if (!destroyed) setError(e instanceof Error ? e.message : String(e)); });
     return () => { destroyed = true; cleanup(); viewerRef.current = null; overlays.clear(); };
   }, []);
@@ -139,17 +163,17 @@ export default function MoonGlobe() {
     // Update entities in place: removing and re-adding the same id in one batch
     // makes Cesium's visualizers drop the new graphics.
     const moon = C.Ellipsoid.MOON;
-    const all: FreeplaySite[] = [...PRESET_SITES, ...savedSites];
-    if (!all.some((s) => s.id === site.id)) all.push(site);
+    const all: FreeplaySite[] = [...savedSites];
+    if (site && !all.some((s) => s.id === site.id)) all.push(site);
     const keep = new Set(all.map((s) => s.id).concat("radius"));
     for (const e of [...viewer.entities.values]) if (!keep.has(e.id)) viewer.entities.remove(e);
 
     for (const s of all) {
-      const selected = s.id === site.id;
+      const selected = s.id === site?.id;
       const props = {
         position: new C.ConstantPositionProperty(C.Cartesian3.fromDegrees(s.longitudeDeg, s.latitudeDeg, PIN_HEIGHT_M, moon)),
         billboard: new C.BillboardGraphics({
-          image: selected ? PIN.selected : s.kind === "saved" ? PIN.saved : s.verified ? PIN.preset : PIN.presetUnverified,
+          image: selected ? PIN.selected : PIN.saved,
           verticalOrigin: C.VerticalOrigin.CENTER,
           scale: selected ? 1 : 0.8,
         }),
@@ -165,6 +189,8 @@ export default function MoonGlobe() {
       else viewer.entities.add({ id: s.id, ...props });
     }
 
+    const radius = viewer.entities.getById("radius");
+    if (!site) { if (radius) viewer.entities.remove(radius); return; }
     const circle = {
       position: new C.ConstantPositionProperty(C.Cartesian3.fromDegrees(site.longitudeDeg, site.latitudeDeg, 0, moon)),
       ellipse: new C.EllipseGraphics({
@@ -173,17 +199,16 @@ export default function MoonGlobe() {
         outline: true, outlineColor: C.Color.fromCssColorString("#ff5364"),
       }),
     };
-    const radius = viewer.entities.getById("radius");
     if (radius) Object.assign(radius, circle);
     else viewer.entities.add({ id: "radius", ...circle });
   }, [ready, site, savedSites]);
 
-  // ── Fly to the site when it changes (not for points picked in view) ───────
-  const siteId = site.id, siteKind = site.kind;
+  // ── Fly to a saved site when it's chosen (not for points picked in view) ──
+  const siteId = site?.id, siteKind = site?.kind;
   useEffect(() => {
     const C = cesiumRef.current, viewer = viewerRef.current;
-    if (!ready || !C || !viewer || siteKind === "custom") return;
     const s = useFreeplay.getState().site;
+    if (!ready || !C || !viewer || !s || siteKind !== "saved") return;
     viewer.camera.flyTo({
       // Frame the radius circle: roughly a sixth of the view height.
       destination: C.Cartesian3.fromDegrees(s.longitudeDeg, s.latitudeDeg, Math.min(3_000_000, Math.max(40_000, s.radiusKm * 1000 * 10)), C.Ellipsoid.MOON),
