@@ -1,0 +1,16 @@
+{
+ "label": "LROC Anthropogenic Features on the Moon shapefile (updated 2026-08-14)",
+ "kind": "catalog",
+ "version": "2026-08-14",
+ "citation": "Wagner, R.V. et al. (2017), Icarus 283:92-103",
+ "doi": "10.1016/j.icarus.2016.05.011",
+ "url": "https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_ANTHROPOGENIC_OBJECTS",
+ "license": null,
+ "usedFor": [
+  "site coordinate cross-check",
+  "IM-1 and Chandrayaan-3 coordinates",
+  "site elevations",
+  "Ranger, S-IVB and LCROSS impact coordinates"
+ ],
+ "retrievedAt": "2026-11-14T17:24:39Z"
+}

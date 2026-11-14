@@ -1,0 +1,230 @@
+{
+ "title": "Lunar landing attempts, 2019 to Nov 2026",
+ "rows": [
+  {
+   "label": "Tally",
+   "value": "14 attempts: 5 clean soft landings, 3 landed in an unplanned attitude, 5 crashes, 1 never reached the Moon",
+   "unit": null,
+   "quote": "Five clean soft landings (Chang'e-4, Chang'e-5, Chandrayaan-3, Chang'e-6, Blue Ghost M1). Three landed in an unplanned attitude (SLIM, IM-1, IM-2). Five crashes (Beresheet, Chandrayaan-2, HAKUTO-R M1, Luna 25, RESILIENCE). One never reached the Moon (Peregrine).",
+   "source": {
+    "label": "The Space Review (J. Foust, 26 Oct 2026): no CLPS mission launched in 2026",
+    "url": "https://www.thespacereview.com/article/5344/1",
+    "retrievedAt": "2026-11-14",
+    "tier": "C"
+   },
+   "tier": "C",
+   "note": "Compiled from the sources in each row; no attempt found 26 Oct-14 Nov 2026."
+  },
+  {
+   "label": "2019-01-03 Chang'e-4",
+   "value": "success",
+   "unit": null,
+   "quote": "Far side, Von Kármán crater",
+   "source": {
+    "label": "LROC, Chang'e 4 (posts/1090)",
+    "url": "https://lroc.asu.edu/posts/1090",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "tier": "A",
+   "note": "cause class: none"
+  },
+  {
+   "label": "2019-04-11 Beresheet",
+   "value": "crash",
+   "unit": null,
+   "quote": "A software command uploaded to fix a sensor problem started a chain reaction",
+   "source": {
+    "label": "The Planetary Society, software command doomed Beresheet",
+    "url": "https://www.planetary.org/articles/software-command-doomed-beresheet",
+    "retrievedAt": "2026-11-14",
+    "tier": "C"
+   },
+   "tier": "C",
+   "note": "cause class: hardware-command"
+  },
+  {
+   "label": "2019-09-07 IST Chandrayaan-2 Vikram",
+   "value": "crash",
+   "unit": null,
+   "quote": "the reduction in velocity was more than the designed value ... Vikram hard landed within 500 m of the designated landing site",
+   "source": {
+    "label": "PIB (Govt. of India), Chandrayaan-2 statement, 20 Nov 2019",
+    "url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=1592495",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "tier": "A",
+   "note": "cause class: gnc-braking (not a site or date problem)"
+  },
+  {
+   "label": "2020-12-01 Chang'e-5",
+   "value": "success",
+   "unit": null,
+   "quote": "15:11 UTC 01 December 2020",
+   "source": {
+    "label": "LROC, Chang'e 5 landing site (images/1172)",
+    "url": "https://lroc.im-ldi.com/images/1172",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "tier": "A",
+   "note": "cause class: none"
+  },
+  {
+   "label": "2023-04-26 JST HAKUTO-R M1",
+   "value": "crash",
+   "unit": null,
+   "quote": "simulations ... did not adequately incorporate the lunar environment on the navigation route",
+   "source": {
+    "label": "ispace, results of the HAKUTO-R Mission 1 lunar landing (26 May 2023)",
+    "url": "https://www.ispace-inc.com/2023/05/26/ispace-announces-results-of-the-hakuto-r-mission-1-lunar-landing/",
+    "retrievedAt": "2026-11-14",
+    "tier": "B"
+   },
+   "tier": "B",
+   "note": "cause class: terrain-software (crater rim on a changed, unsimulated route)"
+  },
+  {
+   "label": "2023-08-19 Luna 25",
+   "value": "crash",
+   "unit": null,
+   "quote": "operated for 127 seconds instead of 84",
+   "source": {
+    "label": "SpacePolicyOnline, Luna 25's engines fired longer than planned",
+    "url": "https://spacepolicyonline.com/news/luna-25s-engines-fired-longer-than-planned/",
+    "retrievedAt": "2026-11-14",
+    "tier": "C"
+   },
+   "tier": "C",
+   "note": "cause class: propulsion-burn (pre-landing orbit)"
+  },
+  {
+   "label": "2023-08-23 Chandrayaan-3",
+   "value": "success",
+   "unit": null,
+   "quote": "On 23rd Aug, 2023, Chandrayaan-3 lander, Vikram, successfully soft-landed on the Moon.",
+   "source": {
+    "label": "ISRO monthly summary, August 2023",
+    "url": "https://www.isro.gov.in/media_isro/pdf/Monthly_summary/MonthlySummary_August2023Eng.pdf",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "tier": "A",
+   "note": "cause class: none; did not wake after the lunar night"
+  },
+  {
+   "label": "2024-01-08..18 Peregrine M1",
+   "value": "never reached the Moon",
+   "unit": null,
+   "quote": "operated the spacecraft for 10 days and 14 hours",
+   "source": {
+    "label": "Astrobotic, Peregrine Mission One post-mission report",
+    "url": "https://www.astrobotic.com/wp-content/uploads/2024/08/PM1_Post-Mission-Report_Website.pdf",
+    "retrievedAt": "2026-11-14",
+    "tier": "B"
+   },
+   "tier": "B",
+   "note": "cause class: hardware-propulsion (propellant leak, helium valve)"
+  },
+  {
+   "label": "2024-01-20 JST SLIM",
+   "value": "unplanned attitude",
+   "unit": null,
+   "quote": "nozzle separated and thrust was reduced in one of the two main engines",
+   "source": {
+    "label": "JAXA SLIM project review briefing, Dec 2024",
+    "url": "https://www.isas.jaxa.jp/en/topics/files/SLIM-press-briefing-20241226.pdf",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "tier": "A",
+   "note": "cause class: hardware-propulsion; landed about 55 m from target; survived 3 lunar nights"
+  },
+  {
+   "label": "2024-02-22 IM-1 Odysseus",
+   "value": "unplanned attitude",
+   "unit": null,
+   "quote": "their laser range finders couldn't be turned on as they had a manual safety switch turned on",
+   "source": {
+    "label": "NASA NDL briefing on the IM-1 mission (NTRS 20240004236)",
+    "url": "https://ntrs.nasa.gov/api/citations/20240004236/downloads/MSS%202024_NDL%20Lunar%20Mission.pdf",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "tier": "A",
+   "note": "cause class: procedural-sensor; the 12° slope contributed to the tip"
+  },
+  {
+   "label": "2024-06-01 Chang'e-6",
+   "value": "success",
+   "unit": null,
+   "quote": "LROC: lander at 41.6385°S, 206.0148°E",
+   "source": {
+    "label": "LROC, Chang'e 6 landing site (images/1374, 14 Jun 2024)",
+    "url": "https://lroc.im-ldi.com/images/1374",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "tier": "A",
+   "note": "cause class: none"
+  },
+  {
+   "label": "2025-03-02 Blue Ghost M1",
+   "value": "success",
+   "unit": null,
+   "quote": "upright and stable",
+   "source": {
+    "label": "NASA, Touchdown: Firefly's Blue Ghost lands on the Moon",
+    "url": "https://www.nasa.gov/news-release/touchdown-carrying-nasa-science-fireflys-blue-ghost-lands-on-moon/",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "tier": "A",
+   "note": "cause class: none"
+  },
+  {
+   "label": "2025-03-06 IM-2 Athena",
+   "value": "unplanned attitude",
+   "unit": null,
+   "quote": "With the direction of the sun, the orientation of the solar panels, and extreme cold temperatures in the crater, Intuitive Machines does not expect Athena to recharge",
+   "source": {
+    "label": "SpaceNews, IM-2 lunar lander mission ends",
+    "url": "https://spacenews.com/im-2-lunar-lander-mission-ends/",
+    "retrievedAt": "2026-11-14",
+    "tier": "C"
+   },
+   "tier": "C",
+   "note": "cause class: nav-sensor + lighting/thermal at the landing spot; ended in under 13 h"
+  },
+  {
+   "label": "2025-06-06 JST ispace RESILIENCE",
+   "value": "crash",
+   "unit": null,
+   "quote": "deterioration in the performance ... or the performance itself was lower than expected",
+   "source": {
+    "label": "ispace, technical cause analysis for HAKUTO-R Mission 2 (24 Jun 2025)",
+    "url": "https://www.ispace-inc.com/2025/06/24/ispace-releases-technical-cause-analysis-for-hakuto-r-mission-2/",
+    "retrievedAt": "2026-11-14",
+    "tier": "B"
+   },
+   "tier": "B",
+   "note": "cause class: sensor-hardware (laser rangefinder)"
+  },
+  {
+   "label": "2026 (through 14 Nov)",
+   "value": "no attempts",
+   "unit": null,
+   "quote": "Chang'e-7 postponed 'at least to some time next year'; Blue Moon MK1, Griffin-1, IM-3 and Blue Ghost 2 slipped to 2027.",
+   "source": {
+    "label": "The Space Review (J. Foust, 26 Oct 2026): no CLPS mission launched in 2026",
+    "url": "https://www.thespacereview.com/article/5344/1",
+    "retrievedAt": "2026-11-14",
+    "tier": "C"
+   },
+   "tier": "C",
+   "note": "The Space Review checked through 26 Oct 2026; this pipeline found nothing between 26 Oct and 14 Nov 2026."
+  }
+ ],
+ "updatedAt": "2026-11-14T17:49:56Z"
+}

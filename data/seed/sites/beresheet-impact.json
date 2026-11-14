@@ -1,0 +1,68 @@
+{
+ "name": "Beresheet (impact site)",
+ "family": "commercial",
+ "siteKind": "impact",
+ "country": "Israel",
+ "agency": "SpaceIL / IAI",
+ "mission": "Beresheet",
+ "landingTimeUtc": "2019-04-11",
+ "landingTimePrecision": "date",
+ "outcome": "failure",
+ "outcomeDetail": {
+  "summary": "An inertial measurement unit fault, then a command sent to reset it, led to main-engine shutdown during descent.",
+  "causeClass": "hardware-command",
+  "sources": [
+   {
+    "label": "The Planetary Society, software command doomed Beresheet",
+    "url": "https://www.planetary.org/articles/software-command-doomed-beresheet",
+    "retrievedAt": "2026-11-14",
+    "tier": "C"
+   }
+  ]
+ },
+ "coordinates": {
+  "latDeg": 32.5956,
+  "lonDeg": 19.3496,
+  "elevationM": -2616.2
+ },
+ "latDeg": 32.5956,
+ "lonDeg": 19.3496,
+ "coordsVerified": true,
+ "coordsFrame": "MOON_ME",
+ "coordsUncertaintyM": 20,
+ "coordsAsPublished": null,
+ "representativePoint": null,
+ "chapterId": null,
+ "blurb": "The first privately funded lunar landing attempt.",
+ "sources": [
+  {
+   "label": "LROC, Beresheet impact site (images/1101)",
+   "url": "https://lroc.im-ldi.com/images/1101",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "The Planetary Society, software command doomed Beresheet",
+   "url": "https://www.planetary.org/articles/software-command-doomed-beresheet",
+   "retrievedAt": "2026-11-14",
+   "tier": "C"
+  },
+  {
+   "label": "LROC RDR shapefile, Anthropogenic Features on the Moon (last updated 2026-08-14)",
+   "url": "https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_ANTHROPOGENIC_OBJECTS",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ],
+ "terrainSummary": {
+  "hasMask": true,
+  "slope100mDeg": 0.35,
+  "nearestPsrKm": null,
+  "nearestColdTrapKm": null,
+  "insidePsr": null
+ },
+ "notes": [
+  "Elevation = shapefile RADIUS (NAC DTM) minus 1,737,400 m."
+ ],
+ "updatedAt": "2026-11-14T17:31:42Z"
+}

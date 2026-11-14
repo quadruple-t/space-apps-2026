@@ -1,0 +1,87 @@
+{
+ "name": "SLIM (near Shioli crater)",
+ "family": "slim",
+ "siteKind": "landing",
+ "country": "Japan",
+ "agency": "JAXA",
+ "mission": "SLIM",
+ "landingTimeUtc": "2024-01-19T15:20:00Z",
+ "landingTimePrecision": "minute",
+ "outcome": "partial",
+ "outcomeDetail": {
+  "summary": "One main-engine nozzle separated at about 50 m altitude and the lander touched down in an unplanned attitude about 55 m from target. Its solar cells faced west, so it made no power until the Sun's direction changed; it later survived three lunar nights.",
+  "causeClass": "hardware-propulsion",
+  "sources": [
+   {
+    "label": "JAXA SLIM project review briefing, Dec 2024",
+    "url": "https://www.isas.jaxa.jp/en/topics/files/SLIM-press-briefing-20241226.pdf",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   {
+    "label": "JAXA press release, SLIM landing results (25 Jan 2024)",
+    "url": "https://global.jaxa.jp/press/2024/01/20240125-1_e.html",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   {
+    "label": "JAXA press release, SLIM operations ended (26 Aug 2024)",
+    "url": "https://global.jaxa.jp/press/2024/08/20240826-1_e.html",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   }
+  ]
+ },
+ "coordinates": {
+  "latDeg": -13.316,
+  "lonDeg": 25.251,
+  "elevationM": -912.7
+ },
+ "latDeg": -13.316,
+ "lonDeg": 25.251,
+ "coordsVerified": true,
+ "coordsFrame": "MOON_ME",
+ "coordsUncertaintyM": 10.0,
+ "coordsAsPublished": null,
+ "representativePoint": null,
+ "chapterId": "ch2-robotic-explorer",
+ "blurb": "A pinpoint landing in the wrong attitude: its panels faced away from the Sun until the Sun moved.",
+ "sources": [
+  {
+   "label": "LROC, SLIM landing site (images/1358)",
+   "url": "https://lroc.im-ldi.com/images/1358",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "JAXA press release, SLIM landing results (25 Jan 2024)",
+   "url": "https://global.jaxa.jp/press/2024/01/20240125-1_e.html",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "JAXA SLIM project review briefing, Dec 2024",
+   "url": "https://www.isas.jaxa.jp/en/topics/files/SLIM-press-briefing-20241226.pdf",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "LROC RDR shapefile, Anthropogenic Features on the Moon (last updated 2026-08-14)",
+   "url": "https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_ANTHROPOGENIC_OBJECTS",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ],
+ "terrainSummary": {
+  "hasMask": true,
+  "slope100mDeg": 7.45,
+  "nearestPsrKm": null,
+  "nearestColdTrapKm": null,
+  "insidePsr": null
+ },
+ "notes": [
+  "Coordinate uncertainty from the LROC anthropogenic shapefile (UNCERTAIN column).",
+  "Elevation = shapefile RADIUS (NAC DTM) minus 1,737,400 m."
+ ],
+ "updatedAt": "2026-11-14T17:31:42Z"
+}

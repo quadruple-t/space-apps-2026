@@ -90,7 +90,7 @@ function Terrain({ detail }: { detail: TerrainDetail }) {
 }
 
 const DATA_POINT_POSITIONS: Array<[number, number]> = [[-38, -68], [38, -68], [-38, -142], [38, -142]];
-const DATA_POINT_COLORS = ["#a986ff", "#58c8ff", "#ff637d", "#a986ff"];
+const DATA_POINT_COLORS = ["#a986ff", "#4b9bff", "#ff5364", "#a986ff"];
 
 function TerrainDataMarkers({ points, onSelect, site }: { points: TerrainSample[]; onSelect?: (point: TerrainSample) => void; site: THREE.Vector3 & { latitudeDeg: number; longitudeDeg: number } }) {
   return <group>{points.map((point, index) => {

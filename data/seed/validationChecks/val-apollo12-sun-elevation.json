@@ -1,0 +1,20 @@
+{
+ "siteId": "apollo-12-oceanus-procellarum",
+ "time": "1969-11-19T06:54:36Z",
+ "quantity": "sun-elevation-deg",
+ "computed": null,
+ "computedBy": null,
+ "historical": 5.19,
+ "historicalKind": "computed-reconstruction",
+ "historicalSource": {
+  "label": "ALSJ, Earth and Sun Altitude/Azimuth at landing (Fjeld and Scotti; computed reconstruction spot-checked against JPL Horizons)",
+  "url": "https://www.apollojournals.org/alsj/alsj-EarthSun_AltAz.html",
+  "retrievedAt": "2026-11-14",
+  "tier": "B"
+ },
+ "toleranceDeg": 0.5,
+ "deltaDeg": null,
+ "status": "pending",
+ "note": "Pending: computed by 80_validate.py.",
+ "range": null
+}

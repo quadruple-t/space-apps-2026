@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { Astronaut } from "./astronaut";
 import { LunarRover } from "./rover";
 import { heightAt } from "./terrain";
 
@@ -19,7 +18,7 @@ export type CameraShot = {
   parallax: number;
 };
 
-export type CameraMode = "first-person" | "third-person" | "orbit" | "overhead";
+export type CameraMode = "first-person" | "orbit" | "overhead";
 export type MoveCommand = "forward" | "back" | "left" | "right" | null;
 
 /**
@@ -44,7 +43,6 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
   const keyFrame = useRef<number | null>(null);
   const playerPosition = useRef(new THREE.Vector3());
   const spawnPosition = useRef(new THREE.Vector3());
-  const avatarRef = useRef<THREE.Group>(null);
   const roverRef = useRef<THREE.Group>(null);
   const dustRef = useRef<THREE.Mesh>(null);
   const dustMaterialRef = useRef<THREE.MeshBasicMaterial>(null);
@@ -79,8 +77,8 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
   }, [landingActive]);
 
   useEffect(() => {
-    yaw.current = mode === "first-person" || mode === "third-person" ? 0.35 : 0;
-    pitch.current = mode === "orbit" ? 0.28 : mode === "third-person" ? 0.16 : mode === "first-person" ? 0.2 : 0.04;
+    yaw.current = mode === "first-person" ? 0.35 : 0;
+    pitch.current = mode === "orbit" ? 0.28 : mode === "first-person" ? 0.2 : 0.04;
   }, [mode]);
 
   useEffect(() => {
@@ -178,7 +176,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
       const camera = state.camera as THREE.PerspectiveCamera;
       const player = playerPosition.current;
       const heading = yaw.current;
-      if (mode === "first-person" || mode === "third-person") {
+      if (mode === "first-person") {
         let forward = 0;
         let strafe = 0;
         if (keys.current.has("w") || keys.current.has("arrowup") || moveCommand === "forward") forward += 1;
@@ -196,12 +194,8 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
           player.z = THREE.MathUtils.clamp(z, Math.max(-695, spawnPosition.current.z - 90), Math.min(-5, spawnPosition.current.z + 90));
           player.y = heightAt(player.x, player.z);
         }
-        if (avatarRef.current) {
-          avatarRef.current.position.copy(player);
-          avatarRef.current.rotation.y = Math.PI - heading;
-        }
-        const roverX = player.x - Math.cos(heading) * 7;
-        const roverZ = player.z - Math.sin(heading) * 7;
+        const roverX = player.x + Math.sin(heading) * 10 + Math.cos(heading) * 4;
+        const roverZ = player.z - Math.cos(heading) * 10 + Math.sin(heading) * 4;
         const roverGround = heightAt(roverX, roverZ) + 0.72;
         if (landingActive && landingProgress.current < 1) landingProgress.current = Math.min(1, landingProgress.current + delta / 1.05);
         const landingEase = 1 - Math.pow(1 - landingProgress.current, 3);
@@ -222,15 +216,6 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
         if (camera.fov !== nextFov) { camera.fov = nextFov; camera.updateProjectionMatrix(); }
         camera.position.set(player.x, player.y + 6.5, player.z);
         aim.current.set(player.x + Math.sin(heading) * Math.cos(pitch.current) * 500, player.y + 6.5 + Math.sin(pitch.current) * 500, player.z - Math.cos(heading) * Math.cos(pitch.current) * 500);
-        camera.up.set(0, 1, 0);
-        camera.lookAt(aim.current);
-      } else if (mode === "third-person") {
-        if (camera.fov !== 55) { camera.fov = 55; camera.updateProjectionMatrix(); }
-        const followDistance = 18 * zoom;
-        desired.current.set(player.x - Math.sin(heading) * followDistance, player.y + 10 + followDistance * 0.12, player.z + Math.cos(heading) * followDistance);
-        if (still) camera.position.copy(desired.current);
-        else camera.position.lerp(desired.current, 1 - Math.exp(-delta * 4));
-        aim.current.set(player.x, player.y + 3.2, player.z);
         camera.up.set(0, 1, 0);
         camera.lookAt(aim.current);
       } else {
@@ -260,7 +245,6 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
   });
 
   return interactive ? <>
-    <group ref={avatarRef} visible={mode !== "first-person"}><Astronaut position={[0, 0, 0]} /></group>
     <group ref={roverRef}><LunarRover /></group>
     <mesh ref={dustRef} rotation={[-Math.PI / 2, 0, 0]}>
       <ringGeometry args={[3.2, 4.2, 28]} />

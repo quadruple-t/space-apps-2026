@@ -1,0 +1,23 @@
+{
+ "siteId": "apollo-11-tranquility",
+ "time": "1969-07-20T20:17:39Z",
+ "quantity": "sun-elevation-deg",
+ "computed": null,
+ "computedBy": null,
+ "historical": null,
+ "historicalKind": "planning-value",
+ "historicalSource": {
+  "label": "NASA SP-4029 Apollo by the Numbers, Apollo 11 summary",
+  "url": "https://www.nasa.gov/wp-content/uploads/static/history/SP-4029/Apollo_11a_Summary.htm",
+  "retrievedAt": "2026-11-14",
+  "tier": "A"
+ },
+ "toleranceDeg": null,
+ "deltaDeg": null,
+ "status": "pending",
+ "note": "NASA SP-4029: acceptable range 'from 5° to 14°' (planned 10.8°). Pass if the computed value is inside the range.",
+ "range": {
+  "min": 5,
+  "max": 14
+ }
+}

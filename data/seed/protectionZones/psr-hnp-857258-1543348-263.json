@@ -1,0 +1,123 @@
+{
+ "kind": "psr-ice",
+ "ruleId": "psr-buffer-by-analogy",
+ "name": "\"HNP_857258_1543348\" PSR",
+ "siteId": null,
+ "geometry": {
+  "type": "Polygon",
+  "rings": [
+   {
+    "points": [
+     {
+      "latDeg": -86.980999,
+      "lonDeg": 154.943415
+     },
+     {
+      "latDeg": -87.001194,
+      "lonDeg": 154.71405
+     },
+     {
+      "latDeg": -86.99554,
+      "lonDeg": 154.486645
+     },
+     {
+      "latDeg": -86.981555,
+      "lonDeg": 154.467773
+     },
+     {
+      "latDeg": -86.974736,
+      "lonDeg": 154.646993
+     },
+     {
+      "latDeg": -86.977875,
+      "lonDeg": 154.077909
+     },
+     {
+      "latDeg": -86.96598,
+      "lonDeg": 153.451656
+     },
+     {
+      "latDeg": -86.953134,
+      "lonDeg": 153.204813
+     },
+     {
+      "latDeg": -86.932215,
+      "lonDeg": 153.250444
+     },
+     {
+      "latDeg": -86.878744,
+      "lonDeg": 153.97357
+     },
+     {
+      "latDeg": -86.867773,
+      "lonDeg": 154.292663
+     },
+     {
+      "latDeg": -86.867509,
+      "lonDeg": 154.815888
+     },
+     {
+      "latDeg": -86.876541,
+      "lonDeg": 155.185154
+     },
+     {
+      "latDeg": -86.879299,
+      "lonDeg": 155.121702
+     },
+     {
+      "latDeg": -86.935416,
+      "lonDeg": 155.246385
+     },
+     {
+      "latDeg": -86.956498,
+      "lonDeg": 155.158967
+     },
+     {
+      "latDeg": -86.975606,
+      "lonDeg": 154.784249
+     },
+     {
+      "latDeg": -86.980999,
+      "lonDeg": 154.943415
+     }
+    ]
+   }
+  ]
+ },
+ "rationale": "Permanently shadowed region (PGDA product 90). No published distance supports a PSR buffer; NASA OTPS (2022) says no distance can eliminate ejecta impacts entirely. The stand-off is a user parameter defaulting to 2.0 km, the NASA 2011 heritage landing stand-off applied by analogy, with the 1.5 km Apollo rock-ejecta range as a secondary ring. Neither is a PSR-protection standard. Cold-trap fraction: Diviner annual maximum below 110 K; a cold trap is not detected ice.",
+ "sources": [
+  {
+   "label": "PGDA product 90, A New View of the Lunar South Pole from LOLA (Barker et al. 2023, PSJ 4:183, doi:10.3847/PSJ/acf3e1; data doi:10.60903/gsfcpgda-lola-spole)",
+   "url": "https://pgda.gsfc.nasa.gov/products/90",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "Diviner Polar Resource Product, south (Paige et al. 2010, Science, doi:10.1126/science.1187726; LRO-L-DLRE-5-PRP-V2.0)",
+   "url": "https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_prp/dlre_prp_south.tab",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "NASA (2011, Rev A 28 Oct 2011), Recommendations to Space-Faring Entities: How to Protect and Preserve the Historic and Scientific Value of U.S. Government Lunar Artifacts",
+   "url": "https://www.nasa.gov/pdf/617743main_NASA-USG_LUNAR_HISTORIC_SITES_RevA-508.pdf",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "NASA OTPS, Lunar Landing and Operations Policy Analysis (30 Sep 2022)",
+   "url": "https://www.nasa.gov/wp-content/uploads/2022/10/lunar_landing_and_operations_policy_analysis_final_report_24oct2022_tagged_0.pdf",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ],
+ "needsData": false,
+ "buffer": {
+  "defaultKm": 2.0,
+  "secondaryRingKm": 1.5,
+  "label": "NASA 2011 heritage landing stand-off, applied by analogy (not a PSR-protection standard)"
+ },
+ "areaKm2": 8.846,
+ "coldTrapFraction": 0.86,
+ "geometryNote": "Largest part of the PSR outline, simplified to 150 m. Full outlines are in psrLayer."
+}

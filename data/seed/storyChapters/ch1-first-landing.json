@@ -1,0 +1,80 @@
+{
+ "order": 1,
+ "title": "First Landing",
+ "era": "Apollo era",
+ "concept": "Sun angle and lighting",
+ "unlocksTool": "horizon-dial",
+ "featuredSiteIds": [
+  "apollo-11-tranquility",
+  "apollo-17-taurus-littrow",
+  "apollo-12-oceanus-procellarum"
+ ],
+ "steps": [
+  {
+   "id": "ch1-s1",
+   "prompt": "Drag the date. Watch the Sun climb and fall over the horizon.",
+   "focus": "sun-elevation",
+   "expects": "slider"
+  },
+  {
+   "id": "ch1-s2",
+   "prompt": "Why would a crew want long shadows at touchdown?",
+   "focus": "sun-elevation",
+   "expects": "choice"
+  },
+  {
+   "id": "ch1-s3",
+   "prompt": "Pick a landing date with the Sun low but not too low.",
+   "focus": "horizon-mask",
+   "expects": "date-pick"
+  }
+ ],
+ "debrief": {
+  "headline": "Low sun is a tool, not a problem",
+  "whatHappened": "Apollo planners chose landing windows so the Sun sat 5° to 14° above the horizon, which stretches shadows and makes craters and boulders easier to spot. That restriction left a 16-hour window every 29.5 days to land at a given site.",
+  "realMission": "Apollo 11",
+  "keyNumbers": [
+   {
+    "label": "Sun elevation at Apollo 11 touchdown",
+    "value": "10.65°",
+    "sourceNote": "ALSJ, Fjeld and Scotti: a computed reconstruction spot-checked against JPL Horizons, not an in-situ measurement. Shown beside Shadowline's own computed value.",
+    "validationCheckId": "val-apollo11-sun-elevation",
+    "sources": [
+     {
+      "label": "ALSJ, Earth and Sun Altitude/Azimuth at landing (Fjeld and Scotti; computed reconstruction spot-checked against JPL Horizons)",
+      "url": "https://www.apollojournals.org/alsj/alsj-EarthSun_AltAz.html",
+      "retrievedAt": "2026-11-14",
+      "tier": "B"
+     }
+    ]
+   },
+   {
+    "label": "Planned acceptable Sun elevation range",
+    "value": "5°-14°",
+    "sourceNote": "NASA SP-4029, Apollo 11 summary (launch-window planning; planned value 10.8°).",
+    "validationCheckId": "val-apollo11-planning-window",
+    "sources": [
+     {
+      "label": "NASA SP-4029 Apollo by the Numbers, Apollo 11 summary",
+      "url": "https://www.nasa.gov/wp-content/uploads/static/history/SP-4029/Apollo_11a_Summary.htm",
+      "retrievedAt": "2026-11-14",
+      "tier": "A"
+     }
+    ]
+   },
+   {
+    "label": "Landing opportunity at a given site",
+    "value": "a 16-hour period every 29.5 days",
+    "sourceNote": "NASA SP-4029: 'the sun elevation angle restriction established a 16-hour period, which occurred every 29.5 days'.",
+    "sources": [
+     {
+      "label": "NASA SP-4029 Apollo by the Numbers, Apollo 11 summary",
+      "url": "https://www.nasa.gov/wp-content/uploads/static/history/SP-4029/Apollo_11a_Summary.htm",
+      "retrievedAt": "2026-11-14",
+      "tier": "A"
+     }
+    ]
+   }
+  ]
+ }
+}

@@ -1,0 +1,62 @@
+{
+ "name": "Luna 23",
+ "family": "luna",
+ "siteKind": "landing",
+ "country": "USSR",
+ "agency": "Soviet space program",
+ "mission": "Luna 23",
+ "landingTimeUtc": null,
+ "landingTimePrecision": null,
+ "outcome": "partial",
+ "outcomeDetail": {
+  "summary": "Landed damaged and returned no sample.",
+  "causeClass": "unknown",
+  "sources": [
+   {
+    "label": "LROC, Coordinates of Lunar Anthropogenic Targets (28 Jul 2016; Wagner et al. 2017, Icarus 283:92-103)",
+    "url": "https://lroc.im-ldi.com/data/support/downloads/2016_LROC_Coordinates_of_Human_Features.pdf",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   }
+  ]
+ },
+ "coordinates": {
+  "latDeg": 12.6667,
+  "lonDeg": 62.1511,
+  "elevationM": -3668.2
+ },
+ "latDeg": 12.6667,
+ "lonDeg": 62.1511,
+ "coordsVerified": true,
+ "coordsFrame": "MOON_ME",
+ "coordsUncertaintyM": 3.0,
+ "coordsAsPublished": null,
+ "representativePoint": null,
+ "chapterId": null,
+ "blurb": "Landed damaged in Mare Crisium, about 6 km from where Luna 24 later succeeded.",
+ "sources": [
+  {
+   "label": "LROC, Coordinates of Lunar Anthropogenic Targets (28 Jul 2016; Wagner et al. 2017, Icarus 283:92-103)",
+   "url": "https://lroc.im-ldi.com/data/support/downloads/2016_LROC_Coordinates_of_Human_Features.pdf",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "LROC RDR shapefile, Anthropogenic Features on the Moon (last updated 2026-08-14)",
+   "url": "https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_ANTHROPOGENIC_OBJECTS",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ],
+ "terrainSummary": {
+  "hasMask": true,
+  "slope100mDeg": 2.46,
+  "nearestPsrKm": null,
+  "nearestColdTrapKm": null,
+  "insidePsr": null
+ },
+ "notes": [
+  "Elevation = shapefile RADIUS (NAC DTM) minus 1,737,400 m."
+ ],
+ "updatedAt": "2026-11-14T17:31:42Z"
+}

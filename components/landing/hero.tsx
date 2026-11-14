@@ -41,17 +41,13 @@ export function Hero() {
               See how ridges shape sunlight and Earth visibility at the lunar south pole. Choose a route to start exploring
               the mission.
             </p>
-            <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3">
-              <Link href="/mission" className="mission-action inline-flex h-12 items-center gap-3 bg-sun px-5 text-sm font-semibold text-void transition-colors hover:bg-[#f2c56e]">
-                Start the guided mission <ArrowUpRight aria-hidden className="size-4" />
-              </Link>
-              <Link href="/explore" className="inline-flex min-h-11 items-center gap-2 text-sm text-bone/75 transition-colors hover:text-bone">
-                Open free play <ArrowDown aria-hidden className="size-4" />
-              </Link>
-            </div>
-
-            <div className="mt-8 max-w-lg sm:mt-10">
-              <HeroHud />
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Button asChild size="xl">
+                <Link href="#explore">Explore Lunaris360</Link>
+              </Button>
+              <Button asChild size="xl" variant="outline">
+                <Link href="#mission">Discover the Mission</Link>
+              </Button>
             </div>
           </div>
 

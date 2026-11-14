@@ -1,0 +1,171 @@
+{
+ "kind": "psr-ice",
+ "ruleId": "psr-buffer-by-analogy",
+ "name": "\"HNP_886022_0172836\" PSR",
+ "siteId": null,
+ "geometry": {
+  "type": "Polygon",
+  "rings": [
+   {
+    "points": [
+     {
+      "latDeg": -80.688851,
+      "lonDeg": 16.418221
+     },
+     {
+      "latDeg": -80.634536,
+      "lonDeg": 16.382838
+     },
+     {
+      "latDeg": -80.534336,
+      "lonDeg": 16.477769
+     },
+     {
+      "latDeg": -80.477963,
+      "lonDeg": 16.30273
+     },
+     {
+      "latDeg": -80.455166,
+      "lonDeg": 16.371596
+     },
+     {
+      "latDeg": -80.464599,
+      "lonDeg": 16.53469
+     },
+     {
+      "latDeg": -80.497354,
+      "lonDeg": 16.65364
+     },
+     {
+      "latDeg": -80.449385,
+      "lonDeg": 17.037281
+     },
+     {
+      "latDeg": -80.448603,
+      "lonDeg": 17.213445
+     },
+     {
+      "latDeg": -80.457405,
+      "lonDeg": 17.242305
+     },
+     {
+      "latDeg": -80.4458,
+      "lonDeg": 17.241264
+     },
+     {
+      "latDeg": -80.454999,
+      "lonDeg": 17.328812
+     },
+     {
+      "latDeg": -80.438746,
+      "lonDeg": 17.364375
+     },
+     {
+      "latDeg": -80.448179,
+      "lonDeg": 17.400765
+     },
+     {
+      "latDeg": -80.457364,
+      "lonDeg": 17.356028
+     },
+     {
+      "latDeg": -80.455072,
+      "lonDeg": 17.420003
+     },
+     {
+      "latDeg": -80.462607,
+      "lonDeg": 17.446704
+     },
+     {
+      "latDeg": -80.457586,
+      "lonDeg": 17.503458
+     },
+     {
+      "latDeg": -80.474028,
+      "lonDeg": 17.615751
+     },
+     {
+      "latDeg": -80.50041,
+      "lonDeg": 17.858226
+     },
+     {
+      "latDeg": -80.566046,
+      "lonDeg": 18.176489
+     },
+     {
+      "latDeg": -80.637371,
+      "lonDeg": 18.273847
+     },
+     {
+      "latDeg": -80.705914,
+      "lonDeg": 18.204656
+     },
+     {
+      "latDeg": -80.750488,
+      "lonDeg": 18.006294
+     },
+     {
+      "latDeg": -80.787704,
+      "lonDeg": 17.604558
+     },
+     {
+      "latDeg": -80.799627,
+      "lonDeg": 17.271627
+     },
+     {
+      "latDeg": -80.788398,
+      "lonDeg": 16.92862
+     },
+     {
+      "latDeg": -80.75266,
+      "lonDeg": 16.641635
+     },
+     {
+      "latDeg": -80.720784,
+      "lonDeg": 16.493539
+     },
+     {
+      "latDeg": -80.688851,
+      "lonDeg": 16.418221
+     }
+    ]
+   }
+  ]
+ },
+ "rationale": "Permanently shadowed region (PGDA product 90). No published distance supports a PSR buffer; NASA OTPS (2022) says no distance can eliminate ejecta impacts entirely. The stand-off is a user parameter defaulting to 2.0 km, the NASA 2011 heritage landing stand-off applied by analogy, with the 1.5 km Apollo rock-ejecta range as a secondary ring. Neither is a PSR-protection standard. Cold-trap fraction: Diviner annual maximum below 110 K; a cold trap is not detected ice.",
+ "sources": [
+  {
+   "label": "PGDA product 90, A New View of the Lunar South Pole from LOLA (Barker et al. 2023, PSJ 4:183, doi:10.3847/PSJ/acf3e1; data doi:10.60903/gsfcpgda-lola-spole)",
+   "url": "https://pgda.gsfc.nasa.gov/products/90",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "Diviner Polar Resource Product, south (Paige et al. 2010, Science, doi:10.1126/science.1187726; LRO-L-DLRE-5-PRP-V2.0)",
+   "url": "https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_prp/dlre_prp_south.tab",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "NASA (2011, Rev A 28 Oct 2011), Recommendations to Space-Faring Entities: How to Protect and Preserve the Historic and Scientific Value of U.S. Government Lunar Artifacts",
+   "url": "https://www.nasa.gov/pdf/617743main_NASA-USG_LUNAR_HISTORIC_SITES_RevA-508.pdf",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "NASA OTPS, Lunar Landing and Operations Policy Analysis (30 Sep 2022)",
+   "url": "https://www.nasa.gov/wp-content/uploads/2022/10/lunar_landing_and_operations_policy_analysis_final_report_24oct2022_tagged_0.pdf",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ],
+ "needsData": false,
+ "buffer": {
+  "defaultKm": 2.0,
+  "secondaryRingKm": 1.5,
+  "label": "NASA 2011 heritage landing stand-off, applied by analogy (not a PSR-protection standard)"
+ },
+ "areaKm2": 80.139,
+ "coldTrapFraction": 0.001,
+ "geometryNote": "Largest part of the PSR outline, simplified to 150 m. Full outlines are in psrLayer."
+}

@@ -19,15 +19,15 @@ export function MoonSunDiagram({ latitudeDeg, longitudeDeg, sunAzimuthDeg = 32, 
     </div>
     <svg viewBox="0 0 360 160" role="img" aria-label={`Sun at ${azimuth.toFixed(1)} degrees azimuth and ${sunElevationDeg.toFixed(1)} degrees elevation relative to selected ${sideName}`} className="mt-2 block w-full">
       <defs>
-        <radialGradient id="sunGlow"><stop stopColor="#ff829a" stopOpacity=".8"/><stop offset="1" stopColor="#ff637d" stopOpacity="0"/></radialGradient>
+        <radialGradient id="sunGlow"><stop stopColor="#ff829a" stopOpacity=".8"/><stop offset="1" stopColor="#ff5364" stopOpacity="0"/></radialGradient>
         <linearGradient id="moonLit" x1="0" x2="1" y1="0" y2="1"><stop stopColor="#d2c8ff"/><stop offset="1" stopColor="#8878bd"/></linearGradient>
         <clipPath id="moonClip"><circle cx="180" cy="82" r="39"/></clipPath>
-        <marker id="sunArrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z" fill="#ff637d"/></marker>
+        <marker id="sunArrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z" fill="#ff5364"/></marker>
       </defs>
       <ellipse cx="180" cy="82" rx="158" ry="62" fill="none" stroke="#a986ff" strokeOpacity=".2" strokeDasharray="3 5"/>
-      <path d={`M${sx.toFixed(1)} ${sy.toFixed(1)}L${(180 + Math.sin(azRad) * 47).toFixed(1)} ${(82 - Math.cos(azRad) * 22).toFixed(1)}`} stroke="#ff637d" strokeWidth="1.5" strokeDasharray="4 4" markerEnd="url(#sunArrow)"/>
+      <path d={`M${sx.toFixed(1)} ${sy.toFixed(1)}L${(180 + Math.sin(azRad) * 47).toFixed(1)} ${(82 - Math.cos(azRad) * 22).toFixed(1)}`} stroke="#ff5364" strokeWidth="1.5" strokeDasharray="4 4" markerEnd="url(#sunArrow)"/>
       <circle cx={sx} cy={sy} r="23" fill="url(#sunGlow)"/>
-      <circle cx={sx} cy={sy} r="8" fill="#ff637d" stroke="#ffdce5" strokeWidth="1.3"/>
+      <circle cx={sx} cy={sy} r="8" fill="#ff5364" stroke="#ffdce5" strokeWidth="1.3"/>
       <circle cx="180" cy="82" r="39" fill="#28243f" stroke="#d3cced" strokeOpacity=".7" strokeWidth="1.5"/>
       <g clipPath="url(#moonClip)">
         <g transform={`rotate(${azimuth + 90} 180 82)`}>
@@ -35,7 +35,7 @@ export function MoonSunDiagram({ latitudeDeg, longitudeDeg, sunAzimuthDeg = 32, 
           <circle cx="163" cy="69" r="7" fill="#554d75" fillOpacity=".5"/><circle cx="170" cy="96" r="10" fill="#554d75" fillOpacity=".42"/><circle cx="151" cy="91" r="5" fill="#554d75" fillOpacity=".4"/>
           <path d="M180 43C158 55 158 109 180 121" fill="#171427" fillOpacity=".78"/>
         </g>
-        <circle cx={px} cy={py} r="4.5" fill="#ff637d" stroke="#fff2f5" strokeWidth="1.5"/>
+        <circle cx={px} cy={py} r="4.5" fill="#ff5364" stroke="#fff2f5" strokeWidth="1.5"/>
       </g>
       <g fill="#b2abc4" fontFamily="monospace" fontSize="8" letterSpacing="1">
         <text x="180" y="17" textAnchor="middle">MOON</text><text x="180" y="148" textAnchor="middle">{sideName.toUpperCase()}</text>

@@ -1,0 +1,14 @@
+{
+ "label": "NASA (2011) recommendations for protecting U.S. Government lunar artifacts, Rev A",
+ "kind": "document",
+ "version": "Rev A, 28 Oct 2011",
+ "citation": "NASA (2011)",
+ "doi": null,
+ "url": "https://www.nasa.gov/pdf/617743main_NASA-USG_LUNAR_HISTORIC_SITES_RevA-508.pdf",
+ "license": null,
+ "usedFor": [
+  "heritage protection zones (2.0 km D/L, 0.5 km impact, 75 m / 225 m artifact boundaries)",
+  "PSR buffer applied by analogy"
+ ],
+ "retrievedAt": "2026-11-14"
+}

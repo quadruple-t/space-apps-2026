@@ -1,0 +1,63 @@
+{
+ "name": "Apollo 16 (Descartes Highlands)",
+ "family": "apollo",
+ "siteKind": "landing",
+ "country": "USA",
+ "agency": "NASA",
+ "mission": "Apollo 16",
+ "landingTimeUtc": "1972-04-21T02:23:35Z",
+ "landingTimePrecision": "second",
+ "outcome": "success",
+ "outcomeDetail": null,
+ "coordinates": {
+  "latDeg": -8.9734,
+  "lonDeg": 15.5011,
+  "elevationM": 8.4
+ },
+ "latDeg": -8.9734,
+ "lonDeg": 15.5011,
+ "coordsVerified": true,
+ "coordsFrame": "MOON_ME",
+ "coordsUncertaintyM": 3.0,
+ "coordsAsPublished": null,
+ "representativePoint": null,
+ "chapterId": null,
+ "blurb": "The only Apollo landing in the central highlands.",
+ "sources": [
+  {
+   "label": "LROC, Coordinates of Lunar Anthropogenic Targets (28 Jul 2016; Wagner et al. 2017, Icarus 283:92-103)",
+   "url": "https://lroc.im-ldi.com/data/support/downloads/2016_LROC_Coordinates_of_Human_Features.pdf",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "NSSDCA, Apollo Landing Sites (ME/DE421 coordinates from Wagner et al. 2017)",
+   "url": "https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "NSSDCA, Apollo 16 Lunar Module (1972-031C)",
+   "url": "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1972-031C",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "LROC RDR shapefile, Anthropogenic Features on the Moon (last updated 2026-08-14)",
+   "url": "https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_ANTHROPOGENIC_OBJECTS",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ],
+ "terrainSummary": {
+  "hasMask": true,
+  "slope100mDeg": 1.72,
+  "nearestPsrKm": null,
+  "nearestColdTrapKm": null,
+  "insidePsr": null
+ },
+ "notes": [
+  "Elevation = shapefile RADIUS (NAC DTM) minus 1,737,400 m."
+ ],
+ "updatedAt": "2026-11-14T17:31:42Z"
+}

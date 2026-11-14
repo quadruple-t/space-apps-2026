@@ -1,0 +1,100 @@
+{
+ "label": "Firefly Blue Ghost Mission 1",
+ "agency": "Firefly Aerospace / NASA CLPS",
+ "mission": "Blue Ghost Mission 1",
+ "fields": {
+  "arrayPowerW": {
+   "value": 400,
+   "unit": "W",
+   "basis": "sourced",
+   "sourceIdx": 0,
+   "note": "Firefly: solar arrays 'provide up to 400 W' (a maximum, not a typical output)"
+  },
+  "panelAreaM2": {
+   "value": null,
+   "unit": "m2",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "cellEfficiency": {
+   "value": null,
+   "unit": "fraction",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "batteryWh": {
+   "value": null,
+   "unit": "Wh",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "batteryAh": {
+   "value": null,
+   "unit": "Ah",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "busV": {
+   "value": null,
+   "unit": "V",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "baseLoadW": {
+   "value": null,
+   "unit": "W",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "commsLoadW": {
+   "value": null,
+   "unit": "W",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "designLifeHours": {
+   "value": null,
+   "unit": "h",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  }
+ },
+ "facts": [
+  {
+   "text": "More than 14 days of surface operations (346 hours of daylight), then operated just over 5 hours into the lunar night (Firefly).",
+   "sourceIdx": 1
+  },
+  {
+   "text": "Planned: about one lunar day plus several hours into the lunar night (NASA press kit).",
+   "sourceIdx": 2
+  }
+ ],
+ "sources": [
+  {
+   "label": "Firefly Aerospace, Blue Ghost Mission 1",
+   "url": "https://fireflyspace.com/missions/blue-ghost-mission-1/",
+   "retrievedAt": "2026-11-14",
+   "tier": "B"
+  },
+  {
+   "label": "Firefly Aerospace, completes 14 days of surface operations",
+   "url": "https://fireflyspace.com/news/firefly-aerospace-successfully-completes-14-days-of-surface-operations-on-the-moon/",
+   "retrievedAt": "2026-11-14",
+   "tier": "B"
+  },
+  {
+   "label": "NASA Firefly Blue Ghost Mission 1 press kit",
+   "url": "https://www.nasa.gov/wp-content/uploads/2025/01/np-2025-01-001-jsc-clps-firefly-press-kit-screen-508-1-10-25-final.pdf",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ]
+}
