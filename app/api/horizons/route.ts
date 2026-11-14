@@ -35,10 +35,13 @@ export async function GET(req: NextRequest) {
   const lat     = parseFloat(sp.get("lat")    ?? "0")
   const lon     = parseFloat(sp.get("lon")    ?? "0")
   const alt_km  = parseFloat(sp.get("alt_km") ?? "0")
+  const quantities = sp.get("quantities") === "4,20" ? "4,20" : "4"
 
   if (!start || !stop) return NextResponse.json({ error: "Missing start or stop" }, { status: 400 })
 
-  const key = cacheKey({ type, command, start, stop, step, lat: String(lat), lon: String(lon) })
+  const keyParams: Record<string, string> = { type, command, start, stop, step, lat: String(lat), lon: String(lon) }
+  if (quantities !== "4") keyParams.q = quantities
+  const key = cacheKey(keyParams)
   const cached = readCache(key)
 
   if (cached) {
@@ -46,7 +49,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ source: "cache", entries })
   }
 
-  const url = buildObserverUrl({ command, lat, lon, alt_km, start, stop, step })
+  const url = buildObserverUrl({ command, lat, lon, alt_km, start, stop, step, quantities })
   let raw: string
   try {
     const res = await fetch(url, { cache: "no-store" })
@@ -54,6 +57,12 @@ export async function GET(req: NextRequest) {
     raw = await res.text()
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 502 })
+  }
+
+  // Horizons reports bad requests as HTTP 200 with no ephemeris block.
+  if (!raw.includes("$$SOE")) {
+    const reason = raw.split("\n").find((l) => /error|cannot|invalid|exceed/i.test(l))?.trim()
+    return NextResponse.json({ error: reason ?? "Horizons returned no ephemeris" }, { status: 502 })
   }
 
   writeCache(key, raw, { command, type, lat, lon, alt_km, start, stop, step })

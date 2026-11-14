@@ -10,6 +10,8 @@ export interface ObserverEntry {
   az: number
   /** Apparent elevation above local horizontal in degrees */
   el: number
+  /** Observer→target distance in AU (present when QUANTITIES includes 20) */
+  rangeAu?: number
 }
 
 export interface VectorEntry {
@@ -18,9 +20,14 @@ export interface VectorEntry {
   x: number; y: number; z: number
 }
 
-// ─── OBSERVER parser (QUANTITIES=4) ──────────────────────────────────────────
+// ─── OBSERVER parser (QUANTITIES=4 or 4,20) ──────────────────────────────────
 // Between $$SOE / $$EOE each line looks like:
 //   1969-Jul-20 20:17 *i   88.805431  10.697711
+//   2026-Nov-14 00:00 *   126.619609   1.496957  0.98787543056046   0.2966886
+// The flag column (blank, "*", "i", "*i", rise/set letters) is optional.
+const OBSERVER_LINE =
+  /^(\d{4}-\w{3}-\d{2}\s+\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)\s+(?:[*A-Za-z]{1,3}\s+)?(-?[\d.]+)\s+(-?[\d.]+)(?:\s+(-?[\d.]+(?:E[+-]?\d+)?)\s+-?[\d.]+)?/
+
 export function parseHorizonsObserver(raw: string): ObserverEntry[] {
   const soe = raw.indexOf("$$SOE")
   const eoe = raw.indexOf("$$EOE")
@@ -28,10 +35,11 @@ export function parseHorizonsObserver(raw: string): ObserverEntry[] {
 
   const entries: ObserverEntry[] = []
   for (const line of raw.slice(soe + 5, eoe).trim().split("\n")) {
-    const m = line.trim().match(
-      /^(\d{4}-\w{3}-\d{2}\s+\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)\s+(?:\*\S+\s+)?([\d.-]+)\s+([\d.-]+)/
-    )
-    if (m) entries.push({ time: horizonsDateToISO(m[1]), az: parseFloat(m[2]), el: parseFloat(m[3]) })
+    const m = line.trim().match(OBSERVER_LINE)
+    if (!m) continue
+    const entry: ObserverEntry = { time: horizonsDateToISO(m[1]), az: parseFloat(m[2]), el: parseFloat(m[3]) }
+    if (m[4] !== undefined) entry.rangeAu = parseFloat(m[4])
+    entries.push(entry)
   }
   return entries
 }
@@ -92,6 +100,7 @@ export function buildObserverUrl(opts: {
   start: string          // Horizons format: "2026-Nov-14 12:00"
   stop: string
   step?: string          // "1m", "1h", etc.
+  quantities?: "4" | "4,20"
 }): string {
   return `${BASE}?${new URLSearchParams({
     format: "text", MAKE_EPHEM:"YES",
@@ -103,7 +112,7 @@ export function buildObserverUrl(opts: {
     START_TIME: `'${opts.start}'`,
     STOP_TIME:  `'${opts.stop}'`,
     STEP_SIZE:  `'${opts.step ?? "1m"}'`,
-    QUANTITIES: "'4'",
+    QUANTITIES: `'${opts.quantities ?? "4"}'`,
     ANG_FORMAT: "DEG",
     SKIP_DAYLT: "NO",
   })}`
