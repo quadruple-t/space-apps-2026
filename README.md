@@ -5,7 +5,7 @@ shapes sunlight and direct-to-Earth line of sight at candidate landing sites.
 
 Built for the NASA Space Apps Challenge 2026.
 
-> The landing page and immersive Freeplay simulator are implemented. Terrain and science values are illustrative; no LOLA terrain or JPL Horizons ephemerides are integrated yet.
+> Freeplay is implemented with stored JPL Horizons ephemerides and available precomputed LOLA horizon masks. Coverage varies by location; unsupported points use a labelled smooth-sphere horizon. The rendered 3D surface is procedural and is not the terrain model used for horizon calculations. The Guided Mission is a non-interactive introduction, and Mission Comparison is an empty layout.
 
 ## Getting started
 
@@ -19,7 +19,7 @@ npm run dev        # http://localhost:3000
 Other scripts:
 
 ```bash
-npm run build      # production build (all routes prerender as static)
+npm run build      # production build and type-check
 npm run start      # serve the production build
 npm run lint       # ESLint (Next.js + React Compiler rules)
 ```
@@ -37,9 +37,9 @@ npm run lint       # ESLint (Next.js + React Compiler rules)
 | Route      | Purpose                                                   |
 | ---------- | --------------------------------------------------------- |
 | `/`        | Landing page                                              |
-| `/mission` | Guided Mission: tutorial introduction                     |
-| `/explore` | Freeplay: interactive lunar scene, custom coordinates, time controls, camera modes and demo metrics |
-| `/compare` | Mission Comparison: comparison layout (empty states)      |
+| `/mission` | Guided Mission overview; interactive chapters are not implemented yet |
+| `/explore` | Freeplay: site and coordinate selection, time controls, first-person/orbit navigation, JPL Horizons Sun/Earth positions, horizon-aware 24-hour metrics where data is available |
+| `/compare` | Mission Comparison shell with an empty state; multi-site comparison is not implemented yet |
 | `/science` | Methodology, data sources and glossary                    |
 
 ## Project structure
@@ -54,7 +54,9 @@ components/
   graphics/              SVG diagrams: horizon profile, challenge diagrams, static lunar horizon
   ui/                    shadcn primitives + Reveal, SectionHeading, StatusBadge
 scenes/lunar/            Reusable 3D scene (terrain, Sun/Earth/stars, camera rig, landing marker, loader)
-integrations/science/    Typed science-provider boundary and explicitly illustrative mock provider
+integrations/science/    Science API client, Firestore-backed calculation provider, types and illustrative mock provider
+integrations/terrain/    Lunar location catalog and scaffold terrain samples for rendering
+app/api/v1/              Versioned API for catalog and science queries
 data/                    Site copy, nav, experiences, data sources, hero-scene config
 lib/                     Seeded noise, illustrative horizon model, WebGL detection, utils
 hooks/                   useReducedMotion, useInView
@@ -66,35 +68,65 @@ Colour uses a retro lunar palette: **purple** marks navigation and interface acc
 in `app/globals.css` and exposed as Tailwind colours (`bg-void`, `text-bone`, `text-retro-red`, `text-retro-blue`,
 `border-line`, …). Typography helpers: `.type-display`, `.type-heading` and `.type-data`.
 
+For marketing and partner material, use [`docs/brand/BRAND_GUIDE.md`](docs/brand/BRAND_GUIDE.md) (rules and voice), the visual [`brand-guide.html`](docs/brand/brand-guide.html), and the drop-in [`shadowline-tokens.css`](docs/brand/shadowline-tokens.css).
+
 ## Simulation architecture
 
-The landing page and Freeplay share the code-driven Three.js scene. Freeplay provides region selection, coordinate sampling, camera and time controls. Terrain and science remain behind replaceable data boundaries:
+The landing page preview and Freeplay share the code-driven Three.js scene. Freeplay provides region selection, coordinate sampling, first-person/orbit camera controls and a UTC simulation clock. Scientific calculations are served through `/api/v1/` and read stored data from Firestore:
 
-- **Terrain:** `scenes/lunar/terrain.ts`. Replace `heightAt(x, z)` with a sampler over a LOLA DEM. The
-  frustum-shaped mesh builder and the scene stay unchanged.
-- **Horizon masks:** `lib/horizon.ts`. `HorizonModel` (`mask`, `sunPath`, `earth`) is the shape the
-  `HorizonProfile` chart renders. Swap `createIllustrativeHorizon()` for computed masks and Horizons
-  ephemerides.
+- **Ephemerides:** Stored JPL Horizons series provide Sun and Earth positions from 2026 through 2030 for the main series, plus historical chunks for supported sites. The API calculates local azimuth/elevation and timeline samples for the selected point.
+- **Horizon masks:** Precomputed LOLA DEM masks are used for supported sites and polar grid cells. Locations without a terrain mask use a smooth-sphere horizon; results label that source and describe the sunlight and visibility shares as upper bounds.
+- **Rendered terrain:** `scenes/lunar/terrain.ts` and `integrations/terrain/moon-samples.ts` provide procedural scene geometry and scaffold samples. This visualization is not a LOLA DEM rendering, even when the science calculation has a LOLA mask.
+- **Illustrative previews:** `data/hero-scene.ts` configures conceptual hero readouts; `lib/horizon.ts` supplies illustrative horizon examples for landing-page graphics. These values are separate from Freeplay's science API.
 - **Scene configuration:** `data/hero-scene.ts` holds the Sun and Earth angles shared by the 3D scene and
-  the HUD.
-- **Freeplay:** `/explore` is an interactive demo workspace. See `FREEPLAY_INTEGRATION_CONTRACT.md` for provider,
-  coordinate, terrain and provenance requirements before connecting real science data.
+  the conceptual hero HUD.
+- **Freeplay:** `/explore` calls the versioned science API. The API uses public Firestore reads for catalog and science data; user-owned endpoints use authenticated Firebase tokens and Admin SDK access.
 
 ## Performance and accessibility
 
 - The 3D scene loads client-side via `next/dynamic`. A static SVG horizon renders first and remains as
   the fallback when WebGL is unavailable or the scene errors.
-- The cinematic scenes render static shadows; Freeplay refreshes the shadow map only when its illustrative Sun position changes.
+- The cinematic scenes render static shadows; Freeplay refreshes the shadow map only when the Sun position changes.
   Low-end and small devices get a lighter mesh and a lower DPR cap.
 - `prefers-reduced-motion` freezes the camera, disables reveals and the hero entrance, and switches the
   canvas to on-demand rendering.
 - Skip link, keyboard-accessible navigation and lunar map, visible focus rings, and an accessible mobile menu
   (Radix Dialog).
 
-## Data sources (planned)
+## Firestore
 
-- [Lunar Orbiter Laser Altimeter (LOLA), PDS Geosciences Node](https://pds-geosciences.wustl.edu/missions/lro/lola.htm)
-- [JPL Horizons](https://ssd.jpl.nasa.gov/horizons/)
+Catalog and science data are read from Firestore at runtime (project `shadowline-2t12`); the versioned API serves public reads using Firestore public-read rules. Static collections are seeded with the Admin SDK. User data (`users/{uid}/…`) is owner-only and accessed through authenticated API routes. Firebase client, Firestore and auth code lives in `lib/firebase/`, `lib/firestore/` and `lib/auth/`.
+
+**Env:** copy `.env.example` to `.env.local` and fill in the web-app config from the Firebase console. Set
+`NEXT_PUBLIC_USE_FIRESTORE_EMULATOR=true` to use the local emulators (auth 9099, Firestore 8080, UI 4000).
+
+```bash
+npm run emulators       # start auth + Firestore emulators (needs Java 21)
+npm run seed:emulator   # validate data/seed/ and write it to the emulator
+npm run smoke           # client-SDK smoke test against the running emulators
+npm test                # unit tests (vitest)
+npm run test:rules      # security-rules tests (starts its own Firestore emulator; port 8080 must be free)
+```
+
+`scripts/seed-firestore.ts` validates everything before writing and aborts on any error. Useful flags:
+`--dry-run` (validate and print sizes only) and `--only sites,catalog`.
+
+**Deploy rules and indexes:**
+
+```bash
+npx -y firebase-tools@15.36.0 deploy --only firestore:rules,firestore:indexes \
+  --project shadowline-2t12 --account taran.duba3@gmail.com
+```
+
+**Seed production:** first run `gcloud auth application-default login` as taran.duba3@gmail.com, then
+`npm run seed:prod -- --yes`. The project id comes from `.firebaserc`.
+
+## Data sources
+
+- [Lunar Orbiter Laser Altimeter (LOLA), PDS Geosciences Node](https://pds-geosciences.wustl.edu/missions/lro/lola.htm) — precomputed horizon masks and polar terrain-grid masks where coverage is available.
+- [JPL Horizons](https://ssd.jpl.nasa.gov/horizons/) — stored ephemerides used to calculate Sun and Earth positions.
+
+The app is an educational planning and visualization tool, not an operational mission system. Data coverage and assumptions are exposed in Freeplay; the procedural display terrain should not be interpreted as measured topography.
 
 Not affiliated with or endorsed by NASA.
 

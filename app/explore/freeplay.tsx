@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Activity, ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Clock3, Crosshair, Globe2, Map, Pause, Play, RotateCcw, ZoomIn, ZoomOut, X } from "lucide-react";
 import type { CameraMode, MoveCommand } from "@/scenes/lunar/camera-rig";
-import { horizonsScienceProvider } from "@/integrations/science/horizons-provider";
+import { apiScienceProvider as scienceProvider } from "@/integrations/science/api-provider";
 import type { CelestialState, LunarSite, MissionMetrics } from "@/integrations/science/types";
 import { interpolateTerrain, MOON_REGIONS, SCAFFOLD_MOON_GRID, type TerrainSample } from "@/integrations/terrain/moon-samples";
 import { MoonLocationPicker } from "./moon-location-picker";
@@ -48,11 +48,14 @@ export function Freeplay() {
 
   const activeTerrain = useMemo(() => interpolateTerrain(SCAFFOLD_MOON_GRID, activeSite.latitudeDeg, activeSite.longitudeDeg), [activeSite.latitudeDeg, activeSite.longitudeDeg]);
   const environmentSite = useMemo(() => phase === "choose" ? site : activeSite, [phase, site, activeSite]);
+  const displayElevation = environmentSite.provenance === "scientific" && environmentSite.elevationMeters != null ? environmentSite.elevationMeters : activeTerrain.elevationMeters;
+  const displaySlope = environmentSite.provenance === "scientific" && environmentSite.slopeDeg != null ? environmentSite.slopeDeg : activeTerrain.slopeDeg;
+  const terrainLabel = environmentSite.provenance === "scientific" ? "LOLA DEM" : "Scaffold";
   const utcDay = timestamp.toISOString().slice(0, 10);
   const updateCelestial = useCallback(async (selectedSite: LunarSite, date: Date) => {
     const request = ++celestialRequest.current;
     try {
-      const result = await horizonsScienceProvider.getCelestialState(selectedSite, date.toISOString());
+      const result = await scienceProvider.getCelestialState(selectedSite, date.toISOString());
       if (request === celestialRequest.current) setCelestial(result);
     } catch {
       if (request === celestialRequest.current) { setCelestial(null); setDataError(true); }
@@ -67,7 +70,7 @@ export function Freeplay() {
     setDataError(false);
     const startIso = `${day}T00:00:00.000Z`;
     try {
-      const result = await horizonsScienceProvider.getMissionMetrics(selectedSite, startIso, 24);
+      const result = await scienceProvider.getMissionMetrics(selectedSite, startIso, 24);
       if (result) metricsCache.current.set(cacheKey, result);
       if (request === metricRequest.current) setMetrics(result);
     } catch {
@@ -165,7 +168,7 @@ export function Freeplay() {
       </div>
       <div className="flex min-w-0 items-center gap-2 rounded-lg border border-line/80 bg-void/75 px-3 py-2 shadow-xl backdrop-blur-xl sm:px-4">
         <span className="relative flex size-2">{!reducedMotion && <span className="absolute inline-flex size-full animate-ping rounded-full bg-retro-red opacity-50"/>}<span className="relative inline-flex size-2 rounded-full bg-retro-red"/></span>
-        <div className="min-w-0"><div className="type-data text-[0.56rem] uppercase tracking-[0.12em] text-retro-red">{phase === "transfer" ? "Transferring" : phase === "descent" ? "Descending" : loading ? "Syncing" : "Demo data"}</div><div className="type-data truncate text-[0.62rem] text-bone sm:text-xs">{activeSite.latitudeDeg.toFixed(2)}° / {activeSite.longitudeDeg.toFixed(2)}° E</div></div>
+        <div className="min-w-0"><div className="type-data text-[0.56rem] uppercase tracking-[0.12em] text-retro-red">{phase === "transfer" ? "Transferring" : phase === "descent" ? "Descending" : loading ? "Syncing" : dataError ? "Data unavailable" : "Horizons ephemeris"}</div><div className="type-data truncate text-[0.62rem] text-bone sm:text-xs">{activeSite.latitudeDeg.toFixed(2)}° / {activeSite.longitudeDeg.toFixed(2)}° E</div></div>
       </div>
     </header>
 
@@ -194,13 +197,13 @@ export function Freeplay() {
           <Readout label="Sun azimuth" value={celestial?`${celestial.sun.azimuthDeg.toFixed(1)}°`:"—"} tone="red"/>
           <Readout label="Earth elevation" value={celestial?angle(celestial.earth.elevationDeg):"—"} tone="blue"/>
           <Readout label="Earth azimuth" value={celestial?`${celestial.earth.azimuthDeg.toFixed(1)}°`:"—"} tone="blue"/>
-          <Readout label="Elevation · scaffold" value={`${Math.round(activeTerrain.elevationMeters).toLocaleString()} m`}/>
-          <Readout label="Slope · scaffold" value={`${activeTerrain.slopeDeg.toFixed(1)}°`}/>
+          <Readout label={`Elevation · ${terrainLabel}`} value={`${Math.round(displayElevation).toLocaleString()} m`}/>
+          <Readout label={`Slope · ${terrainLabel}`} value={`${displaySlope.toFixed(1)}°`}/>
         </div>
-        <div className="mt-3 border-t border-line/80 pt-2 text-[0.58rem] text-muted-foreground">{dataError?"Science provider unavailable":"Illustrative science provider · no LOLA terrain connected"}</div>
+        <div className="mt-3 border-t border-line/80 pt-2 text-[0.58rem] text-muted-foreground">{dataError?"Science provider unavailable":`${metrics?.horizonSource ?? "Horizon pending"} · JPL Horizons ephemeris · rendered terrain is procedural`}</div>
       </section>
       <section className="hud-panel p-3.5">
-        <div className="flex items-center justify-between"><div className="type-data text-[0.58rem] uppercase tracking-[0.14em] text-retro-purple">Mission window · 24 h</div><span className="type-data rounded border border-retro-red/35 px-1.5 py-0.5 text-[0.5rem] uppercase text-retro-red">Illustrative</span></div>
+        <div className="flex items-center justify-between"><div className="type-data text-[0.58rem] uppercase tracking-[0.14em] text-retro-purple">Mission window · 24 h</div><span className="type-data rounded border border-retro-red/35 px-1.5 py-0.5 text-[0.5rem] uppercase text-retro-red">{metrics?.provenance === "scientific" ? "Computed" : "Unavailable"}</span></div>
         <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2">
           <Readout label="Sunlit duration" value={metrics?`${metrics.sunlightHours} h`:"—"} tone="red"/>
           <Readout label="Sunlit share" value={metrics?`${metrics.sunlightPercent}%`:"—"} tone="red"/>
@@ -214,7 +217,7 @@ export function Freeplay() {
     {phase === "explore" && mobileTelemetryOpen && <div className="fixed inset-0 z-[45] grid place-items-center bg-void/65 px-4 py-8 backdrop-blur-sm xl:hidden" onMouseDown={(event)=>{if(event.target===event.currentTarget)setMobileTelemetryOpen(false);}}>
       <aside role="dialog" aria-label="Local lunar conditions" aria-modal="true" className="hud-panel w-[min(340px,calc(100vw-2rem))] space-y-3 p-4">
         <div className="flex items-center justify-between"><div><div className="type-data text-[0.58rem] uppercase tracking-[0.14em] text-retro-blue">Telemetry</div><h2 className="type-heading mt-1 text-sm text-bone">Local conditions</h2></div><button type="button" aria-label="Close telemetry" onClick={()=>setMobileTelemetryOpen(false)} className="grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><X size={15}/></button></div>
-        <div className="grid grid-cols-2 gap-1.5"><Readout label="Sun elevation" value={celestial?angle(celestial.sun.elevationDeg):"—"} tone="red"/><Readout label="Sun azimuth" value={celestial?`${celestial.sun.azimuthDeg.toFixed(1)}°`:"—"} tone="red"/><Readout label="Earth elevation" value={celestial?angle(celestial.earth.elevationDeg):"—"} tone="blue"/><Readout label="Elevation" value={`${Math.round(activeTerrain.elevationMeters).toLocaleString()} m`}/></div>
+        <div className="grid grid-cols-2 gap-1.5"><Readout label="Sun elevation" value={celestial?angle(celestial.sun.elevationDeg):"—"} tone="red"/><Readout label="Sun azimuth" value={celestial?`${celestial.sun.azimuthDeg.toFixed(1)}°`:"—"} tone="red"/><Readout label="Earth elevation" value={celestial?angle(celestial.earth.elevationDeg):"—"} tone="blue"/><Readout label={`Elevation · ${terrainLabel}`} value={`${Math.round(displayElevation).toLocaleString()} m`}/></div>
       </aside>
     </div>}
 
@@ -262,7 +265,7 @@ export function Freeplay() {
           </div></div>, document.body)}
         </div>
       </div>
-      <div className="mt-2 flex items-center justify-between gap-2 border-t border-line/70 pt-2 text-[0.55rem] uppercase tracking-[0.12em] text-muted-foreground"><span className="inline-flex items-center gap-1.5"><Globe2 size={12} className="text-retro-blue"/>Procedural terrain · illustrative demo data</span><span className="hidden sm:inline">{loading?"Updating environment":dataError?"Provider unavailable":"Demo data"}</span></div>
+      <div className="mt-2 flex items-center justify-between gap-2 border-t border-line/70 pt-2 text-[0.55rem] uppercase tracking-[0.12em] text-muted-foreground"><span className="inline-flex items-center gap-1.5"><Globe2 size={12} className="text-retro-blue"/>Procedural terrain · ephemeris from JPL Horizons</span><span className="hidden sm:inline">{loading?"Updating environment":dataError?"DATA UNAVAILABLE":"Computed"}</span></div>
     </section>}
   </main>;
 }

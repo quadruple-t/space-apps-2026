@@ -26,7 +26,7 @@ const plexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Lunaris360 — Lunar south pole mission planning",
+    default: "Lunaris360",
     template: "%s · Lunaris360",
   },
   description: SITE.description,
@@ -42,6 +42,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`${archivo.variable} ${plexSans.variable} ${plexMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-dvh flex-col">

@@ -1,0 +1,13 @@
+{
+ "label": "LROC Coordinates of Lunar Anthropogenic Targets (2016)",
+ "kind": "document",
+ "version": "28 Jul 2016",
+ "citation": "Wagner, R.V. et al. (2017), Icarus 283:92-103",
+ "doi": "10.1016/j.icarus.2016.05.011",
+ "url": "https://lroc.im-ldi.com/data/support/downloads/2016_LROC_Coordinates_of_Human_Features.pdf",
+ "license": null,
+ "usedFor": [
+  "site coordinates and uncertainties"
+ ],
+ "retrievedAt": "2026-11-14"
+}

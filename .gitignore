@@ -47,3 +47,20 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Horizons spot-check raw API cache (regenerate with the scripts)
+/docs/research/horizons-spot-check/responses/
+
+# allow the committed example env file
+!.env.example
+
+# data pipeline (raw downloads, venv)
+/scripts/data-pipeline/.venv/
+/scripts/data-pipeline/.cache/
+__pycache__/
+
+# firebase emulator logs
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+.manifest.lock

@@ -1,0 +1,63 @@
+{
+ "name": "Surveyor 3",
+ "family": "surveyor",
+ "siteKind": "landing",
+ "country": "USA",
+ "agency": "NASA/JPL",
+ "mission": "Surveyor 3",
+ "landingTimeUtc": "1967-04-20T00:04:53Z",
+ "landingTimePrecision": "second",
+ "outcome": "success",
+ "outcomeDetail": null,
+ "coordinates": {
+  "latDeg": -3.0162,
+  "lonDeg": -23.418,
+  "elevationM": -1432.6
+ },
+ "latDeg": -3.0162,
+ "lonDeg": -23.418,
+ "coordsVerified": true,
+ "coordsFrame": "MOON_ME",
+ "coordsUncertaintyM": 2.6,
+ "coordsAsPublished": null,
+ "representativePoint": null,
+ "chapterId": null,
+ "blurb": "Apollo 12 landed 155 m away; the sandblasting it received is the basis for today's landing stand-off rules.",
+ "sources": [
+  {
+   "label": "LROC, Coordinates of Lunar Anthropogenic Targets (28 Jul 2016; Wagner et al. 2017, Icarus 283:92-103)",
+   "url": "https://lroc.im-ldi.com/data/support/downloads/2016_LROC_Coordinates_of_Human_Features.pdf",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "NSSDCA, Surveyor program",
+   "url": "https://nssdc.gsfc.nasa.gov/planetary/lunar/surveyor.html",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "NASA (2011, Rev A 28 Oct 2011), Recommendations to Space-Faring Entities: How to Protect and Preserve the Historic and Scientific Value of U.S. Government Lunar Artifacts",
+   "url": "https://www.nasa.gov/pdf/617743main_NASA-USG_LUNAR_HISTORIC_SITES_RevA-508.pdf",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "LROC RDR shapefile, Anthropogenic Features on the Moon (last updated 2026-08-14)",
+   "url": "https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_ANTHROPOGENIC_OBJECTS",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ],
+ "terrainSummary": {
+  "hasMask": true,
+  "slope100mDeg": 0.47,
+  "nearestPsrKm": null,
+  "nearestColdTrapKm": null,
+  "insidePsr": null
+ },
+ "notes": [
+  "Elevation = shapefile RADIUS (NAC DTM) minus 1,737,400 m."
+ ],
+ "updatedAt": "2026-11-14T17:31:42Z"
+}

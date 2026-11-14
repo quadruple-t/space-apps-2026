@@ -1,0 +1,98 @@
+rules_version = '2';
+
+// Shadowline Firestore rules.
+// Static content is public-read and client-write-denied; it is seeded with the
+// Admin SDK (scripts/seed-firestore.ts), which bypasses these rules.
+// User data lives under users/{uid} and is owner-only with shape checks.
+// Chapter ORDER cannot be enforced cleanly here; lib/firestore/progressService.ts
+// enforces it in a transaction. Rules validate ownership and shape only.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function publicRead() { return true; }
+    function signedIn() { return request.auth != null; }
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+
+    function chapterIds() { return ['ch1-first-landing', 'ch2-robotic-explorer', 'ch3-lunar-base']; }
+    function toolIds() { return ['horizon-dial', 'power-simulator', 'base-scoring']; }
+    function profileIds() { return ['short-landing', 'robotic-14-day', 'long-term-base']; }
+
+    // ---------------------------------------------------------------
+    // Static content (public read, no client writes)
+    // ---------------------------------------------------------------
+    match /sites/{id} {
+      allow read: if publicRead();
+      allow write: if false;
+      match /terrain/{doc} { allow read: if publicRead(); allow write: if false; }
+    }
+    match /storyChapters/{id}    { allow read: if true; allow write: if false; }
+    match /missionProfiles/{id}  { allow read: if true; allow write: if false; }
+    match /protectionZones/{id}  { allow read: if true; allow write: if false; }
+    match /dataSources/{id}      { allow read: if true; allow write: if false; }
+    match /validationChecks/{id} { allow read: if true; allow write: if false; }
+    match /landerPresets/{id}    { allow read: if true; allow write: if false; }
+    match /facts/{id}            { allow read: if true; allow write: if false; }
+    match /ephemerisGlobal/{id}  { allow read: if true; allow write: if false; }
+    match /terrainGrid/{id}      { allow read: if true; allow write: if false; }
+    match /psrLayer/{id}         { allow read: if true; allow write: if false; }
+    match /demo/{id}             { allow read: if true; allow write: if false; }
+    match /catalog/{id}          { allow read: if true; allow write: if false; }
+
+    // ---------------------------------------------------------------
+    // User data (owner only)
+    // ---------------------------------------------------------------
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && request.resource.data.keys().hasOnly(
+             ['displayName', 'email', 'photoURL', 'createdAt', 'lastSeenAt', 'expertMode'])
+        && request.resource.data.expertMode is bool;
+      allow delete: if false;
+
+      match /progress/{docId} {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && docId == 'state'
+          && request.resource.data.keys().hasOnly(
+               ['version', 'chaptersCompleted', 'unlockedTools', 'expertMode', 'stepAnswers', 'updatedAt'])
+          && request.resource.data.version == 1
+          && request.resource.data.chaptersCompleted is list
+          && request.resource.data.chaptersCompleted.size() <= 3
+          && request.resource.data.chaptersCompleted.hasOnly(chapterIds())
+          && request.resource.data.unlockedTools is list
+          && request.resource.data.unlockedTools.size() <= 3
+          && request.resource.data.unlockedTools.hasOnly(toolIds())
+          && request.resource.data.expertMode is bool
+          && (!('stepAnswers' in request.resource.data) || request.resource.data.stepAnswers is map);
+        allow delete: if false;
+      }
+
+      match /sessions/{sessionId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && request.resource.data.siteSelections is list
+          && request.resource.data.siteSelections.size() >= 1
+          && request.resource.data.siteSelections.size() <= 3
+          && request.resource.data.profileId in profileIds()
+          && request.resource.data.name is string
+          && request.resource.data.name.size() <= 120;
+      }
+
+      match /reports/{reportId} {
+        allow read, delete: if isOwner(uid);
+        allow create: if isOwner(uid)
+          && request.resource.data.siteSummaries is list
+          && request.resource.data.siteSummaries.size() >= 1
+          && request.resource.data.siteSummaries.size() <= 3
+          && request.resource.data.format in ['pdf', 'csv']
+          && request.resource.data.profileId in profileIds()
+          // Size rule: a report stores summaries only, never time series.
+          && !('series' in request.resource.data);
+        allow update: if false;
+      }
+    }
+
+    // Default deny everything else.
+    match /{document=**} { allow read, write: if false; }
+  }
+}

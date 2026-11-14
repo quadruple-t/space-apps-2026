@@ -1,0 +1,57 @@
+{
+ "name": "Luna 21 (Lunokhod 2 lander)",
+ "family": "luna",
+ "siteKind": "landing",
+ "country": "USSR",
+ "agency": "Soviet space program",
+ "mission": "Luna 21",
+ "landingTimeUtc": "1973-01-15T23:35:00Z",
+ "landingTimePrecision": "minute",
+ "outcome": "success",
+ "outcomeDetail": null,
+ "coordinates": {
+  "latDeg": 25.9994,
+  "lonDeg": 30.4076,
+  "elevationM": -2679.7
+ },
+ "latDeg": 25.9994,
+ "lonDeg": 30.4076,
+ "coordsVerified": true,
+ "coordsFrame": "MOON_ME",
+ "coordsUncertaintyM": 13.4,
+ "coordsAsPublished": null,
+ "representativePoint": null,
+ "chapterId": null,
+ "blurb": "Delivered Lunokhod 2 into Le Monnier crater.",
+ "sources": [
+  {
+   "label": "LROC, Coordinates of Lunar Anthropogenic Targets (28 Jul 2016; Wagner et al. 2017, Icarus 283:92-103)",
+   "url": "https://lroc.im-ldi.com/data/support/downloads/2016_LROC_Coordinates_of_Human_Features.pdf",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "NSSDCA, Soviet lunar missions",
+   "url": "https://nssdc.gsfc.nasa.gov/planetary/lunar/lunarussr.html",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "LROC RDR shapefile, Anthropogenic Features on the Moon (last updated 2026-08-14)",
+   "url": "https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_ANTHROPOGENIC_OBJECTS",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ],
+ "terrainSummary": {
+  "hasMask": true,
+  "slope100mDeg": 3.07,
+  "nearestPsrKm": null,
+  "nearestColdTrapKm": null,
+  "insidePsr": null
+ },
+ "notes": [
+  "Elevation = shapefile RADIUS (NAC DTM) minus 1,737,400 m."
+ ],
+ "updatedAt": "2026-11-14T17:31:42Z"
+}

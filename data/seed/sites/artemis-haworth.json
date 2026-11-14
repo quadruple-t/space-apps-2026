@@ -1,0 +1,89 @@
+{
+ "name": "Haworth",
+ "family": "artemis-candidate",
+ "siteKind": "region-reference",
+ "country": "USA",
+ "agency": "NASA",
+ "mission": "Artemis IV (first crewed landing, planned early 2028)",
+ "landingTimeUtc": null,
+ "landingTimePrecision": null,
+ "outcome": "planned",
+ "outcomeDetail": null,
+ "coordinates": null,
+ "latDeg": null,
+ "lonDeg": null,
+ "coordsVerified": false,
+ "coordsFrame": "MOON_ME",
+ "coordsUncertaintyM": null,
+ "coordsAsPublished": null,
+ "representativePoint": {
+  "latDeg": -86.764,
+  "lonDeg": -22.78,
+  "method": "centre of the PGDA product-78 5 m DEM tile 'Haworth' (derived from the GeoTIFF header; NOT a region centroid)",
+  "sources": [
+   {
+    "label": "PGDA product 78, High-Resolution LOLA Topography for Lunar South Pole Sites (Barker et al. 2021, PSS 203:105119)",
+    "url": "https://pgda.gsfc.nasa.gov/products/78",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   {
+    "label": "PGDA product 78 README (site list and names)",
+    "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/README",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   }
+  ]
+ },
+ "chapterId": "ch3-lunar-base",
+ "blurb": "Artemis-era candidate region 'Haworth' (one of nine NASA named on 28 Oct 2024). The point shown is an approximate region reference, not a NASA coordinate.",
+ "sources": [
+  {
+   "label": "NASA, update on Artemis III Moon landing regions (28 Oct 2024)",
+   "url": "https://www.prnewswire.com/news-releases/nasa-provides-update-on-artemis-iii-moon-landing-regions-302288659.html",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "NASA, Artemis IV mission page",
+   "url": "https://www.nasa.gov/mission/artemis-iv/",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "NASA, candidate regions for landing next Americans on the Moon (19 Aug 2022)",
+   "url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "NASA, adds mission to Artemis lunar program, updates architecture (27 Feb 2026)",
+   "url": "https://www.nasa.gov/news-release/nasa-adds-mission-to-artemis-lunar-program-updates-architecture/",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "PGDA product 78, High-Resolution LOLA Topography for Lunar South Pole Sites (Barker et al. 2021, PSS 203:105119)",
+   "url": "https://pgda.gsfc.nasa.gov/products/78",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "PGDA product 78 README (site list and names)",
+   "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/README",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ],
+ "terrainSummary": {
+  "hasMask": true,
+  "slope100mDeg": 4.22,
+  "nearestPsrKm": 0.238,
+  "nearestColdTrapKm": 0.992,
+  "insidePsr": false
+ },
+ "notes": [
+  "NASA has never published coordinates or boundaries for the candidate regions. Label every point 'approximate region reference'."
+ ],
+ "updatedAt": "2026-11-14T17:31:42Z"
+}

@@ -41,7 +41,7 @@ export const EXPERIENCES: Experience[] = [
     title: "Guided Mission",
     subtitle: "Understand the environment.",
     description:
-      "An interactive tutorial that teaches you how to read the lunar south pole the way a mission planner does.",
+      "A planned step-by-step tutorial on sunlight, terrain obstruction, Earth visibility and mission windows. The chapter experience is not interactive yet.",
     topics: [
       "Solar elevation",
       "Terrain obstruction",
@@ -58,7 +58,7 @@ export const EXPERIENCES: Experience[] = [
     title: "Free Exploration",
     subtitle: "Discover your own landing site.",
     description:
-      "Select coordinates, move across the terrain, change the simulation date and analyse your own candidate landing locations.",
+      "Choose a lunar region or coordinates, move around the scene, and change the date and time. Freeplay reads JPL Horizons positions and available LOLA horizon data; the rendered surface remains procedural.",
     cta: "Explore the Moon",
     href: "/explore",
   },
@@ -68,7 +68,7 @@ export const EXPERIENCES: Experience[] = [
     title: "Mission Comparison",
     subtitle: "Find the strongest candidate.",
     description:
-      "Compare multiple landing sites and dates side by side with synchronised 3D views and mission viability metrics.",
+      "The comparison workspace is in progress. Its current page shows the empty layout; adding and analysing multiple missions is not available yet.",
     cta: "Compare Missions",
     href: "/compare",
   },

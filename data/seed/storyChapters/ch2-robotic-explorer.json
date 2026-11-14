@@ -1,0 +1,124 @@
+{
+ "order": 2,
+ "title": "Robotic Explorer",
+ "era": "Commercial landers",
+ "concept": "Solar power, batteries and Earth comms",
+ "unlocksTool": "power-simulator",
+ "featuredSiteIds": [
+  "chandrayaan-3-shiv-shakti",
+  "slim-shioli",
+  "im-1-odysseus",
+  "im-2-athena",
+  "chandrayaan-2-vikram"
+ ],
+ "steps": [
+  {
+   "id": "ch2-s1",
+   "prompt": "Your lander has panels and a battery. When does it run out of power?",
+   "focus": "battery-soc",
+   "expects": "slider"
+  },
+  {
+   "id": "ch2-s2",
+   "prompt": "Find the windows when Earth is above the local terrain.",
+   "focus": "earth-visibility",
+   "expects": "choice"
+  },
+  {
+   "id": "ch2-s3",
+   "prompt": "Choose a landing time that gives you both sun and Earth.",
+   "focus": "battery-soc",
+   "expects": "date-pick"
+  }
+ ],
+ "debrief": {
+  "headline": "Power and comms decide how long you live",
+  "whatHappened": "Once a lander is down, where it sits and which way its panels face decide whether it gets power, warmth and a link home. SLIM waited for the Sun to move; IM-2 lay in a shadowed crater and lost power within hours; Chandrayaan-3 was built for one lunar day and slept when night fell.",
+  "realMission": "Chandrayaan-3, SLIM, IM-1 and IM-2 (Chandrayaan-2 as a contrast)",
+  "honestyNote": "Chandrayaan-2 was a descent-guidance failure: ISRO says 'the reduction in velocity was more than the designed value'. Do not present it as a lighting or site failure.",
+  "keyNumbers": [
+   {
+    "label": "Chandrayaan-3 lander power",
+    "value": "738 W; mission life one lunar day (about 14 Earth days)",
+    "sourceNote": "ISRO. It went to sleep in early September 2023 and was never revived (ISRO via PTI).",
+    "sources": [
+     {
+      "label": "ISRO, Chandrayaan-3 details",
+      "url": "https://www.isro.gov.in/Chandrayaan3_Details.html",
+      "retrievedAt": "2026-11-14",
+      "tier": "A"
+     },
+     {
+      "label": "Tribune India (PTI), ISRO attempt to wake Chandrayaan-3 lander and rover",
+      "url": "https://www.tribuneindia.com/news/india/isro-makes-attempt-to-wake-up-chandrayaan-3s-lander-rover-no-signals-from-them-so-far-546808",
+      "retrievedAt": "2026-11-14",
+      "tier": "C"
+     }
+    ]
+   },
+   {
+    "label": "SLIM",
+    "value": "landed about 55 m from target; no power until the Sun moved; survived 3 lunar nights",
+    "sourceNote": "JAXA: solar cells 'are currently facing west'; operations resumed 'as the direction of the sun changed'.",
+    "sources": [
+     {
+      "label": "JAXA press release, SLIM landing results (25 Jan 2024)",
+      "url": "https://global.jaxa.jp/press/2024/01/20240125-1_e.html",
+      "retrievedAt": "2026-11-14",
+      "tier": "A"
+     },
+     {
+      "label": "JAXA SLIM project review briefing, Dec 2024",
+      "url": "https://www.isas.jaxa.jp/en/topics/files/SLIM-press-briefing-20241226.pdf",
+      "retrievedAt": "2026-11-14",
+      "tier": "A"
+     },
+     {
+      "label": "JAXA press release, SLIM operations ended (26 Aug 2024)",
+      "url": "https://global.jaxa.jp/press/2024/08/20240826-1_e.html",
+      "retrievedAt": "2026-11-14",
+      "tier": "A"
+     }
+    ]
+   },
+   {
+    "label": "IM-2 Athena",
+    "value": "landed in a shadowed crater; operations ended in under 13 hours",
+    "sourceNote": "NASA; SpaceNews (company statement on Sun direction, panel orientation and cold).",
+    "sources": [
+     {
+      "label": "NASA, receives some data before Intuitive Machines ends lunar mission",
+      "url": "https://www.nasa.gov/news-release/nasa-receives-some-data-before-intuitive-machines-ends-lunar-mission/",
+      "retrievedAt": "2026-11-14",
+      "tier": "A"
+     },
+     {
+      "label": "SpaceNews, IM-2 lunar lander mission ends",
+      "url": "https://spacenews.com/im-2-lunar-lander-mission-ends/",
+      "retrievedAt": "2026-11-14",
+      "tier": "C"
+     }
+    ]
+   },
+   {
+    "label": "IM-1 Odysseus",
+    "value": "about 7 Earth days of operations",
+    "sourceNote": "NASA: ended when 'the sun moved out of view of the one illuminated solar panel'.",
+    "sources": [
+     {
+      "label": "NASA, first surface science in decades via commercial Moon mission (IM-1)",
+      "url": "https://www.nasa.gov/missions/artemis/clps/nasa-collects-first-surface-science-in-decades-via-commercial-moon-mission/",
+      "retrievedAt": "2026-11-14",
+      "tier": "A"
+     },
+     {
+      "label": "NASA IM-2 press kit",
+      "url": "https://nasa.gov/wp-content/uploads/2025/02/np-2025-02-005-jsc-clps-intuitive-machines-press-kit-508-2-25-25.pdf",
+      "retrievedAt": "2026-11-14",
+      "tier": "A"
+     }
+    ]
+   }
+  ]
+ }
+}

@@ -1,0 +1,16 @@
+rows 8785 https://ssd.jpl.nasa.gov/api/horizons.api?format=json&OBJ_DATA='NO'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&TIME_TYPE='UT'&APPARENT='AIRLESS'&CSV_FORMAT='YES'&EXTRA_PREC='YES'&RANGE_UNITS='KM'&START_TIME='2027-03-01%2000:00'&STOP_TIME='2027-05-01%2000:00'&STEP_SIZE='10%20m'&COMMAND='301'&CENTER='500@399'&QUANTITIES='14,15,19,20'
+ step method | Sun dir max Earth dir max | Sun maxdEl Sun max dAz*cosEl | Earth maxdEl Earth max dAz*cosEl
+   1h linear |     0.00002       0.00011 |    0.00002           0.00002 |      0.00009             0.00010
+   1h  cubic |     0.00000       0.00000 |    0.00000           0.00000 |      0.00000             0.00000
+   2h linear |     0.00006       0.00044 |    0.00006           0.00006 |      0.00034             0.00039
+   2h  cubic |     0.00001       0.00000 |    0.00001           0.00001 |      0.00000             0.00000
+   3h linear |     0.00014       0.00098 |    0.00014           0.00014 |      0.00077             0.00087
+   3h  cubic |     0.00002       0.00000 |    0.00002           0.00002 |      0.00000             0.00000
+   4h linear |     0.00024       0.00175 |    0.00024           0.00024 |      0.00136             0.00154
+   4h  cubic |     0.00004       0.00001 |    0.00004           0.00004 |      0.00001             0.00001
+   6h linear |     0.00054       0.00393 |    0.00054           0.00054 |      0.00306             0.00347
+   6h  cubic |     0.00014       0.00003 |    0.00014           0.00014 |      0.00003             0.00003
+  12h linear |     0.00218       0.01570 |    0.00217           0.00217 |      0.01222             0.01386
+  12h  cubic |     0.00111       0.00026 |    0.00111           0.00111 |      0.00023             0.00025
+  24h linear |     0.01164       0.06280 |    0.01135           0.01135 |      0.04892             0.05524
+  24h  cubic |     0.00890       0.00210 |    0.00890           0.00890 |      0.00181             0.00201

@@ -1,0 +1,20 @@
+{
+  "datasetVersion": "2026-11-14",
+  "generatedAt": "2026-11-14T19:07:10Z",
+  "pipelineGitSha": "101ed76",
+  "pipelineVersion": "1",
+  "counts": {
+    "catalog": 2,
+    "dataSources": 15,
+    "ephemerisGlobal": 91,
+    "facts": 4,
+    "landerPresets": 8,
+    "missionProfiles": 3,
+    "protectionZones": 1556,
+    "psrLayer": 4,
+    "sites": 43,
+    "sites/terrain": 43,
+    "storyChapters": 3,
+    "validationChecks": 8
+  }
+}

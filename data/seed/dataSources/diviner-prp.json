@@ -1,0 +1,14 @@
+{
+ "label": "Diviner Polar Resource Product, south (annual maximum temperature)",
+ "kind": "map",
+ "version": "LRO-L-DLRE-5-PRP-V2.0 (2018-02-21)",
+ "citation": "Paige, D.A. et al. (2010), Science 330:479",
+ "doi": "10.1126/science.1187726",
+ "url": "https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_prp/",
+ "license": null,
+ "usedFor": [
+  "cold-trap fraction per PSR (Tmax < 110 K)",
+  "nearest cold-trap distance"
+ ],
+ "retrievedAt": "2026-11-14"
+}

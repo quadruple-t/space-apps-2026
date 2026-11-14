@@ -1,0 +1,74 @@
+{
+ "title": "Artemis status (as of 14 Nov 2026)",
+ "rows": [
+  {
+   "label": "Artemis III",
+   "value": "Crewed test flight in low Earth orbit, 2027 (not a landing)",
+   "unit": null,
+   "quote": "Artemis III is now a 2027 low-Earth-orbit test flight (rendezvous and docking with SpaceX and/or Blue Origin landers, plus xEVA suit tests).",
+   "source": {
+    "label": "NASA, adds mission to Artemis lunar program, updates architecture (27 Feb 2026)",
+    "url": "https://www.nasa.gov/news-release/nasa-adds-mission-to-artemis-lunar-program-updates-architecture/",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "tier": "A",
+   "note": "Restated in NASA's 23 Oct 2026 blog."
+  },
+  {
+   "label": "Artemis IV",
+   "value": "First crewed landing, planned early 2028",
+   "unit": null,
+   "quote": "Launch: 'Early 2028'",
+   "source": {
+    "label": "NASA, Artemis IV mission page",
+    "url": "https://www.nasa.gov/mission/artemis-iv/",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "tier": "A"
+  },
+  {
+   "label": "Candidate landing regions",
+   "value": 9,
+   "unit": "regions",
+   "quote": "the agency has identified nine candidate landing regions near the lunar South Pole",
+   "source": {
+    "label": "NASA, Artemis IV mission page",
+    "url": "https://www.nasa.gov/mission/artemis-iv/",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "tier": "A",
+   "note": "Named on 28 Oct 2024 'in no priority order'. No coordinates or boundaries published."
+  },
+  {
+   "label": "Region size and sunlight",
+   "value": "about 15 x 15 km; continuous sunlight over a 6.5-day period",
+   "unit": null,
+   "quote": "All 13 regions contain sites that provide continuous access to sunlight throughout a 6.5-day period ... approximately 9.3 by 9.3 miles (15 by 15 kilometers)",
+   "source": {
+    "label": "NASA, candidate regions for landing next Americans on the Moon (19 Aug 2022)",
+    "url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "tier": "A",
+   "note": "From the 2022 list of 13 regions."
+  },
+  {
+   "label": "Restatement",
+   "value": "Artemis III LEO in 2027; Artemis IV first landing in 2028",
+   "unit": null,
+   "quote": "Artemis III ... low Earth orbit in 2027",
+   "source": {
+    "label": "NASA blog, Artemis acceleration plans for Moon missions (23 Oct 2026)",
+    "url": "https://www.nasa.gov/blogs/missions/2026/10/23/nasa-shares-artemis-acceleration-plans-for-moon-missions/",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "tier": "A"
+  }
+ ],
+ "updatedAt": "2026-11-14T17:49:56Z"
+}

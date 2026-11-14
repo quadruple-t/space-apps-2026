@@ -1,0 +1,13 @@
+{
+ "label": "NASA Artemis Human Landing System Update (1 Aug 2024)",
+ "kind": "document",
+ "version": "NTRS 20240009596",
+ "citation": "Dwyer Cianciolo, A. (2024)",
+ "doi": null,
+ "url": "https://ntrs.nasa.gov/api/citations/20240009596/downloads/ArtemisHLSUpdate_2024.pdf",
+ "license": null,
+ "usedFor": [
+  "hazard thresholds: landing slope < 10° over 100 m, EVA slope < 20° within 2 km"
+ ],
+ "retrievedAt": "2026-11-14"
+}
