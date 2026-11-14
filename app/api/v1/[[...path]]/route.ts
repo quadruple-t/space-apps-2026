@@ -4,8 +4,10 @@ import { publicReadDb } from "@/lib/firebase/public-read-db";
 import { errorJson, json, serialize } from "@/lib/api/http";
 import { decodeFloat32, decodeInt16, decodeUint8 } from "@/lib/bytes";
 import { decodeCellStats } from "@/lib/firestore/binary";
-import { CartesianSeries, azElFromCartesian, monthChunkIds, siteFrame, MAIN_SERIES_END, MAIN_SERIES_START } from "@/lib/ephemeris";
-import { isAboveMask, maskAt, maskFromGridCell, snapToGrid, smoothHorizonMask } from "@/lib/terrain";
+import { CartesianSeries, monthChunkIds, siteFrame, MAIN_SERIES_END, MAIN_SERIES_START } from "@/lib/ephemeris";
+import { maskAt, maskFromGridCell, snapToGrid, smoothHorizonMask } from "@/lib/terrain";
+import { longestRunHours, skyAt, skySamples, type HorizonProfile } from "@/lib/science/sky";
+import { scienceEligibility } from "@/lib/science/site-eligibility";
 import type { EphemerisChunk, HorizonMask } from "@/lib/model/types";
 
 const PUBLIC_COLLECTIONS: Record<string, string> = {
@@ -45,11 +47,6 @@ function horizonFromDoc(d: FirebaseFirestore.DocumentData): HorizonMask {
     errorMarginDeg: Number(d.errorMarginDeg), demProducts: d.demProducts ?? [],
     rayLengthKm: Number(d.rayLengthKm), observerHeightM: Number(d.observerHeightM),
   };
-}
-function longestRun(flags: boolean[], wanted: boolean, stepHours: number) {
-  let longest = 0, run = 0;
-  for (const flag of flags) { run = flag === wanted ? run + 1 : 0; longest = Math.max(longest, run); }
-  return Number((longest * stepHours).toFixed(1));
 }
 function validateSelection(v: unknown): v is Record<string, unknown> {
   if (!v || typeof v !== "object") return false;
@@ -134,9 +131,11 @@ export async function GET(request: Request, context: { params: Promise<{ path?: 
       const siteSnap = siteId ? await db.doc(`sites/${siteId}`).get() : null;
       if (siteId && !siteSnap?.exists) return errorJson("Site not found", 404);
       const position = siteSnap?.data()?.coordinates as { latDeg?: number; lonDeg?: number } | undefined;
-      const latitude = siteId ? position?.latDeg : lat;
-      const longitude = siteId ? position?.lonDeg : lon;
-      if (latitude == null || longitude == null) return errorJson("The selected site does not have a verified point coordinate", 422);
+      // Catalog sites get "scientific" results only with a verified point coordinate (see lib/science/site-eligibility.ts).
+      const eligibility = siteId ? scienceEligibility(siteSnap?.data()) : null;
+      if (eligibility && !eligibility.ok) return errorJson(eligibility.reason, 422);
+      const latitude = eligibility?.ok ? eligibility.latDeg : lat;
+      const longitude = eligibility?.ok ? eligibility.lonDeg : lon;
       const chunkSnaps = await Promise.all(chunkIds.map((chunkId) => db.doc(`ephemerisGlobal/${chunkId}`).get()));
       if (chunkSnaps.some((snap) => !snap.exists)) return errorJson("Ephemeris data unavailable for this interval", 503);
       const series = new CartesianSeries(chunkSnaps.map((snap, index) => ephemerisChunk(chunkIds[index], snap.data()!)));
@@ -171,34 +170,27 @@ export async function GET(request: Request, context: { params: Promise<{ path?: 
         }
       }
       const frame = siteFrame(latitude, longitude);
+      // Shared with the client graphs: lib/science/sky.ts holds the one visibility implementation.
+      const profile: HorizonProfile = { elevationsDeg: mask.source === "none" ? null : mask.maskElevationDeg, azimuthStepDeg: mask.binDeg };
+      const sky = (t: number) => skyAt(series, frame, profile, t);
+      const bodies = (p: ReturnType<typeof sky>) => ({
+        sun: { azimuthDeg: p.sunAz, elevationDeg: p.sunEl, visible: p.sunVisible },
+        earth: { azimuthDeg: p.earthAz, elevationDeg: p.earthEl, visible: p.earthVisible },
+      });
       if (id === "horizon") return mask.source === "none" ? json({ horizon: null, source: horizonSource, provenance: "scientific" }) : json({ horizon: { azimuthStepDeg: mask.binDeg, elevationsDeg: Array.from({ length: Math.round(360 / mask.binDeg) }, (_, i) => maskAt(mask.maskElevationDeg, mask.binDeg, i * mask.binDeg)), provenance: "scientific" }, source: horizonSource, provenance: "scientific" });
-      if (id === "celestial") {
-        const { sun, earth } = series.at(startMs);
-        const sunAe = azElFromCartesian(frame, sun), earthAe = azElFromCartesian(frame, earth);
-        return json({ timestamp: fromIso, sun: { ...sunAe, visible: isAboveMask(mask, sunAe.azimuthDeg, sunAe.elevationDeg) }, earth: { ...earthAe, visible: isAboveMask(mask, earthAe.azimuthDeg, earthAe.elevationDeg) }, horizonSource, provenance: "scientific" });
-      }
+      if (id === "celestial") return json({ timestamp: fromIso, ...bodies(sky(startMs)), horizonSource, provenance: "scientific" });
       if (id === "timeline") {
-        const samples = [];
-        for (let t = startMs; t <= availableEndMs; t += stepMinutes * 60_000) {
-          const { sun, earth } = series.at(t);
-          const sunAe = azElFromCartesian(frame, sun), earthAe = azElFromCartesian(frame, earth);
-          samples.push({ timestamp: new Date(t).toISOString(), sun: { ...sunAe, visible: isAboveMask(mask, sunAe.azimuthDeg, sunAe.elevationDeg) }, earth: { ...earthAe, visible: isAboveMask(mask, earthAe.azimuthDeg, earthAe.elevationDeg) } });
-        }
+        const samples = skySamples(series, frame, profile, startMs, availableEndMs, stepMinutes).map((p) => ({ timestamp: new Date(p.t).toISOString(), ...bodies(p) }));
         return json({ intervalStart: fromIso, intervalEnd: toIso, stepMinutes, horizonSource, samples, provenance: "scientific" });
       }
-      const sunlit: boolean[] = [], earthVisible: boolean[] = [];
-      for (let t = startMs; t < endMs; t += 600_000) {
-        const { sun, earth } = series.at(t);
-        const s = azElFromCartesian(frame, sun), e = azElFromCartesian(frame, earth);
-        sunlit.push(isAboveMask(mask, s.azimuthDeg, s.elevationDeg));
-        earthVisible.push(isAboveMask(mask, e.azimuthDeg, e.elevationDeg));
-      }
+      const points = skySamples(series, frame, profile, startMs, endMs - 1, 10);
+      const sunlit = points.map((p) => p.sunVisible), earthVisible = points.map((p) => p.earthVisible);
       const share = (flags: boolean[]) => flags.filter(Boolean).length / flags.length;
       const smooth = mask.source === "none";
       return json({
         sunlightPercent: Math.round(share(sunlit) * 100), sunlightHours: Number((share(sunlit) * durationHours).toFixed(1)),
-        longestDarknessHours: longestRun(sunlit, false, 1 / 6), earthVisibilityPercent: Math.round(share(earthVisible) * 100),
-        longestBlackoutHours: longestRun(earthVisible, false, 1 / 6), ...(slopeDeg !== null ? { slopeDeg } : {}), ...(elevationMeters !== null ? { elevationMeters } : {}),
+        longestDarknessHours: longestRunHours(sunlit, false, 1 / 6), earthVisibilityPercent: Math.round(share(earthVisible) * 100),
+        longestBlackoutHours: longestRunHours(earthVisible, false, 1 / 6), ...(slopeDeg !== null ? { slopeDeg } : {}), ...(elevationMeters !== null ? { elevationMeters } : {}),
         intervalStart: fromIso, intervalEnd: toIso, horizonSource,
         assumptions: ["10-minute sampling; run lengths limited to the interval", "Sun and Earth treated as points (centre of disk), no refraction", smooth ? "No terrain mask for this location: smooth-sphere horizon, so lit and visible shares are upper bounds" : "Terrain occlusion from the precomputed horizon mask"],
         provenance: "scientific",

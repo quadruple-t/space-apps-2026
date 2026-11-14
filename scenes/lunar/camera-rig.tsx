@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { LunarRover } from "./rover";
-import { heightAt } from "./terrain";
+import { heightAt, type LunarTerrainProfile } from "./terrain";
 
 export type CameraShot = {
   position: THREE.Vector3;
@@ -19,13 +19,12 @@ export type CameraShot = {
 };
 
 export type CameraMode = "first-person" | "orbit" | "overhead";
-export type MoveCommand = "forward" | "back" | "left" | "right" | null;
 
 /**
  * Slow cinematic drift plus gentle pointer parallax. Static when
  * `still` is true (reduced motion).
  */
-export function CameraRig({ shot, still, mode = "first-person", interactive = false, zoom = 1, orbitTarget, moveCommand = null, landingActive = false }: { shot: CameraShot; still: boolean; mode?: CameraMode; interactive?: boolean; zoom?: number; orbitTarget?: THREE.Vector3; moveCommand?: MoveCommand; landingActive?: boolean }) {
+export function CameraRig({ shot, still, mode = "first-person", interactive = false, zoom = 1, lookSensitivity = 1, orbitTarget, landingActive = false, terrainProfile, onTutorialAction }: { shot: CameraShot; still: boolean; mode?: CameraMode; interactive?: boolean; zoom?: number; lookSensitivity?: number; orbitTarget?: THREE.Vector3; landingActive?: boolean; terrainProfile: LunarTerrainProfile; onTutorialAction?: (action: "look" | "move") => void }) {
   const { get, gl } = useThree();
   const narrow = useThree((s) => s.size.width / s.size.height < 0.9);
   const target = narrow && shot.narrowTarget ? shot.narrowTarget : shot.target;
@@ -38,7 +37,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
   const yaw = useRef(0);
   const pitch = useRef(0.04);
   const distance = useRef(250);
-  const dragging = useRef(false);
+  const touchLooking = useRef(false);
   const keys = useRef(new Set<string>());
   const keyFrame = useRef<number | null>(null);
   const playerPosition = useRef(new THREE.Vector3());
@@ -60,7 +59,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
     camera.far = 3000;
     if (resetToShot) {
       camera.position.copy(shot.position);
-      playerPosition.current.set(shot.position.x, heightAt(shot.position.x, shot.position.z), shot.position.z);
+      playerPosition.current.set(shot.position.x, heightAt(shot.position.x, shot.position.z, terrainProfile), shot.position.z);
       spawnPosition.current.copy(playerPosition.current);
       camera.lookAt(target);
     }
@@ -70,7 +69,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
     lastSpawnShot.current = shot;
     yaw.current = 0;
     pitch.current = 0.04;
-  }, [get, shot, target, interactive]);
+  }, [get, shot, target, interactive, terrainProfile]);
 
   useEffect(() => {
     if (landingActive) landingProgress.current = 0;
@@ -97,6 +96,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
       if (!motionKeys.has(key)) return;
       event.preventDefault();
       keys.current.add(key);
+      onTutorialAction?.("move");
       if (keyFrame.current === null) keyFrame.current = window.requestAnimationFrame(animateKeys);
       get().invalidate();
     };
@@ -108,23 +108,33 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
         keyFrame.current = null;
       }
     };
+    const pointerEnter = (event: PointerEvent) => {
+      last.current = { x: event.clientX, y: event.clientY };
+    };
     const elDown = (event: PointerEvent) => {
-      if (event.button !== 0) return;
-      dragging.current = true;
+      // Touchscreens have no hover, so keep drag-to-look as their gesture.
+      if (event.pointerType !== "touch" || event.button !== 0) return;
+      touchLooking.current = true;
       last.current = { x: event.clientX, y: event.clientY };
       el.setPointerCapture(event.pointerId);
-      get().invalidate();
     };
     const move = (event: PointerEvent) => {
-      if (!dragging.current) return;
+      // Mouse and pen movement steer continuously with no button held.
+      // Touch uses an explicit drag because it cannot hover.
+      if (event.pointerType === "touch" && !touchLooking.current) {
+        last.current = { x: event.clientX, y: event.clientY };
+        return;
+      }
       const dx = event.clientX - last.current.x;
       const dy = event.clientY - last.current.y;
       last.current = { x: event.clientX, y: event.clientY };
-      yaw.current -= dx * 0.004;
-      pitch.current = THREE.MathUtils.clamp(pitch.current + dy * 0.003, -1.1, 1.1);
+      const sensitivity = lookSensitivity;
+      yaw.current += dx * 0.004 * sensitivity;
+      pitch.current = THREE.MathUtils.clamp(pitch.current - dy * 0.003 * sensitivity, -1.1, 1.1);
+      if (Math.abs(dx) + Math.abs(dy) > 0) onTutorialAction?.("look");
       get().invalidate();
     };
-    const up = () => { dragging.current = false; };
+    const up = () => { touchLooking.current = false; };
     const wheel = (event: WheelEvent) => {
       event.preventDefault();
       distance.current = THREE.MathUtils.clamp(distance.current + event.deltaY * 0.18, 85, 520);
@@ -132,6 +142,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
     };
     window.addEventListener("keydown", keyDown);
     window.addEventListener("keyup", keyUp);
+    el.addEventListener("pointerenter", pointerEnter);
     el.addEventListener("pointerdown", elDown);
     el.addEventListener("pointermove", move);
     el.addEventListener("pointerup", up);
@@ -140,6 +151,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
     return () => {
       window.removeEventListener("keydown", keyDown);
       window.removeEventListener("keyup", keyUp);
+      el.removeEventListener("pointerenter", pointerEnter);
       pressedKeys.clear();
       if (keyFrame.current !== null) window.cancelAnimationFrame(keyFrame.current);
       keyFrame.current = null;
@@ -149,15 +161,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
       el.removeEventListener("pointercancel", up);
       el.removeEventListener("wheel", wheel);
     };
-  }, [get, gl, interactive]);
-
-  useEffect(() => {
-    if (!interactive || !moveCommand) return;
-    let frame = 0;
-    const tick = () => { get().invalidate(); frame = window.requestAnimationFrame(tick); };
-    tick();
-    return () => window.cancelAnimationFrame(frame);
-  }, [get, interactive, moveCommand]);
+  }, [get, gl, interactive, lookSensitivity, onTutorialAction]);
 
   // Track the pointer over the whole window so overlays don't block parallax.
   useEffect(() => {
@@ -179,10 +183,10 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
       if (mode === "first-person") {
         let forward = 0;
         let strafe = 0;
-        if (keys.current.has("w") || keys.current.has("arrowup") || moveCommand === "forward") forward += 1;
-        if (keys.current.has("s") || keys.current.has("arrowdown") || moveCommand === "back") forward -= 1;
-        if (keys.current.has("a") || keys.current.has("arrowleft") || moveCommand === "left") strafe -= 1;
-        if (keys.current.has("d") || keys.current.has("arrowright") || moveCommand === "right") strafe += 1;
+        if (keys.current.has("w") || keys.current.has("arrowup")) forward += 1;
+        if (keys.current.has("s") || keys.current.has("arrowdown")) forward -= 1;
+        if (keys.current.has("a") || keys.current.has("arrowleft")) strafe -= 1;
+        if (keys.current.has("d") || keys.current.has("arrowright")) strafe += 1;
         if (forward !== 0 || strafe !== 0) {
           const magnitude = Math.hypot(forward, strafe);
           forward /= magnitude;
@@ -192,11 +196,11 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
           const z = player.z + (-Math.cos(heading) * forward + Math.sin(heading) * strafe) * distance;
           player.x = THREE.MathUtils.clamp(x, spawnPosition.current.x - 90, spawnPosition.current.x + 90);
           player.z = THREE.MathUtils.clamp(z, Math.max(-695, spawnPosition.current.z - 90), Math.min(-5, spawnPosition.current.z + 90));
-          player.y = heightAt(player.x, player.z);
+          player.y = heightAt(player.x, player.z, terrainProfile);
         }
         const roverX = player.x + Math.sin(heading) * 10 + Math.cos(heading) * 4;
         const roverZ = player.z - Math.cos(heading) * 10 + Math.sin(heading) * 4;
-        const roverGround = heightAt(roverX, roverZ) + 0.72;
+        const roverGround = heightAt(roverX, roverZ, terrainProfile) + 0.72;
         if (landingActive && landingProgress.current < 1) landingProgress.current = Math.min(1, landingProgress.current + delta / 1.05);
         const landingEase = 1 - Math.pow(1 - landingProgress.current, 3);
         if (roverRef.current) {
@@ -204,7 +208,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
           roverRef.current.rotation.y = Math.PI - heading;
         }
         if (dustRef.current && dustMaterialRef.current) {
-          dustRef.current.position.set(roverX, heightAt(roverX, roverZ) + 0.2, roverZ);
+          dustRef.current.position.set(roverX, heightAt(roverX, roverZ, terrainProfile) + 0.2, roverZ);
           const dustPulse = landingActive ? Math.max(0, 1 - Math.abs(landingProgress.current - 0.72) / 0.28) : 0;
           dustRef.current.scale.setScalar(1 + landingProgress.current * 2.4);
           dustMaterialRef.current.opacity = dustPulse * 0.35;

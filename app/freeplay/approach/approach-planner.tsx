@@ -164,7 +164,7 @@ export function ApproachPlanner() {
         <label className="text-[0.58rem] text-muted-foreground">Site
           <select value={siteId} onChange={(e) => pickSite(e.target.value)} className="hud-input mt-1">
             {catalog.length === 0 && siteId !== "custom" && <option value={siteId}>Loading catalog…</option>}
-            {catalog.map((c) => <option key={c.id} value={c.id}>{c.name}{c.pointIsApproximate ? " (approx.)" : ""}</option>)}
+            {catalog.map((c) => <option key={c.id} value={c.id}>{c.name}{c.pointIsApproximate ? " (approx.)" : c.coordsVerified === false ? " (unverified)" : ""}</option>)}
             <option value="custom">Custom coordinates…</option>
           </select>
         </label>

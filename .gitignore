@@ -64,3 +64,7 @@ firebase-debug.log
 firestore-debug.log
 ui-debug.log
 .manifest.lock
+
+# Local agent tooling state (session telemetry, absolute paths, transient memory)
+/.claude-flow/
+/.claude/settings.local.json

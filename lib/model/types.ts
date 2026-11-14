@@ -124,6 +124,8 @@ export interface SiteIndexEntry {
   lonDeg: number | null;
   /** true for Artemis representative points */
   pointIsApproximate: boolean;
+  /** true only when latDeg/lonDeg is a verified point (primary-source coordinates); the science API accepts only these */
+  coordsVerified: boolean;
   landingTimeUtc: string | null;
   chapterId: ChapterId | null;
 }

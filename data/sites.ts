@@ -30,6 +30,8 @@ export type CatalogSite = {
   agency?: string
   siteKind?: string
   pointIsApproximate?: boolean
+  /** true only for verified point coordinates; unverified sites must not be shown as verified science */
+  coordsVerified?: boolean
   landingTimeUtc?: string | null
 }
 

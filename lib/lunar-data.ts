@@ -2,23 +2,25 @@
  * Freeplay's data source: the Lunaris360 data API (see docs/API.md).
  *
  * Ephemeris comes from the stored JPL Horizons monthly chunks (`/api/v1/ephemeris/{YYYY-MM}`),
- * decoded and evaluated with lib/ephemeris (the same code the server's science routes use).
+ * decoded and evaluated with lib/ephemeris and lib/science/sky (the same code the server's science
+ * routes use; tests/science-parity.test.ts keeps the two paths in lockstep). The browser fetches raw
+ * chunks only because the year-long graphs and day-by-day summaries need thousands of samples, which
+ * would be too many round trips through /science/timeline (24 h, max 60-minute steps). It never
+ * calls JPL Horizons, LOLA or PDS directly.
  * Terrain comes from `/api/v1/science/horizon`: a LOLA DEM mask for catalog sites, or a
  * labelled smooth-sphere horizon elsewhere.
  */
 
 import { base64ToU8 } from "@/lib/bytes"
 import {
-  CartesianSeries, decodeEphemerisData, loadSeries, MAIN_SERIES_END, MAIN_SERIES_START, siteFrame, azElFromCartesian,
+  CartesianSeries, decodeEphemerisData, loadSeries, MAIN_SERIES_END, MAIN_SERIES_START, siteFrame,
 } from "@/lib/ephemeris"
 import { EPHEMERIS_LAYOUT, type EphemerisChunk } from "@/lib/model/types"
-import { maskAt } from "@/lib/terrain/mask"
+import { horizonElevationAt, skySamples } from "@/lib/science/sky"
 import type { Sample } from "@/lib/illumination"
 import type { CatalogSite } from "@/data/sites"
 
 export { MAIN_SERIES_END, MAIN_SERIES_START }
-
-const AU_KM = 149_597_870.7
 
 type ChunkJson = Omit<EphemerisChunk, "data" | "layout" | "timeScale" | "source"> & { data: string }
 type ApiError = { error?: { message?: string } }
@@ -94,25 +96,18 @@ export function fetchTerrainHorizon(site: SiteRef): Promise<TerrainHorizon> {
 
 /** Terrain horizon elevation (deg) at an azimuth; 0 for a smooth horizon. */
 export function horizonAt(h: TerrainHorizon, azimuthDeg: number): number {
-  return h.elevationsDeg ? maskAt(h.elevationsDeg, h.azimuthStepDeg, azimuthDeg) : 0
+  return horizonElevationAt(h, azimuthDeg)
 }
 
 /** Hourly (or stepMinutes) samples at a site, with the terrain horizon under the Sun and Earth. */
 export function siteSamples(series: CartesianSeries, site: SiteRef, horizon: TerrainHorizon, startMs: number, endMs: number, stepMinutes = 60): Sample[] {
+  // The same evaluation the /api/v1/science/* handlers use (lib/science/sky.ts).
   const frame = siteFrame(site.latitudeDeg, site.longitudeDeg)
-  const out: Sample[] = []
-  const end = Math.min(endMs, series.endMs)
-  for (let t = Math.max(startMs, series.startMs); t <= end; t += stepMinutes * 60_000) {
-    const { sun, earth } = series.at(t)
-    const s = azElFromCartesian(frame, sun), e = azElFromCartesian(frame, earth)
-    out.push({
-      t,
-      sunAz: s.azimuthDeg, sunEl: s.elevationDeg, sunHorizon: horizonAt(horizon, s.azimuthDeg),
-      sunRangeAu: Math.hypot(...sun) / AU_KM,
-      earthAz: e.azimuthDeg, earthEl: e.elevationDeg, earthHorizon: horizonAt(horizon, e.azimuthDeg),
-    })
-  }
-  return out
+  return skySamples(series, frame, horizon, startMs, endMs, stepMinutes).map((p) => ({
+    t: p.t,
+    sunAz: p.sunAz, sunEl: p.sunEl, sunHorizon: p.sunHorizon, sunRangeAu: p.sunRangeAu,
+    earthAz: p.earthAz, earthEl: p.earthEl, earthHorizon: p.earthHorizon,
+  }))
 }
 
 let catalogPromise: Promise<CatalogSite[]> | null = null

@@ -5,7 +5,7 @@ shapes sunlight and direct-to-Earth line of sight at candidate landing sites.
 
 Built for the NASA Space Apps Challenge 2026.
 
-> Freeplay is implemented with stored JPL Horizons ephemerides and available precomputed LOLA horizon masks. Coverage varies by location; unsupported points use a labelled smooth-sphere horizon. The rendered 3D surface is procedural and is not the terrain model used for horizon calculations. The Guided Mission is a non-interactive introduction, and Mission Comparison is an empty layout.
+> Freeplay is implemented with stored JPL Horizons ephemerides and available precomputed LOLA horizon masks. Coverage varies by location; unsupported points use a labelled smooth-sphere horizon. The rendered 3D surface is procedural and is not the terrain model used for horizon calculations. The Guided Mission is an interactive tutorial that runs the same simulation at the story chapters' featured catalog sites, and Mission Comparison is an empty layout.
 
 ## Getting started
 
@@ -36,9 +36,10 @@ npm run lint       # ESLint (Next.js + React Compiler rules)
 
 | Route      | Purpose                                                   |
 | ---------- | --------------------------------------------------------- |
-| `/`        | Overview and how to use Shadowline                         |
-| `/mission` | Guided Mission: tutorial and simulation experience        |
+| `/`        | Overview and how to use Lunaris360                         |
+| `/mission` | Guided Mission: six interactive lessons across the First Landing, Robotic Explorer and Lunar Base chapters, run inside Freeplay's globe, Orbit + Graphs and surface drive |
 | `/mission-control` | Mission Control: learning topics, method and data    |
+| `/how-it-works` | How It Works: the surface view and the modelling approach, moved off the landing page |
 | `/freeplay` | Freeplay mission planner: Cesium Moon globe (Moon Trek imagery, LROC overlays, catalog sites, user-named presets) and an orbit + graphs view driven by the stored ephemeris and LOLA horizon masks |
 | `/freeplay/drive` | Freeplay surface drive: site and coordinate selection, time controls, first-person/orbit navigation, JPL Horizons Sun/Earth positions, horizon-aware 24-hour metrics where data is available (`/explore` redirects here). Opens at the site and time selected in Freeplay. |
 | `/freeplay/approach` | Sunlight hours, intensity and Earth contact over a mission of up to a year at one site (`/explore/approach` redirects here) |

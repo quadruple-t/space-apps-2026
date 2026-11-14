@@ -20,6 +20,46 @@ const MOON_RADIUS_UNITS = 34_740; // 1737 km / 50 m
 
 type Crater = { x: number; z: number; r: number; depth: number; rim: number; seed: number };
 type Massif = { x: number; z: number; r: number; h: number; seed: number };
+export type LunarTerrainProfile = {
+  seed: number;
+  regional: boolean;
+  formation: "ridge" | "crater" | "peak" | "rim-and-ridge" | "massif";
+  baseColor: string;
+  shadowColor: string;
+  highlightColor: string;
+};
+
+const REGION_PROFILES: Record<string, LunarTerrainProfile> = {
+  "connecting-ridge": { seed: 101, regional: true, formation: "ridge", baseColor: "#9da0b8", shadowColor: "#45475f", highlightColor: "#d8d9e9" },
+  "shackleton-rim": { seed: 204, regional: true, formation: "crater", baseColor: "#a795a8", shadowColor: "#514454", highlightColor: "#e2cce1" },
+  "peak-near-shackleton": { seed: 307, regional: true, formation: "peak", baseColor: "#91a6b8", shadowColor: "#3f5061", highlightColor: "#d2e2eb" },
+  "de-gerlache-rim": { seed: 411, regional: true, formation: "rim-and-ridge", baseColor: "#a69abb", shadowColor: "#514b69", highlightColor: "#e0d5f0" },
+  "malapert-massif": { seed: 523, regional: true, formation: "massif", baseColor: "#b3a58e", shadowColor: "#534e45", highlightColor: "#e5d9bf" },
+};
+
+function hashCoordinates(latitudeDeg: number, longitudeDeg: number) {
+  const source = `${latitudeDeg.toFixed(2)}:${longitudeDeg.toFixed(2)}`;
+  let hash = 2166136261;
+  for (let i = 0; i < source.length; i++) hash = Math.imul(hash ^ source.charCodeAt(i), 16777619);
+  return (hash >>> 0) || 1;
+}
+
+/** A named destination gets its own landform; arbitrary map points are stable too. */
+export function terrainProfileForSite(site?: { id?: string; latitudeDeg?: number; longitudeDeg?: number }): LunarTerrainProfile {
+  const named = site?.id ? REGION_PROFILES[site.id] : undefined;
+  if (named) return named;
+  const seed = hashCoordinates(site?.latitudeDeg ?? 0, site?.longitudeDeg ?? 0);
+  const variants: LunarTerrainProfile["formation"][] = ["ridge", "crater", "peak", "massif", "rim-and-ridge"];
+  const palettes = [
+    { baseColor: "#9da0b8", shadowColor: "#45475f", highlightColor: "#d8d9e9" },
+    { baseColor: "#a795a8", shadowColor: "#514454", highlightColor: "#e2cce1" },
+    { baseColor: "#91a6b8", shadowColor: "#3f5061", highlightColor: "#d2e2eb" },
+    { baseColor: "#b3a58e", shadowColor: "#534e45", highlightColor: "#e5d9bf" },
+    { baseColor: "#a69abb", shadowColor: "#514b69", highlightColor: "#e0d5f0" },
+  ];
+  const index = seed % variants.length;
+  return { seed, regional: Boolean(site), formation: variants[index], ...palettes[index] };
+}
 
 /** The foreground crater the camera looks across — its floor stays in shadow. */
 export const MAIN_CRATER: Crater = { x: -4, z: -112, r: 78, depth: 30, rim: 8, seed: 11 };
@@ -90,12 +130,73 @@ function massifContribution(m: Massif, x: number, z: number) {
   return m.h * shape * (0.65 + 0.55 * ridged);
 }
 
-/** Terrain height at world (x, z). Pure and deterministic. */
-export function heightAt(x: number, z: number) {
-  let h = fbm2D(x / 110, z / 110, 5, SEED) * 9;
-  h += fbm2D(x / 22, z / 22, 3, SEED + 5) * 1.4;
-  for (const c of CRATERS) h += craterContribution(c, x, z);
-  for (const m of MASSIFS) h += massifContribution(m, x, z);
+const regionalCraterCache = new Map<number, Crater[]>();
+const regionalMassifCache = new Map<number, Massif[]>();
+function regionalCraters(seed: number) {
+  const cached = regionalCraterCache.get(seed);
+  if (cached) return cached;
+  const rand = seededRandom(seed ^ 0x5f3759df);
+  const craters: Crater[] = [];
+  for (let index = 0; index < 11; index++) {
+    const z = -65 - rand() * 690;
+    const radius = 10 + Math.pow(rand(), 1.8) * 62;
+    const x = (rand() * 2 - 1) * (100 + -z * 0.95);
+    craters.push({ x, z, r: radius, depth: radius * (0.3 + rand() * 0.12), rim: radius * (0.08 + rand() * 0.06), seed: seed + index });
+  }
+  if (regionalCraterCache.size >= 96) {
+    const oldestSeed = regionalCraterCache.keys().next().value;
+    if (oldestSeed !== undefined) regionalCraterCache.delete(oldestSeed);
+  }
+  regionalCraterCache.set(seed, craters);
+  return craters;
+}
+
+function regionalMassifs(seed: number) {
+  const cached = regionalMassifCache.get(seed);
+  if (cached) return cached;
+  const rand = seededRandom(seed ^ 0x6d2b79f5);
+  const massifs = Array.from({ length: 6 }, (_, index) => {
+    const z = -220 - rand() * 570;
+    const radius = 58 + rand() * 128;
+    return { x: (rand() * 2 - 1) * (90 + -z * 0.9), z, r: radius, h: 16 + rand() * 28, seed: seed + index + 41 };
+  });
+  if (regionalMassifCache.size >= 96) {
+    const oldestSeed = regionalMassifCache.keys().next().value;
+    if (oldestSeed !== undefined) regionalMassifCache.delete(oldestSeed);
+  }
+  regionalMassifCache.set(seed, massifs);
+  return massifs;
+}
+
+function landmarkContribution(profile: LunarTerrainProfile, x: number, z: number) {
+  const offset = ((profile.seed % 9) - 4) * 2;
+  const landmarkCrater: Crater = { x: offset, z: -135, r: 128, depth: 12, rim: 8, seed: profile.seed };
+  const peak: Massif = { x: offset, z: -115, r: 84, h: 20, seed: profile.seed };
+  const ridgeDistance = Math.abs(x - offset);
+  const ridge = 12 * Math.exp(-((ridgeDistance / 22) ** 2)) * Math.exp(-(((z + 125) / 180) ** 4));
+
+  switch (profile.formation) {
+    case "ridge": return ridge + massifContribution({ ...peak, x: offset + 92, z: -210, r: 65, h: 10 }, x, z);
+    case "crater": return craterContribution(landmarkCrater, x, z);
+    case "peak": return massifContribution(peak, x, z) + massifContribution({ ...peak, x: offset - 58, z: -220, r: 52, h: 10, seed: profile.seed + 1 }, x, z);
+    case "rim-and-ridge": return craterContribution({ ...landmarkCrater, x: offset + 80 }, x, z) + ridge * 0.72;
+    case "massif": return massifContribution({ ...peak, h: 24, r: 160 }, x, z) + massifContribution({ ...peak, x: offset + 100, z: -230, h: 8, r: 90, seed: profile.seed + 2 }, x, z);
+  }
+}
+
+/** Terrain height at world (x, z). Pure and deterministic for each region. */
+export function heightAt(x: number, z: number, profile: LunarTerrainProfile = terrainProfileForSite()) {
+  let h = fbm2D(x / 110, z / 110, 5, SEED + profile.seed) * 9;
+  h += fbm2D(x / 22, z / 22, 3, SEED + profile.seed + 5) * 1.4;
+  if (profile.regional) {
+    for (const c of CRATERS) if (c !== MAIN_CRATER) h += craterContribution(c, x, z);
+    for (const c of regionalCraters(profile.seed)) h += craterContribution(c, x, z);
+    for (const m of regionalMassifs(profile.seed)) h += massifContribution(m, x, z);
+  } else {
+    for (const c of CRATERS) h += craterContribution(c, x, z);
+    for (const m of MASSIFS) h += massifContribution(m, x, z);
+  }
+  h += landmarkContribution(profile, x, z);
   // Lunar curvature drops the far field below the camera's horizontal.
   h -= (x * x + z * z) / (2 * MOON_RADIUS_UNITS);
   return h;
@@ -112,15 +213,15 @@ const Z_NEAR = 34;
 const Z_FAR = -820;
 
 /** Build the faceted terrain geometry. */
-export function createTerrainGeometry(detail: TerrainDetail = "high") {
+export function createTerrainGeometry(detail: TerrainDetail = "high", profile: LunarTerrainProfile = terrainProfileForSite()) {
   const { cols, rows } = DETAIL[detail];
-  const rand = seededRandom(SEED + 99);
+  const rand = seededRandom(SEED + profile.seed + 99);
 
   const positions = new Float32Array((cols + 1) * (rows + 1) * 3);
   const colors = new Float32Array((cols + 1) * (rows + 1) * 3);
-  const base = new THREE.Color("#918ba8");
-  const dark = new THREE.Color("#514c68");
-  const bright = new THREE.Color("#c1badc");
+  const base = new THREE.Color(profile.baseColor);
+  const dark = new THREE.Color(profile.shadowColor);
+  const bright = new THREE.Color(profile.highlightColor);
   const tmp = new THREE.Color();
 
   let p = 0;
@@ -141,16 +242,18 @@ export function createTerrainGeometry(detail: TerrainDetail = "high") {
         x += (rand() - 0.5) * cellW * 0.72;
         zz += (rand() - 0.5) * cellD * 0.72;
       }
-      const y = heightAt(x, zz);
+      const y = heightAt(x, zz, profile);
       positions[p] = x;
       positions[p + 1] = y;
       positions[p + 2] = zz;
 
       // Albedo: subtle mottling, brighter ejecta near crater rims.
-      const mottle = valueNoise2D(x / 9, zz / 9, 3) * 0.6 + valueNoise2D(x / 40, zz / 40, 4) * 0.4;
+      const mottle = valueNoise2D(x / 9, zz / 9, profile.seed + 3) * 0.6 + valueNoise2D(x / 40, zz / 40, profile.seed + 4) * 0.4;
       tmp.copy(dark).lerp(base, mottle);
-      const rimDist = Math.abs(Math.hypot(x - MAIN_CRATER.x, zz - MAIN_CRATER.z) / MAIN_CRATER.r - 1.12);
-      if (rimDist < 0.3) tmp.lerp(bright, (0.3 - rimDist) * 1.1);
+      if (!profile.regional) {
+        const rimDist = Math.abs(Math.hypot(x - MAIN_CRATER.x, zz - MAIN_CRATER.z) / MAIN_CRATER.r - 1.12);
+        if (rimDist < 0.3) tmp.lerp(bright, (0.3 - rimDist) * 1.1);
+      }
       colors[p] = tmp.r;
       colors[p + 1] = tmp.g;
       colors[p + 2] = tmp.b;

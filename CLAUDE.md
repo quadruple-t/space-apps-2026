@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Lunaris360: a lunar mission-planning and educational website (NASA Space Apps Challenge 2026). Freeplay uses stored JPL Horizons ephemerides and available precomputed LOLA horizon masks through the versioned science API. The rendered 3D surface is procedural and separate from those horizon calculations. Unsupported locations use a labelled smooth-sphere horizon; never present it as terrain-derived. The Guided Mission is a non-interactive introduction and Mission Comparison is an empty layout. Do not present the app as an operational mission system.
+Lunaris360: a lunar mission-planning and educational website (NASA Space Apps Challenge 2026). Freeplay uses stored JPL Horizons ephemerides and available precomputed LOLA horizon masks through the versioned science API. The rendered 3D surface is procedural and separate from those horizon calculations. Unsupported locations use a labelled smooth-sphere horizon; never present it as terrain-derived. The Guided Mission is an interactive tutorial that docks its lessons beside Freeplay's globe and Orbit + Graphs screens and ends in the surface drive, using the story chapters' featured catalog sites, and Mission Comparison is an empty layout. Do not present the app as an operational mission system.
 
 ## Commands
 
@@ -28,7 +28,7 @@ npm run test:rules # Firestore security-rules tests (starts emulator)
 
 ## Architecture
 
-- `app/`: routes `/`, `/mission`, `/explore`, `/compare`, `/science`, plus the versioned `/api/v1/` science and catalog API. `/explore` hosts working Freeplay controls; `/mission` is an overview and `/compare` is currently an empty-state shell.
+- `app/`: routes `/`, `/mission`, `/explore`, `/compare`, `/science`, plus the versioned `/api/v1/` science and catalog API. `/explore` hosts working Freeplay controls; `/mission` runs the guided tutorial (`app/mission/`: lesson copy in `tutorial-content.ts`, chapter and site records from `/api/v1/chapters` and `/api/v1/catalog/sites` via `use-tutorial-data.ts`) and `/compare` is currently an empty-state shell.
 - Before changing or adding `/api/v1` endpoints, read `docs/API.md`; keep that reference in sync with route behavior, parameters, payloads, and authentication.
 - `scenes/lunar/`: the reusable 3D scene. `lunar-scene.tsx` composes `terrain.ts` (height function and mesh builder), `celestial.tsx` (Sun, Earth, stars), `camera-rig.tsx` and `landing-site.tsx`. `lunar-scene-loader.tsx` loads it client-side via `next/dynamic`.
 - `integrations/science/`: client API adapter and provider types. The API performs authoritative science lookups from Firestore; the illustrative mock provider is not Freeplay's live provider.

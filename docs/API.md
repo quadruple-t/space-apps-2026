@@ -20,6 +20,8 @@ Public collection names are `sites`, `chapters`, `profiles`, `zones`, `presets`,
 
 The site index route is distinct from the generic `sites` collection route. It returns `{ "sites": [...], "count": 2, "generatedAt": "..." }`; `q` case-insensitively matches site name or mission, and `family` matches exactly. Site detail returns `{ "site": { "id": "...", ... }, "terrain": { "id": "v1", ... } }`; `terrain` is `null` if no site-specific mask exists. Firestore binary values in generic documents are serialized as base64 strings.
 
+Each site index row has `latDeg`, `lonDeg`, `pointIsApproximate` and `coordsVerified`. `coordsVerified` is `true` only for a non-approximate point whose coordinates come from a primary source (LROC, NASA or NSSDCA); it is the only flag clients should use to decide whether a site may be presented as verified science. `pointIsApproximate` only marks Artemis region-reference points, and sites such as Luna 9 have a point but `coordsVerified: false`.
+
 ### Science
 
 | Method and route | Description |
@@ -30,7 +32,7 @@ The site index route is distinct from the generic `sites` collection route. It r
 | `GET /api/v1/science/timeline` | Sun/Earth samples over a 24-hour interval |
 | `GET /api/v1/science/compare` | Metrics for two or three catalog sites over the same interval |
 
-All science routes accept either `siteId` for a catalog site with verified coordinates, or both `lat` and `lon` for a custom point. Coordinates are planetocentric degrees; longitude is east-positive and accepts -180 through 360. If both forms are supplied, `siteId` takes precedence. Times must be parseable ISO 8601 timestamps and should be supplied in UTC. The stored JPL Horizons interval is 2026-01-01 through 2030-12-31; requests outside available coverage return 422.
+All science routes accept either `siteId` for a catalog site with a verified point coordinate (`coordsVerified: true`; an unverified or region-reference site is rejected with 422, never returned as `provenance: "scientific"`), or both `lat` and `lon` for a custom point. Coordinates are planetocentric degrees; longitude is east-positive and accepts -180 through 360. If both forms are supplied, `siteId` takes precedence. Times must be parseable ISO 8601 timestamps and should be supplied in UTC. The stored JPL Horizons interval is 2026-01-01 through 2030-12-31; requests outside available coverage return 422.
 
 | Parameter | Used by | Default and constraints |
 | --- | --- | --- |
@@ -132,8 +134,12 @@ Errors have the shape `{ "error": { "message": "..." } }` and are not cached.
 | 401 | Owner route missing a valid Firebase ID token |
 | 403 | Token UID does not match the UID in the route |
 | 404 | Unknown route/resource, or requested catalog/user document not found |
-| 422 | Science request outside stored ephemeris coverage or site lacks verified coordinates |
+| 422 | Science request outside stored ephemeris coverage, or `siteId` names a catalog site without a verified point coordinate (unverified coordinates, or an Artemis region reference). Use `lat`/`lon` for a custom point instead |
 | 503 | Firebase/Admin configuration or required stored science data unavailable |
+
+## Calculation paths
+
+The server and Freeplay share one implementation of the sky maths: ephemeris interpolation and topocentric Sun/Earth positions in `lib/ephemeris`, mask lookup in `lib/terrain/mask`, and the visibility decision (`elevation > horizon at azimuth`), sampling and run-length helpers in `lib/science/sky.ts`. `/api/v1/science/*` calls those modules directly. Freeplay's graphs call the same modules in the browser on raw chunks fetched from `/api/v1/ephemeris/{YYYY-MM}`, because the year-long and per-lunar-day views need far more samples than the 24-hour `timeline` route returns. Neither path calls JPL Horizons, LOLA or PDS at request time. `tests/science-parity.test.ts` compares the client samples with the API-shaped output at the same sites, times and horizon sources.
 
 ## Data refresh and setup
 
