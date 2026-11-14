@@ -25,7 +25,7 @@ export function IntroductionSection() {
         <Reveal>
           <SectionHeading id="mission-title" title="See the mission from the surface.">
             <p>
-              Shadowline turns complex lunar environmental data into a place you can stand in. Instead of reading
+              Lunaris360 turns complex lunar environmental data into a place you can stand in. Instead of reading
               tables of angles, you look across the terrain from a candidate landing site and see the Sun, the
               Earth and the ridges between them.
             </p>

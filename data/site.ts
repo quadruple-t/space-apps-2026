@@ -4,7 +4,7 @@
  */
 
 export const SITE = {
-  name: "Shadowline",
+  name: "Lunaris360",
   tagline: "Where lunar exploration meets mission intelligence.",
   description:
     "An interactive 3D mission-planning environment for the lunar south pole: see how terrain shapes sunlight and Earth visibility at candidate landing sites.",

@@ -7,7 +7,7 @@ import { METHOD_STEPS } from "@/data/science";
 
 export const metadata: Metadata = {
   title: "The science",
-  description: "How Shadowline will use LOLA terrain and JPL Horizons ephemerides to model lighting and Earth visibility.",
+  description: "How Lunaris360 will use LOLA terrain and JPL Horizons ephemerides to model lighting and Earth visibility.",
 };
 
 const CONSIDERATIONS = [
@@ -42,7 +42,7 @@ export default function SciencePage() {
     <>
       <PageIntro title="The science" lede="Real terrain, real geometry, shown plainly." status="Methodology in progress">
         <p>
-          This page describes how Shadowline is designed to work. The data integrations below are planned. Every
+          This page describes how Lunaris360 is designed to work. The data integrations below are planned. Every
           visual on the site today is procedural or illustrative.
         </p>
       </PageIntro>
@@ -66,7 +66,7 @@ export default function SciencePage() {
               low in the sky too, so the same ridges that cast shadows can also block communications.
             </p>
             <p className="text-bone/85">
-              A flat-ground model gets this wrong. Shadowline is designed to use measured elevation to compute each
+              A flat-ground model gets this wrong. Lunaris360 is designed to use measured elevation to compute each
               site&apos;s true horizon.
             </p>
           </div>

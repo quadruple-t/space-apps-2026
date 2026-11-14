@@ -15,7 +15,7 @@ export function ExperienceCards() {
           <SectionHeading id="explore-title" title="Three ways to explore.">
             <p>
               Learn the environment step by step, roam the terrain on your own, or put candidate sites side by side.
-              Each mode has its own space in Shadowline.
+              Each mode has its own space in Lunaris360.
             </p>
           </SectionHeading>
         </Reveal>

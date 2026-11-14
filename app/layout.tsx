@@ -26,8 +26,8 @@ const plexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Shadowline — Lunar south pole mission planning",
-    template: "%s · Shadowline",
+    default: "Lunaris360 — Lunar south pole mission planning",
+    template: "%s · Lunaris360",
   },
   description: SITE.description,
   applicationName: SITE.name,
