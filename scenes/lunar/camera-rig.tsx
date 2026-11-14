@@ -38,7 +38,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
   const yaw = useRef(0);
   const pitch = useRef(0.04);
   const distance = useRef(250);
-  const dragging = useRef(false);
+  const touchLooking = useRef(false);
   const keys = useRef(new Set<string>());
   const keyFrame = useRef<number | null>(null);
   const playerPosition = useRef(new THREE.Vector3());
@@ -108,15 +108,23 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
         keyFrame.current = null;
       }
     };
+    const pointerEnter = (event: PointerEvent) => {
+      last.current = { x: event.clientX, y: event.clientY };
+    };
     const elDown = (event: PointerEvent) => {
-      if (event.button !== 0) return;
-      dragging.current = true;
+      // Touchscreens have no hover, so keep drag-to-look as their gesture.
+      if (event.pointerType !== "touch" || event.button !== 0) return;
+      touchLooking.current = true;
       last.current = { x: event.clientX, y: event.clientY };
       el.setPointerCapture(event.pointerId);
-      get().invalidate();
     };
     const move = (event: PointerEvent) => {
-      if (!dragging.current) return;
+      // Mouse and pen movement steer continuously with no button held.
+      // Touch uses an explicit drag because it cannot hover.
+      if (event.pointerType === "touch" && !touchLooking.current) {
+        last.current = { x: event.clientX, y: event.clientY };
+        return;
+      }
       const dx = event.clientX - last.current.x;
       const dy = event.clientY - last.current.y;
       last.current = { x: event.clientX, y: event.clientY };
@@ -124,7 +132,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
       pitch.current = THREE.MathUtils.clamp(pitch.current + dy * 0.003, -1.1, 1.1);
       get().invalidate();
     };
-    const up = () => { dragging.current = false; };
+    const up = () => { touchLooking.current = false; };
     const wheel = (event: WheelEvent) => {
       event.preventDefault();
       distance.current = THREE.MathUtils.clamp(distance.current + event.deltaY * 0.18, 85, 520);
@@ -132,6 +140,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
     };
     window.addEventListener("keydown", keyDown);
     window.addEventListener("keyup", keyUp);
+    el.addEventListener("pointerenter", pointerEnter);
     el.addEventListener("pointerdown", elDown);
     el.addEventListener("pointermove", move);
     el.addEventListener("pointerup", up);
@@ -140,6 +149,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
     return () => {
       window.removeEventListener("keydown", keyDown);
       window.removeEventListener("keyup", keyUp);
+      el.removeEventListener("pointerenter", pointerEnter);
       pressedKeys.clear();
       if (keyFrame.current !== null) window.cancelAnimationFrame(keyFrame.current);
       keyFrame.current = null;
