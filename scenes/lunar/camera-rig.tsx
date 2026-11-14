@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { LunarRover } from "./rover";
-import { heightAt } from "./terrain";
+import { heightAt, type LunarTerrainProfile } from "./terrain";
 
 export type CameraShot = {
   position: THREE.Vector3;
@@ -25,7 +25,7 @@ export type MoveCommand = "forward" | "back" | "left" | "right" | null;
  * Slow cinematic drift plus gentle pointer parallax. Static when
  * `still` is true (reduced motion).
  */
-export function CameraRig({ shot, still, mode = "first-person", interactive = false, zoom = 1, orbitTarget, moveCommand = null, landingActive = false }: { shot: CameraShot; still: boolean; mode?: CameraMode; interactive?: boolean; zoom?: number; orbitTarget?: THREE.Vector3; moveCommand?: MoveCommand; landingActive?: boolean }) {
+export function CameraRig({ shot, still, mode = "first-person", interactive = false, zoom = 1, orbitTarget, moveCommand = null, landingActive = false, terrainProfile }: { shot: CameraShot; still: boolean; mode?: CameraMode; interactive?: boolean; zoom?: number; orbitTarget?: THREE.Vector3; moveCommand?: MoveCommand; landingActive?: boolean; terrainProfile: LunarTerrainProfile }) {
   const { get, gl } = useThree();
   const narrow = useThree((s) => s.size.width / s.size.height < 0.9);
   const target = narrow && shot.narrowTarget ? shot.narrowTarget : shot.target;
@@ -60,7 +60,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
     camera.far = 3000;
     if (resetToShot) {
       camera.position.copy(shot.position);
-      playerPosition.current.set(shot.position.x, heightAt(shot.position.x, shot.position.z), shot.position.z);
+      playerPosition.current.set(shot.position.x, heightAt(shot.position.x, shot.position.z, terrainProfile), shot.position.z);
       spawnPosition.current.copy(playerPosition.current);
       camera.lookAt(target);
     }
@@ -70,7 +70,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
     lastSpawnShot.current = shot;
     yaw.current = 0;
     pitch.current = 0.04;
-  }, [get, shot, target, interactive]);
+  }, [get, shot, target, interactive, terrainProfile]);
 
   useEffect(() => {
     if (landingActive) landingProgress.current = 0;
@@ -202,11 +202,11 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
           const z = player.z + (-Math.cos(heading) * forward + Math.sin(heading) * strafe) * distance;
           player.x = THREE.MathUtils.clamp(x, spawnPosition.current.x - 90, spawnPosition.current.x + 90);
           player.z = THREE.MathUtils.clamp(z, Math.max(-695, spawnPosition.current.z - 90), Math.min(-5, spawnPosition.current.z + 90));
-          player.y = heightAt(player.x, player.z);
+          player.y = heightAt(player.x, player.z, terrainProfile);
         }
         const roverX = player.x + Math.sin(heading) * 10 + Math.cos(heading) * 4;
         const roverZ = player.z - Math.cos(heading) * 10 + Math.sin(heading) * 4;
-        const roverGround = heightAt(roverX, roverZ) + 0.72;
+        const roverGround = heightAt(roverX, roverZ, terrainProfile) + 0.72;
         if (landingActive && landingProgress.current < 1) landingProgress.current = Math.min(1, landingProgress.current + delta / 1.05);
         const landingEase = 1 - Math.pow(1 - landingProgress.current, 3);
         if (roverRef.current) {
@@ -214,7 +214,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
           roverRef.current.rotation.y = Math.PI - heading;
         }
         if (dustRef.current && dustMaterialRef.current) {
-          dustRef.current.position.set(roverX, heightAt(roverX, roverZ) + 0.2, roverZ);
+          dustRef.current.position.set(roverX, heightAt(roverX, roverZ, terrainProfile) + 0.2, roverZ);
           const dustPulse = landingActive ? Math.max(0, 1 - Math.abs(landingProgress.current - 0.72) / 0.28) : 0;
           dustRef.current.scale.setScalar(1 + landingProgress.current * 2.4);
           dustMaterialRef.current.opacity = dustPulse * 0.35;
