@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 const CHAPTERS = [
   { id: "overview", label: "Briefing", href: "#overview" },
-  { id: "mission", label: "Surface", href: "#mission" },
+  { id: "mission", label: "Surface", href: "#overview-guide" },
   { id: "explore", label: "Routes", href: "#explore" },
   { id: "science", label: "Signals", href: "#how-it-works" },
   { id: "launch", label: "Launch", href: "#launch" },
