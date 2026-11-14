@@ -17,6 +17,14 @@
    "etag": "\"42cae54c8295d91:0\"",
    "retrievedAt": "2026-11-14T17:25:10Z"
   },
+  "emulator/cloud-firestore-emulator-v1.22.0.jar": {
+   "url": "https://storage.googleapis.com/firebase-preview-drop/emulator/cloud-firestore-emulator-v1.22.0.jar",
+   "bytes": 136707194,
+   "sha256": "9b6498b7f62714d67f48f59b3818883cd682dbcd46b9f59511de81c97bb5166c",
+   "lastModified": "Mon, 20 Jul 2026 23:21:42 GMT",
+   "etag": "\"5d74cc6bee9e18560d2eae2c6440fd13\"",
+   "retrievedAt": "2026-11-14T22:19:26Z"
+  },
   "lroc/ANTHROPOGENIC_OBJECTS_180.ZIP": {
    "url": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/EXTRAS/SHAPEFILE/ANTHROPOGENIC_OBJECTS/ANTHROPOGENIC_OBJECTS_180.ZIP",
    "bytes": 1569089,
@@ -24,6 +32,14 @@
    "lastModified": "Wed, 09 Sep 2026 22:43:34 GMT",
    "etag": "\"46ac6f2ac9902bbcad891c932ab9d63f\"",
    "retrievedAt": "2026-11-14T17:24:39Z"
+  },
+  "lroc/WAC_POLE_ILL_PCT_SOUTH_100M.IMG": {
+   "url": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/BDR/WAC_POLE/WAC_POLE_ILL_PCT_SOUTH/WAC_POLE_ILL_PCT_SOUTH_100M.IMG",
+   "bytes": 5904896,
+   "sha256": "30b35ae2de695198f62afe2845c3a67cbc4975dca199be3c848d931414aced5f",
+   "lastModified": "Fri, 14 Aug 2026 18:25:36 GMT",
+   "etag": "\"86c5be41ba876fd5fa190f6bbfe34b31\"",
+   "retrievedAt": "2026-11-14T22:13:38Z"
   },
   "lroc/WAC_POLE_ILL_PCT_SOUTH_100M.TIF": {
    "url": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/EXTRAS/BROWSE/WAC_POLE/WAC_POLE_ILL_PCT_SOUTH/WAC_POLE_ILL_PCT_SOUTH_100M.TIF",
@@ -258,52 +274,52 @@
   },
   "LDEM_512_45N_90N": {
    "url": "https://imbrium.mit.edu/DATA/LOLA_GDR/CYLINDRICAL/IMG/",
-   "note": "LDEM_512: row-wise HTTP multi-range reads",
+   "note": "LOLA GDR 512 ppd 45-90N tiles; near field north of 60N",
    "firstReadAt": "2026-11-14T18:08:21Z"
   },
   "LDEM_60S_60MPP_ADJ": {
    "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_60S_60MPP_ADJ.TIF",
-   "note": "COG window read via GDAL /vsicurl/",
+   "note": "COG; near/mid-field windows for 60-80\u00b0S sites",
    "firstReadAt": "2026-11-14T17:23:53Z"
   },
   "LDEM_60S_60MPP_ADJ_ERR": {
    "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_60S_60MPP_ADJ_ERR.TIF",
-   "note": "COG window read via GDAL /vsicurl/",
+   "note": "COG; height error for 60-80\u00b0S sites",
    "firstReadAt": "2026-11-14T17:23:53Z"
   },
   "LDEM_64": {
-   "url": "https://imbrium.mit.edu/DATA/LOLA_GDR/CYLINDRICAL/IMG/",
-   "note": "LDEM_64: row-wise HTTP multi-range reads",
+   "url": "https://imbrium.mit.edu/DATA/LOLA_GDR/CYLINDRICAL/IMG/LDEM_64.IMG",
+   "note": "LOLA GDR 64 ppd int16 global image; row-wise multi-range reads for the non-polar far field",
    "firstReadAt": "2026-11-14T18:04:29Z"
   },
   "LDEM_80S_20MPP_ADJ": {
    "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_20MPP_ADJ.TIF",
-   "note": "COG window read via GDAL /vsicurl/",
+   "note": "COG; ~\u00b18 km near-field windows for polar sites outside 5 m boxes",
    "firstReadAt": "2026-11-14T17:23:53Z"
   },
   "LDEM_80S_20MPP_ADJ_ERR": {
    "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_20MPP_ADJ_ERR.TIF",
-   "note": "COG window read via GDAL /vsicurl/",
+   "note": "COG; height error at polar sites",
    "firstReadAt": "2026-11-14T17:23:53Z"
   },
   "LDRM_80S_50MPP_ADJ_ROUGH_100M": {
    "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDRM_80S_50MPP_ADJ_ROUGH_100M.TIF",
-   "note": "COG window read via GDAL /vsicurl/",
+   "note": "COG; 100 m-baseline roughness at polar sites",
    "firstReadAt": "2026-11-14T17:23:53Z"
   },
   "LDRM_80S_50MPP_ADJ_SLP_100M": {
    "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDRM_80S_50MPP_ADJ_SLP_100M.TIF",
-   "note": "COG window read via GDAL /vsicurl/",
+   "note": "COG; 100 m-baseline plane-fit slope at polar sites",
    "firstReadAt": "2026-11-14T17:23:53Z"
   },
   "LDSM_80S_20MPP_ADJ_ERR": {
    "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDSM_80S_20MPP_ADJ_ERR.TIF",
-   "note": "COG window read via GDAL /vsicurl/",
+   "note": "COG; slope error at polar sites",
    "firstReadAt": "2026-11-14T17:23:53Z"
   },
   "SLDEM2015_512_TILES": {
    "url": "https://imbrium.mit.edu/DATA/SLDEM2015/TILES/FLOAT_IMG/",
-   "note": "SLDEM2015_512: row-wise HTTP multi-range reads",
+   "note": "raw float32 tiles (km, offset 1737.4); row-block range reads for \u00b160\u00b0 sites",
    "firstReadAt": "2026-11-14T17:23:53Z"
   }
  }

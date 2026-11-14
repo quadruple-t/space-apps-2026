@@ -1,0 +1,20 @@
+{
+ "siteId": "artemis-de-gerlache-rim-2",
+ "time": "2010-02-15T00:00:00Z/2011-02-05T23:00:00Z",
+ "quantity": "lit-fraction",
+ "computed": 0.0,
+ "computedBy": "pipeline 80_validate.py @ 9f03127",
+ "historical": 0.0,
+ "historicalKind": "measured",
+ "historicalSource": {
+  "label": "LROC WAC south polar illumination maps, 100 m (Speyerer & Robinson 2013, Icarus 222:122-136)",
+  "url": "https://data.lroc.im-ldi.com/lroc/view_rdr/WAC_POLE_ILL_PCT_SOUTH",
+  "retrievedAt": "2026-11-14",
+  "tier": "A"
+ },
+ "toleranceDeg": null,
+ "deltaDeg": null,
+ "status": "pending",
+ "range": null,
+ "note": "Report only (no pass/fail tolerance). Fraction of hourly steps with the Sun centre above the horizon mask (0.0%) vs the LROC WAC percentage-of-observations map at the site pixel (0.0%; 5x5-pixel range 0.0-0.0%). The WAC map is observed, 100 m, surface level (observer height 0), and its binary threshold is conservative; the mask uses a 1 m observer and a point-source Sun. Expect agreement within tens of percent only. The site is an approximate Artemis region reference point."
+}

@@ -2,8 +2,8 @@
  "siteId": "apollo-11-tranquility",
  "time": "1969-07-20T20:17:39Z",
  "quantity": "sun-elevation-deg",
- "computed": null,
- "computedBy": null,
+ "computed": 10.703,
+ "computedBy": "pipeline 80_validate.py @ 9f03127",
  "historical": null,
  "historicalKind": "planning-value",
  "historicalSource": {
@@ -14,8 +14,8 @@
  },
  "toleranceDeg": null,
  "deltaDeg": null,
- "status": "pending",
- "note": "NASA SP-4029: acceptable range 'from 5° to 14°' (planned 10.8°). Pass if the computed value is inside the range.",
+ "status": "pass",
+ "note": "Computed Sun elevation 10.703° is inside the NASA SP-4029 acceptable range 5°-14° (planned value 10.8°).",
  "range": {
   "min": 5,
   "max": 14

@@ -77,6 +77,10 @@ export function OrbitDiagram({ series, site, tMs, missionStartMs, missionEndMs, 
   const rays = [0.2, 0.35, 0.5, 0.65, 0.8].map((f) => H * f);
 
   return <div ref={ref} className="relative h-full w-full">
+    <div className="pointer-events-none absolute left-3 top-3 z-10 max-w-[70%] border border-retro-purple/35 bg-void/80 px-3 py-2 backdrop-blur-sm">
+      <p className="type-data text-[0.6rem] uppercase tracking-[0.14em] text-retro-purple">Trajectory visualizer · {site.name}</p>
+      <p className="type-data mt-1 text-[0.56rem] text-bone/60">Selected mission time · {new Date(tMs).toISOString().replace("T", " ").slice(0, 16)} UTC · schematic orbit</p>
+    </div>
     <svg width={W} height={H} role="img" className="block"
       aria-label={`Orbit diagram, not to scale. Sunlight from the right. Moon ${(distKm / 1000).toFixed(0)} thousand km from Earth, ${ph.name}. Selected site ${sunUp ? "in daylight" : "in darkness"}${earthUp === null ? "" : earthUp ? ", Earth above its horizon" : ", Earth below its horizon"}.`}>
       <defs>

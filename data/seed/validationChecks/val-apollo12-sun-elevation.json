@@ -2,8 +2,8 @@
  "siteId": "apollo-12-oceanus-procellarum",
  "time": "1969-11-19T06:54:36Z",
  "quantity": "sun-elevation-deg",
- "computed": null,
- "computedBy": null,
+ "computed": 5.148,
+ "computedBy": "pipeline 80_validate.py @ 9f03127",
  "historical": 5.19,
  "historicalKind": "computed-reconstruction",
  "historicalSource": {
@@ -13,8 +13,8 @@
   "tier": "B"
  },
  "toleranceDeg": 0.5,
- "deltaDeg": null,
- "status": "pending",
- "note": "Pending: computed by 80_validate.py.",
+ "deltaDeg": -0.042,
+ "status": "pass",
+ "note": "Computed 5.148° vs ALSJ computed reconstruction 5.19°: delta -0.042° (tolerance ±0.5°). The historical value is a reconstruction, not an in-situ measurement. With the ALSJ table's older site coordinates (-3.1975, -23.3856) the pipeline gives 5.188° (+0.040° from the LROC-coordinate value).",
  "range": null
 }

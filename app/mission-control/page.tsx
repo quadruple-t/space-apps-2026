@@ -5,9 +5,10 @@ import { PageContainer } from "@/components/layout/page-container";
 import { DATA_SOURCES } from "@/data/site";
 import { METHOD_STEPS } from "@/data/science";
 import { MissionFlashcards } from "@/components/mission-control/flashcards";
+import { IntroductionSection } from "@/components/landing/introduction-section";
 
 export const metadata: Metadata = {
-  title: "Mission Control",
+  title: "Debrief",
   description: "How Shadowline will use LOLA terrain and JPL Horizons ephemerides to model lighting and Earth visibility.",
 };
 
@@ -41,7 +42,7 @@ const GLOSSARY = [
 export default function SciencePage() {
   return (
     <>
-      <PageIntro index="02" title="Mission Control" lede="Understand the principles that make exploration possible." status="Learning library">
+      <PageIntro index="02" title="Debrief" lede="Understand the principles that make exploration possible." status="Learning library">
         <p>
           Space travel depends on getting the fundamentals right: where energy comes from, how spacecraft orient
           themselves, and how crews stay connected to Earth. Learning these concepts helps turn exploration into
@@ -74,6 +75,8 @@ export default function SciencePage() {
           </div>
         </PageContainer>
       </section>
+
+      <IntroductionSection />
 
       <section aria-labelledby="mission-vocabulary" className="border-t border-line py-16 sm:py-24">
         <PageContainer>
