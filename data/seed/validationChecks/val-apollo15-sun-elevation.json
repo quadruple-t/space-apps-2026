@@ -2,8 +2,8 @@
  "siteId": "apollo-15-hadley-apennine",
  "time": "1971-07-30T22:16:29Z",
  "quantity": "sun-elevation-deg",
- "computed": null,
- "computedBy": null,
+ "computed": 12.024,
+ "computedBy": "pipeline 80_validate.py @ 9f03127",
  "historical": 12.05,
  "historicalKind": "computed-reconstruction",
  "historicalSource": {
@@ -13,8 +13,8 @@
   "tier": "B"
  },
  "toleranceDeg": 0.5,
- "deltaDeg": null,
- "status": "pending",
- "note": "Pending: computed by 80_validate.py.",
+ "deltaDeg": -0.026,
+ "status": "pass",
+ "note": "Computed 12.024° vs ALSJ computed reconstruction 12.05°: delta -0.026° (tolerance ±0.5°). The historical value is a reconstruction, not an in-situ measurement. With the ALSJ table's older site coordinates (26.1008, 3.6528) the pipeline gives 12.045° (+0.021° from the LROC-coordinate value).",
  "range": null
 }

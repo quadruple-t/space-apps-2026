@@ -28,7 +28,15 @@
  "nearestPsrKm": 0.0,
  "nearestColdTrapPsrKm": 0.0,
  "insidePsr": true,
- "litFractionCheck": null,
+ "litFractionCheck": {
+  "computed": 0.0,
+  "lrocWac": 0.0,
+  "window": {
+   "start": "2010-02-15T00:00:00Z",
+   "end": "2011-02-05T23:00:00Z",
+   "stepMinutes": 60
+  }
+ },
  "sources": [
   {
    "label": "PGDA product 90, A New View of the Lunar South Pole from LOLA (Barker et al. 2023, PSJ 4:183, doi:10.3847/PSJ/acf3e1; data doi:10.60903/gsfcpgda-lola-spole)",

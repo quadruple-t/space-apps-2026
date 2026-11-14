@@ -12,6 +12,21 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import type { EphemerisChunk, SavedReportSummary, SessionState } from "../lib/model/types";
+// Static imports on purpose: dynamic import() makes tsx load a second (ESM) copy of the Firebase SDK,
+// and a Firestore instance from one copy is rejected by doc() from the other.
+import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { ensureUserDoc } from "../lib/auth/ensureUserDoc";
+import { getDb, getFirebaseAuth } from "../lib/firebase/client";
+import { userDocConverter } from "../lib/firestore/converters";
+import { ChapterOrderError, DocumentNotFoundError } from "../lib/firestore/errors";
+import { getEphemerisChunk } from "../lib/firestore/ephemerisService";
+import * as progress from "../lib/firestore/progressService";
+import * as reports from "../lib/firestore/reportService";
+import * as sessions from "../lib/firestore/sessionService";
+import { getSite } from "../lib/firestore/sitesService";
+import { getTerrainGridTile } from "../lib/firestore/terrainGridService";
+import { getSiteTerrain } from "../lib/firestore/terrainService";
 
 const ROOT = path.resolve(__dirname, "..");
 const ENV_FILE = path.join(ROOT, ".env.local");
@@ -64,15 +79,6 @@ async function importOptional(rel: string): Promise<Record<string, unknown> | nu
 }
 
 async function userFlow(): Promise<void> {
-  const { getFirebaseAuth, getDb } = await import("../lib/firebase/client");
-  const { createUserWithEmailAndPassword, signOut } = await import("firebase/auth");
-  const { doc, getDoc, setDoc } = await import("firebase/firestore");
-  const { ensureUserDoc } = await import("../lib/auth/ensureUserDoc");
-  const progress = await import("../lib/firestore/progressService");
-  const { ChapterOrderError } = await import("../lib/firestore/errors");
-  const sessions = await import("../lib/firestore/sessionService");
-  const reports = await import("../lib/firestore/reportService");
-  const { userDocConverter } = await import("../lib/firestore/converters");
 
   console.log("\nUser data");
   const auth = getFirebaseAuth();
@@ -157,14 +163,26 @@ async function userFlow(): Promise<void> {
   await signOut(auth);
 }
 
+/**
+ * Static content is read through the versioned REST API (/api/v1), which runs inside Next.js
+ * (it imports "server-only" and reads Firestore through the public client adapter, so it cannot
+ * run in this Node process). This section therefore needs a running server:
+ *   npm run build && npm start        (then)   SMOKE_API_BASE=http://127.0.0.1:3000 npm run smoke
+ * It skips with a message when no server answers.
+ */
 async function dataFlow(): Promise<void> {
-  const { getSite } = await import("../lib/firestore/sitesService");
-  const { getSiteTerrain } = await import("../lib/firestore/terrainService");
-  const { getEphemerisChunk } = await import("../lib/firestore/ephemerisService");
-  const { getTerrainGridTile } = await import("../lib/firestore/terrainGridService");
-  const { DocumentNotFoundError } = await import("../lib/firestore/errors");
-
   console.log("\nSeeded data");
+  const base = (process.env.SMOKE_API_BASE ?? "http://127.0.0.1:3000").replace(/\/$/, "");
+  try {
+    const probe = await fetch(`${base}/api/v1/catalog/meta`, { signal: AbortSignal.timeout(5000) });
+    if (!probe.ok) throw new Error(`HTTP ${probe.status}`);
+  } catch (e) {
+    skip(`no API server at ${base} (${(e as Error).message}); start one with npm run build && npm start, or set SMOKE_API_BASE`);
+    return;
+  }
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) =>
+    realFetch(typeof input === "string" && input.startsWith("/") ? base + input : input, init)) as typeof fetch;
   const siteId = "apollo-11-tranquility";
   const site = await getSite(siteId);
   if (!site?.coordinates) {

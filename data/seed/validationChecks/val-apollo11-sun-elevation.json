@@ -2,8 +2,8 @@
  "siteId": "apollo-11-tranquility",
  "time": "1969-07-20T20:17:39Z",
  "quantity": "sun-elevation-deg",
- "computed": null,
- "computedBy": null,
+ "computed": 10.703,
+ "computedBy": "pipeline 80_validate.py @ 9f03127",
  "historical": 10.65,
  "historicalKind": "computed-reconstruction",
  "historicalSource": {
@@ -13,8 +13,8 @@
   "tier": "B"
  },
  "toleranceDeg": 0.5,
- "deltaDeg": null,
- "status": "pending",
- "note": "ALSJ used older site coordinates (0.6875 N, 23.4333 E), 1.27 km from LROC.",
+ "deltaDeg": 0.053,
+ "status": "pass",
+ "note": "Computed 10.703° vs ALSJ computed reconstruction 10.65°: delta +0.053° (tolerance ±0.5°). The historical value is a reconstruction, not an in-situ measurement. With the ALSJ table's older site coordinates (0.6875, 23.4333) the pipeline gives 10.663° (-0.040° from the LROC-coordinate value). ALSJ used older site coordinates (0.6875 N, 23.4333 E), 1.27 km from LROC.",
  "range": null
 }
