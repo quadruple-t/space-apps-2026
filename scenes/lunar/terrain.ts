@@ -1,0 +1,182 @@
+import * as THREE from "three";
+import { fbm2D, seededRandom, valueNoise2D } from "@/lib/noise";
+import { HERO_SCENE } from "@/data/hero-scene";
+
+/**
+ * PROCEDURAL, ILLUSTRATIVE terrain — not LOLA-derived.
+ *
+ * Scene units are roughly 50 m. The camera looks down −Z. The mesh is a
+ * frustum-shaped grid (narrow near the camera, wide at the horizon) so that
+ * triangles keep a roughly constant on-screen size: dense where you can see
+ * detail, coarse where you can't. Vertices are jittered so the low-poly
+ * facets read as rock rather than as a regular grid.
+ *
+ * When real DEMs arrive, replace `heightAt` with a sampler over the dataset;
+ * the mesh builder and scene do not need to change.
+ */
+
+const SEED = 1337;
+const MOON_RADIUS_UNITS = 34_740; // 1737 km / 50 m
+
+type Crater = { x: number; z: number; r: number; depth: number; rim: number; seed: number };
+type Massif = { x: number; z: number; r: number; h: number; seed: number };
+
+/** The foreground crater the camera looks across — its floor stays in shadow. */
+export const MAIN_CRATER: Crater = { x: -4, z: -112, r: 78, depth: 30, rim: 8, seed: 11 };
+
+function polar(azimuthDeg: number, distance: number) {
+  const a = (azimuthDeg * Math.PI) / 180;
+  return { x: Math.sin(a) * distance, z: -Math.cos(a) * distance };
+}
+
+// Distant massifs placed by azimuth, leaving a notch where the Sun sits and
+// a ridge for the Earth to hang above.
+const MASSIFS: Massif[] = [
+  { ...polar(-62, 600), r: 190, h: 64, seed: 1 },
+  { ...polar(-41, 680), r: 120, h: 38, seed: 2 },
+  { ...polar(-6, 640), r: 150, h: 46, seed: 3 },
+  { ...polar(18, 560), r: 130, h: 34, seed: 4 },
+  { ...polar(HERO_SCENE.earthAzimuthDeg + 2, 690), r: 210, h: 72, seed: 5 },
+  { ...polar(58, 560), r: 170, h: 52, seed: 6 },
+  { ...polar(-90, 420), r: 160, h: 40, seed: 7 },
+  { ...polar(88, 430), r: 150, h: 44, seed: 8 },
+];
+
+const CRATERS: Crater[] = (() => {
+  const rand = seededRandom(SEED);
+  const list: Crater[] = [MAIN_CRATER];
+  let guard = 0;
+  while (list.length < 34 && guard++ < 400) {
+    const z = -20 - rand() * 520;
+    const spread = 70 + (-z) * 0.9;
+    const x = (rand() * 2 - 1) * spread;
+    const r = 4 + Math.pow(rand(), 2.2) * 34;
+    // Keep the camera's standing ground clear.
+    if (Math.hypot(x, z) < 40 + r) continue;
+    list.push({ x, z, r, depth: r * (0.28 + rand() * 0.14), rim: r * (0.07 + rand() * 0.05), seed: guard });
+  }
+  return list;
+})();
+
+const smoothstep = (a: number, b: number, t: number) => {
+  const x = Math.min(1, Math.max(0, (t - a) / (b - a)));
+  return x * x * (3 - 2 * x);
+};
+
+function craterContribution(c: Crater, x: number, z: number) {
+  const dx = x - c.x;
+  const dz = z - c.z;
+  const dist = Math.hypot(dx, dz);
+  if (dist > c.r * 2.4) return 0;
+  // Irregular rim: radius wobbles with angle.
+  const angle = Math.atan2(dz, dx);
+  const wobble = 1 + (valueNoise2D(Math.cos(angle) * 2.5 + c.seed, Math.sin(angle) * 2.5, c.seed) - 0.5) * 0.22;
+  const d = dist / (c.r * wobble);
+  if (d < 1) {
+    // Bowl with a slightly flattened floor.
+    const bowl = Math.pow(d, 2.2);
+    return c.rim + (bowl - 1) * c.depth * (1 - 0.25 * smoothstep(0, 0.35, 0.35 - d));
+  }
+  const falloff = 1 - smoothstep(1, 2.3, d);
+  return c.rim * falloff * falloff;
+}
+
+function massifContribution(m: Massif, x: number, z: number) {
+  const dist = Math.hypot(x - m.x, z - m.z);
+  if (dist > m.r) return 0;
+  const shape = Math.pow(1 - smoothstep(0, 1, dist / m.r), 1.4);
+  // Ridged detail so the skyline is crenellated rather than domed.
+  const ridged = 1 - Math.abs(fbm2D(x / 55 + m.seed * 10, z / 55, 4, m.seed) );
+  return m.h * shape * (0.65 + 0.55 * ridged);
+}
+
+/** Terrain height at world (x, z). Pure and deterministic. */
+export function heightAt(x: number, z: number) {
+  let h = fbm2D(x / 110, z / 110, 5, SEED) * 9;
+  h += fbm2D(x / 22, z / 22, 3, SEED + 5) * 1.4;
+  for (const c of CRATERS) h += craterContribution(c, x, z);
+  for (const m of MASSIFS) h += massifContribution(m, x, z);
+  // Lunar curvature drops the far field below the camera's horizontal.
+  h -= (x * x + z * z) / (2 * MOON_RADIUS_UNITS);
+  return h;
+}
+
+export type TerrainDetail = "high" | "low";
+
+const DETAIL = {
+  high: { cols: 170, rows: 130 },
+  low: { cols: 96, rows: 76 },
+} as const;
+
+const Z_NEAR = 34;
+const Z_FAR = -820;
+
+/** Build the faceted terrain geometry. */
+export function createTerrainGeometry(detail: TerrainDetail = "high") {
+  const { cols, rows } = DETAIL[detail];
+  const rand = seededRandom(SEED + 99);
+
+  const positions = new Float32Array((cols + 1) * (rows + 1) * 3);
+  const colors = new Float32Array((cols + 1) * (rows + 1) * 3);
+  const base = new THREE.Color("#9a978f");
+  const dark = new THREE.Color("#5f5d58");
+  const bright = new THREE.Color("#b9b5ab");
+  const tmp = new THREE.Color();
+
+  let p = 0;
+  for (let r = 0; r <= rows; r++) {
+    const v = r / rows;
+    const vNext = (r + 1) / rows;
+    const z = Z_NEAR - (Z_NEAR - Z_FAR) * Math.pow(v, 1.9);
+    const zNext = Z_NEAR - (Z_NEAR - Z_FAR) * Math.pow(vNext, 1.9);
+    const cellD = Math.abs(zNext - z);
+    const halfW = 70 + (Z_NEAR - z) * 1.3;
+    const cellW = (2 * halfW) / cols;
+
+    for (let c = 0; c <= cols; c++) {
+      const edge = r === 0 || r === rows || c === 0 || c === cols;
+      let x = -halfW + c * cellW;
+      let zz = z;
+      if (!edge) {
+        x += (rand() - 0.5) * cellW * 0.72;
+        zz += (rand() - 0.5) * cellD * 0.72;
+      }
+      const y = heightAt(x, zz);
+      positions[p] = x;
+      positions[p + 1] = y;
+      positions[p + 2] = zz;
+
+      // Albedo: subtle mottling, brighter ejecta near crater rims.
+      const mottle = valueNoise2D(x / 9, zz / 9, 3) * 0.6 + valueNoise2D(x / 40, zz / 40, 4) * 0.4;
+      tmp.copy(dark).lerp(base, mottle);
+      const rimDist = Math.abs(Math.hypot(x - MAIN_CRATER.x, zz - MAIN_CRATER.z) / MAIN_CRATER.r - 1.12);
+      if (rimDist < 0.3) tmp.lerp(bright, (0.3 - rimDist) * 1.1);
+      colors[p] = tmp.r;
+      colors[p + 1] = tmp.g;
+      colors[p + 2] = tmp.b;
+      p += 3;
+    }
+  }
+
+  const indices: number[] = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const a = r * (cols + 1) + c;
+      const b = a + 1;
+      const d = a + (cols + 1);
+      const e = d + 1;
+      // Counter-clockwise from above (+Y normals). Randomise the diagonal
+      // to avoid a visible weave.
+      if (rand() > 0.5) indices.push(a, b, d, b, e, d);
+      else indices.push(a, b, e, a, e, d);
+    }
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  geometry.computeBoundingSphere();
+  return geometry;
+}
