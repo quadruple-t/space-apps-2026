@@ -2,7 +2,7 @@
 
 import { List } from "lucide-react";
 import { ConditionsReadout } from "@/components/freeplay/conditions-readout";
-import { DailyGraphs, GraphTabs, PanelSettings } from "@/components/freeplay/graphs-panel";
+import { DailyGraphs, GraphTabs, PanelSettings, YearlyGraphs } from "@/components/freeplay/graphs-panel";
 import { OrbitDiagram } from "@/components/freeplay/orbit-diagram";
 import { PresetsPanel } from "@/components/freeplay/presets-panel";
 import { TimeControls } from "@/components/freeplay/time-controls";
@@ -28,6 +28,7 @@ export function OrbitScreen() {
 
   const series = useSiteSeries(site.latitudeDeg, site.longitudeDeg, startIso, durationHours);
   const vectors = useOrbitVectors(startIso, durationHours);
+  const year = useSiteSeries(site.latitudeDeg, site.longitudeDeg, startIso, 365 * 24, graphTab === "yearly");
   const samples = series.data;
   const index = samples?.length ? Math.min(samples.length - 1, elapsedHours) : 0;
   const now = samples?.length ? sampleAt(samples, index) : null;
@@ -59,7 +60,9 @@ export function OrbitScreen() {
           : <Status loading={series.loading} error={series.error} what={`Sun and Earth angles at ${site.name}`} />}
         {graphTab === "daily"
           ? samples && <DailyGraphs samples={samples} siteId={site.id} startMs={startMs} tMs={tMs} />
-          : <p className="text-xs text-muted-foreground">Yearly graphs</p>}
+          : year.data
+            ? <YearlyGraphs samples={year.data} siteId={site.id} startMs={startMs} tMs={tMs} missionEndMs={startMs + durationHours * 3_600_000} />
+            : <Status loading={year.loading} error={year.error} what="a year of hourly data (custom sites can take up to a minute)" />}
       </section>
       <PresetsPanel compact className="hidden max-h-[28%] shrink-0 md:flex" />
     </div>

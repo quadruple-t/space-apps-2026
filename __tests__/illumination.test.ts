@@ -1,7 +1,7 @@
 import { describe, test, expect } from "@jest/globals"
 import { parseHorizonsObserver } from "../lib/horizons"
 import {
-  buildTimeline, hoursUntilChange, irradiance, mergeSeries, sampleAt, summarizeByDay, SOLAR_CONSTANT_W_M2,
+  buildTimeline, hoursUntilChange, irradiance, mergeSeries, sampleAt, summarizeByDay, summarizeByLunarDay, SOLAR_CONSTANT_W_M2, SYNODIC_MONTH_HOURS,
   type Sample,
 } from "../lib/illumination"
 
@@ -78,6 +78,19 @@ describe("timeline", () => {
     expect(days).toHaveLength(2)
     expect(days[0].sunlightHours).toBe(24)
     expect(days[1].sunlightHours).toBe(6)
+  })
+})
+
+describe("lunar-day summary", () => {
+  test("buckets a year into 12 full lunar days plus a partial one", () => {
+    const year = [...Array(365 * 24 + 1)].map((_, h) => mk(h, Math.sin((2 * Math.PI * h) / SYNODIC_MONTH_HOURS) * 10, h % 2 ? 1 : -1))
+    const days = summarizeByLunarDay(year)
+    expect(days).toHaveLength(13)
+    expect(days.filter((d) => d.complete)).toHaveLength(12)
+    expect(days[0].sunlightHours).toBeGreaterThan(350)
+    expect(days[0].sunlightHours).toBeLessThan(360)
+    expect(days[0].maxSunEl).toBeCloseTo(10, 1)
+    expect(days[0].earthVisiblePct).toBeCloseTo(50, 0)
   })
 })
 

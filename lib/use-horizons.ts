@@ -49,9 +49,9 @@ function useFetched<T>(key: string | null, load: () => Promise<{ data: T; source
 }
 
 /** Hourly Sun and Earth az/el at a site over [startIso, startIso + hours]. */
-export function useSiteSeries(lat: number, lon: number, startIso: string, hours: number) {
+export function useSiteSeries(lat: number, lon: number, startIso: string, hours: number, enabled = true) {
   const { start, stop } = window_(startIso, hours)
-  const key = `${lat},${lon},${start},${stop}`
+  const key = enabled ? `${lat},${lon},${start},${stop}` : null
   return useFetched<Sample[]>(key, async () => {
     const base = { type: "OBSERVER", lat: String(lat), lon: String(lon), start, stop, step: "1h" }
     const [sun, earth] = await Promise.all([getJson({ ...base, command: "10" }), getJson({ ...base, command: "399" })])

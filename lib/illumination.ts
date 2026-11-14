@@ -106,6 +106,40 @@ export function summarizeByDay(samples: Sample[], tl: Timeline): DaySummary[] {
   return days.filter(Boolean)
 }
 
+export const SYNODIC_MONTH_HOURS = 29.530589 * 24
+
+export type LunarDaySummary = {
+  index: number
+  startMs: number
+  endMs: number
+  sunlightHours: number
+  maxSunEl: number
+  earthVisiblePct: number
+  /** false for a trailing bucket shorter than a full lunar day */
+  complete: boolean
+}
+
+/** Bucket an hourly series into consecutive synodic months (lunar days) from its first sample. */
+export function summarizeByLunarDay(samples: Sample[], stepHours = 1): LunarDaySummary[] {
+  if (!samples.length) return []
+  const t0 = samples[0].t, span = SYNODIC_MONTH_HOURS * 3_600_000
+  const out: (LunarDaySummary & { n: number; earthN: number })[] = []
+  for (const s of samples) {
+    const k = Math.floor((s.t - t0) / span)
+    const b = out[k] ??= { index: k, startMs: t0 + k * span, endMs: t0 + (k + 1) * span, sunlightHours: 0, maxSunEl: -90, earthVisiblePct: 0, complete: false, n: 0, earthN: 0 }
+    b.n++
+    if (s.sunEl > 0) b.sunlightHours += stepHours
+    if (s.earthEl > 0) b.earthN++
+    b.maxSunEl = Math.max(b.maxSunEl, s.sunEl)
+  }
+  const lastT = samples[samples.length - 1].t
+  return out.filter(Boolean).map(({ n, earthN, ...b }) => ({
+    ...b,
+    earthVisiblePct: (earthN / n) * 100,
+    complete: lastT >= b.endMs - stepHours * 3_600_000,
+  }))
+}
+
 function lerpAngle(a: number, b: number, f: number): number {
   const d = ((b - a + 540) % 360) - 180
   return (a + d * f + 360) % 360
