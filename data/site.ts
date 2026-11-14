@@ -16,7 +16,7 @@ export type NavLink = { label: string; href: string };
 /** Primary navigation routes to distinct pages. */
 export const NAV_LINKS: NavLink[] = [
   { label: "Overview", href: "/" },
-  { label: "The Mission", href: "/mission" },
+  { label: "Tutorial", href: "/mission" },
   { label: "How It Works", href: "/how-it-works" },
   { label: "Freeplay", href: "/explore" },
 ];

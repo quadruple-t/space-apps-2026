@@ -24,7 +24,7 @@ export type CameraMode = "first-person" | "orbit" | "overhead";
  * Slow cinematic drift plus gentle pointer parallax. Static when
  * `still` is true (reduced motion).
  */
-export function CameraRig({ shot, still, mode = "first-person", interactive = false, zoom = 1, lookSensitivity = 1, orbitTarget, landingActive = false, terrainProfile }: { shot: CameraShot; still: boolean; mode?: CameraMode; interactive?: boolean; zoom?: number; lookSensitivity?: number; orbitTarget?: THREE.Vector3; landingActive?: boolean; terrainProfile: LunarTerrainProfile }) {
+export function CameraRig({ shot, still, mode = "first-person", interactive = false, zoom = 1, lookSensitivity = 1, orbitTarget, landingActive = false, terrainProfile, onTutorialAction }: { shot: CameraShot; still: boolean; mode?: CameraMode; interactive?: boolean; zoom?: number; lookSensitivity?: number; orbitTarget?: THREE.Vector3; landingActive?: boolean; terrainProfile: LunarTerrainProfile; onTutorialAction?: (action: "look" | "move") => void }) {
   const { get, gl } = useThree();
   const narrow = useThree((s) => s.size.width / s.size.height < 0.9);
   const target = narrow && shot.narrowTarget ? shot.narrowTarget : shot.target;
@@ -96,6 +96,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
       if (!motionKeys.has(key)) return;
       event.preventDefault();
       keys.current.add(key);
+      onTutorialAction?.("move");
       if (keyFrame.current === null) keyFrame.current = window.requestAnimationFrame(animateKeys);
       get().invalidate();
     };
@@ -130,6 +131,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
       const sensitivity = lookSensitivity;
       yaw.current += dx * 0.004 * sensitivity;
       pitch.current = THREE.MathUtils.clamp(pitch.current - dy * 0.003 * sensitivity, -1.1, 1.1);
+      if (Math.abs(dx) + Math.abs(dy) > 0) onTutorialAction?.("look");
       get().invalidate();
     };
     const up = () => { touchLooking.current = false; };
@@ -159,7 +161,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
       el.removeEventListener("pointercancel", up);
       el.removeEventListener("wheel", wheel);
     };
-  }, [get, gl, interactive, lookSensitivity]);
+  }, [get, gl, interactive, lookSensitivity, onTutorialAction]);
 
   // Track the pointer over the whole window so overlays don't block parallax.
   useEffect(() => {

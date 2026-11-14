@@ -11,6 +11,7 @@ import type { CelestialState, LunarSite, MissionMetrics } from "@/integrations/s
 import { interpolateTerrain, MOON_REGIONS, terrainGridForSite, type TerrainSample } from "@/integrations/terrain/moon-samples";
 import { MoonLocationPicker } from "./moon-location-picker";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import { GUIDED_LESSONS } from "@/app/mission/tutorial-content";
 
 const LunarScene = dynamic(() => import("@/scenes/lunar/lunar-scene"), { ssr: false });
 const initialTime = new Date("2026-11-14T12:00:00.000Z");
@@ -22,10 +23,10 @@ function Readout({ label, value, tone = "neutral" }: { label: string; value: str
   return <div className="hud-readout"><div className="hud-label">{label}</div><div className={`type-data mt-1 text-sm ${color}`}>{value}</div></div>;
 }
 
-export function Freeplay() {
+export function Freeplay({ guided = false }: { guided?: boolean }) {
   const [site, setSite] = useState<LunarSite>(MOON_REGIONS[0].site);
   const [activeSite, setActiveSite] = useState<LunarSite>(MOON_REGIONS[0].site);
-  const [phase, setPhase] = useState<"choose" | "transfer" | "descent" | "explore">("choose");
+  const [phase, setPhase] = useState<"choose" | "transfer" | "descent" | "explore">(guided ? "descent" : "choose");
   const [timestamp, setTimestamp] = useState(initialTime);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(60);
@@ -40,11 +41,32 @@ export function Freeplay() {
   const [dataError, setDataError] = useState(false);
   const [mapOpen, setMapOpen] = useState(false);
   const [mobileTelemetryOpen, setMobileTelemetryOpen] = useState(false);
+  const [lessonIndex, setLessonIndex] = useState(0);
+  const [tutorialActions, setTutorialActions] = useState<Set<string>>(new Set());
+  const [visitedSites, setVisitedSites] = useState<Set<string>>(() => new Set([MOON_REGIONS[0].site.id]));
+  const [earthAcknowledged, setEarthAcknowledged] = useState(false);
+  const [guidedComplete, setGuidedComplete] = useState(false);
   const reducedMotion = useReducedMotion();
   const celestialRequest = useRef(0);
   const metricRequest = useRef(0);
   const metricsCache = useRef(new globalThis.Map<string, MissionMetrics>());
   const [deviceTier] = useState<"low" | "high">(() => typeof window !== "undefined" && window.innerWidth >= 768 && (navigator.hardwareConcurrency ?? 8) > 4 ? "high" : "low");
+
+  const recordTutorialAction = useCallback((action: string) => {
+    setTutorialActions((current) => current.has(action) ? current : new Set(current).add(action));
+  }, []);
+  const lesson = GUIDED_LESSONS[lessonIndex];
+  const lessonComplete = guided && (lessonIndex === 0
+    ? tutorialActions.has("look") && tutorialActions.has("move") && tutorialActions.has("camera")
+    : lessonIndex === 1
+      ? tutorialActions.has("horizon")
+      : lessonIndex === 2
+        ? tutorialActions.has("time")
+        : lessonIndex === 3
+          ? earthAcknowledged
+          : lessonIndex === 4
+            ? tutorialActions.has("timeline")
+            : visitedSites.size >= 2 && tutorialActions.has(`selected:${activeSite.id}`));
 
   const activeTerrain = useMemo(() => interpolateTerrain(terrainGridForSite(activeSite), activeSite.latitudeDeg, activeSite.longitudeDeg), [activeSite]);
   const environmentSite = useMemo(() => phase === "choose" ? site : activeSite, [phase, site, activeSite]);
@@ -86,9 +108,15 @@ export function Freeplay() {
   }, [environmentSite, utcDay, updateMetrics]);
   useEffect(() => {
     if (!playing || reducedMotion) return;
-    const timer = window.setInterval(() => setTimestamp((time) => new Date(time.getTime() + speed * 60_000)), 250);
+    const timer = window.setInterval(() => {
+      setTimestamp((time) => new Date(time.getTime() + speed * 60_000));
+      if (guided) {
+        recordTutorialAction("time");
+        recordTutorialAction("timeline");
+      }
+    }, 250);
     return () => window.clearInterval(timer);
-  }, [playing, speed, reducedMotion]);
+  }, [playing, speed, reducedMotion, guided, recordTutorialAction]);
 
   useEffect(() => {
     if (phase === "transfer") {
@@ -110,7 +138,11 @@ export function Freeplay() {
     setCameraMode("first-person");
     setPhase("explore");
     setMapOpen(false);
-  }, []);
+    if (guided) {
+      setVisitedSites((current) => new Set(current).add(target.id));
+      recordTutorialAction(`selected:${target.id}`);
+    }
+  }, [guided, recordTutorialAction]);
   const selectDataPoint = useCallback((point: TerrainSample) => {
     const target: LunarSite = {
       id: `grid-${point.latitudeDeg}-${point.longitudeDeg}`,
@@ -142,6 +174,7 @@ export function Freeplay() {
   const chosenDateLabel = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(timestamp);
   const chooseUtcDay = (day: number) => {
     setTimestamp((current) => new Date(Date.UTC(calendarMonth.getUTCFullYear(), calendarMonth.getUTCMonth(), day, current.getUTCHours(), current.getUTCMinutes())));
+    if (guided) { recordTutorialAction("time"); recordTutorialAction("timeline"); }
     setDatePickerOpen(false);
   };
   useEffect(() => {
@@ -153,7 +186,7 @@ export function Freeplay() {
 
   return <main className="relative isolate h-dvh w-full overflow-hidden bg-void text-bone" aria-label="Shadowline lunar simulation">
     <div className="absolute inset-0 z-0">
-      <LunarScene variant="preview" active detail={deviceTier} still={reducedMotion} freeplay={phase !== "choose"} cameraMode={cameraMode} lookSensitivity={lookSensitivity} landingActive={phase === "descent"} zoom={zoom}
+      <LunarScene variant="preview" active detail={deviceTier} still={reducedMotion} freeplay={phase !== "choose"} cameraMode={cameraMode} lookSensitivity={lookSensitivity} landingActive={phase === "descent"} zoom={zoom} onTutorialAction={guided ? recordTutorialAction : undefined}
         selectedSite={activeSite} dataPoints={activeTerrain.corners} onSelectDataPoint={selectDataPoint}
         sunAzimuthDeg={celestial?.sun.azimuthDeg} sunElevationDeg={celestial?.sun.elevationDeg}
         earthAzimuthDeg={celestial?.earth.azimuthDeg} earthElevationDeg={celestial?.earth.elevationDeg}/>
@@ -164,7 +197,7 @@ export function Freeplay() {
     <header className="absolute inset-x-3 top-3 z-20 flex items-center justify-between gap-2 sm:inset-x-5 sm:top-4">
       <div className="flex min-w-0 items-center gap-2 rounded-lg border border-line/80 bg-void/75 p-1.5 shadow-xl backdrop-blur-xl sm:gap-3 sm:p-2">
         <Link href="/" aria-label="Exit simulation to Shadowline home" className="grid size-9 shrink-0 place-items-center rounded-md bg-retro-purple/15 text-retro-purple transition hover:bg-retro-purple/25"><ArrowLeft size={17}/></Link>
-        <div className="min-w-0 pr-2"><div className="type-data text-[0.6rem] uppercase tracking-[0.16em] text-retro-purple">Shadowline / Freeplay</div><div className="truncate text-xs font-medium text-bone">Lunar surface simulation</div></div>
+        <div className="min-w-0 pr-2"><div className="type-data text-[0.6rem] uppercase tracking-[0.16em] text-retro-purple">Shadowline / {guided ? "Tutorial" : "Freeplay"}</div><div className="truncate text-xs font-medium text-bone">Lunar surface simulation</div></div>
         <span className="hidden h-8 w-px bg-line sm:block"/>
         {phase === "explore" && <button type="button" onClick={()=>setMapOpen((open)=>{if(!open){setMobileTelemetryOpen(false);setDatePickerOpen(false);}return !open;})} aria-expanded={mapOpen} className="inline-flex items-center gap-2 rounded-md border border-line px-2.5 py-2 text-[0.65rem] uppercase tracking-[0.1em] text-muted-foreground hover:border-retro-purple/60 hover:text-bone sm:px-3"><Map size={14} className="text-retro-purple"/><span className="hidden sm:inline">{mapOpen?"Hide map":"Map & samples"}</span></button>}
       </div>
@@ -175,6 +208,35 @@ export function Freeplay() {
     </header>
 
     {phase === "choose" && <MoonLocationPicker selectedSite={site} onSelect={setSite} onContinue={beginDescent} sunAzimuthDeg={celestial?.sun.azimuthDeg} sunElevationDeg={celestial?.sun.elevationDeg}/>}
+
+    {guided && phase === "explore" && <section aria-live="polite" aria-label="Guided mission lesson" className="absolute left-3 top-[5rem] z-30 w-[min(390px,calc(100vw-1.5rem))] rounded-xl border border-retro-purple/40 bg-[#100e20]/95 p-4 shadow-[0_18px_70px_rgba(4,2,18,.78)] backdrop-blur-xl sm:left-5 sm:top-[5.5rem] sm:p-5">
+      {guidedComplete ? <>
+        <div className="type-data text-[.58rem] uppercase tracking-[.17em] text-retro-red">Mission debrief · complete</div>
+        <h2 className="type-heading mt-2 text-xl text-bone">You have the flight controls.</h2>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">You compared terrain, celestial geometry, changing time, and candidate sites in the shared simulation. Your selected site is {activeSite.name}. The demo metrics remain illustrative.</p>
+        <Link href="/explore" className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg bg-retro-purple px-4 type-data text-[.62rem] font-semibold uppercase tracking-[.12em] text-void hover:bg-[#c2abff]">Enter Freeplay <ArrowLeft className="rotate-180" size={14}/></Link>
+      </> : <>
+        <div className="flex items-center justify-between gap-2"><span className="type-data text-[.56rem] uppercase tracking-[.12em] text-retro-blue">{lesson.era}</span><span className="type-data shrink-0 text-[.58rem] text-retro-red">LESSON {lessonIndex + 1} OF {GUIDED_LESSONS.length}</span></div>
+        <div className="mt-2 h-1 overflow-hidden rounded-full bg-line"><div className="h-full rounded-full bg-gradient-to-r from-retro-purple via-retro-blue to-retro-red transition-[width]" style={{width:`${((lessonIndex+1)/GUIDED_LESSONS.length)*100}%`}}/></div>
+        <h2 className="type-heading mt-3 text-xl text-bone">{lesson.title}</h2>
+        <p className="mt-2 text-[.78rem] leading-relaxed text-muted-foreground">{lesson.body}</p>
+        <div className="mt-3 rounded-lg border border-retro-blue/25 bg-retro-blue/5 p-3">
+          <div className="type-data text-[.54rem] uppercase tracking-[.13em] text-retro-blue">Mission objective</div>
+          <p className="mt-1 text-xs leading-relaxed text-bone">{lesson.objective}</p>
+          {lessonIndex === 0 && <p className="mt-2 type-data text-[.52rem] leading-relaxed text-muted-foreground">LOOK {tutorialActions.has("look")?"✓":"○"} · MOVE {tutorialActions.has("move")?"✓":"○"} · CAMERA {tutorialActions.has("camera")?"✓":"○"}</p>}
+          {lessonIndex === 1 && <button type="button" onClick={()=>recordTutorialAction("horizon")} className="mt-2 rounded border border-retro-blue/30 px-2.5 py-1.5 type-data text-[.54rem] uppercase tracking-[.08em] text-retro-blue hover:bg-retro-blue/10">I inspected the terrain horizon</button>}
+          {lessonIndex === 3 && <div className="mt-2 flex flex-wrap gap-2 type-data text-[.54rem] text-retro-blue"><span>EARTH AZ {celestial?`${celestial.earth.azimuthDeg.toFixed(1)}°`:"—"}</span><span>EL {celestial?angle(celestial.earth.elevationDeg):"—"}</span><span className="text-muted-foreground">illustrative apparent geometry</span></div>}
+          {lessonIndex === 3 && <button type="button" onClick={()=>setEarthAcknowledged(true)} className="mt-2 rounded border border-retro-blue/30 px-2.5 py-1.5 type-data text-[.54rem] uppercase tracking-[.08em] text-retro-blue hover:bg-retro-blue/10">I understand visibility ≠ radio-link guarantee</button>}
+          {lessonIndex === 5 && <div className="mt-2 flex items-center justify-between gap-2"><span className="type-data text-[.52rem] text-muted-foreground">{visitedSites.size} candidate locations visited</span><button type="button" onClick={()=>{setMapOpen(true);setMobileTelemetryOpen(false);setDatePickerOpen(false);}} className="rounded border border-retro-purple/35 px-2.5 py-1.5 type-data text-[.54rem] uppercase tracking-[.08em] text-retro-purple hover:bg-retro-purple/10">Open candidate map</button></div>}
+        </div>
+        <p className="mt-2 text-[.67rem] leading-relaxed text-muted-foreground"><span className="text-retro-red">TAKEAWAY</span> · {lesson.takeaway}</p>
+        <div className="mt-3 flex items-center justify-between gap-2 border-t border-line/80 pt-3">
+          <button type="button" onClick={()=>{setLessonIndex((index)=>Math.max(0,index-1));setTutorialActions(new Set());setEarthAcknowledged(false);}} disabled={lessonIndex===0} className="rounded px-2 py-2 type-data text-[.55rem] uppercase tracking-[.1em] text-muted-foreground hover:text-bone disabled:opacity-35">Previous</button>
+          <button type="button" onClick={()=>{if(lessonIndex===GUIDED_LESSONS.length-1){setGuidedComplete(true);}else{setLessonIndex((index)=>index+1);setTutorialActions(new Set());setEarthAcknowledged(false);}}} disabled={!lessonComplete} className="rounded-lg bg-retro-purple px-3.5 py-2 type-data text-[.56rem] font-semibold uppercase tracking-[.11em] text-void hover:bg-[#c2abff] disabled:cursor-not-allowed disabled:opacity-40">{lessonIndex===GUIDED_LESSONS.length-1?"Complete mission":"Next lesson"}</button>
+          <button type="button" onClick={()=>{if(lessonIndex===GUIDED_LESSONS.length-1){setGuidedComplete(true);}else{setLessonIndex((index)=>index+1);setTutorialActions(new Set());setEarthAcknowledged(false);}}} className="rounded px-2 py-2 type-data text-[.55rem] uppercase tracking-[.1em] text-muted-foreground hover:text-retro-red">Skip</button>
+        </div>
+      </>}
+    </section>}
 
     {(phase === "transfer" || phase === "descent") && <div className="pointer-events-none absolute inset-0 z-30 grid place-items-center bg-void/15 px-5 backdrop-blur-[1px]">
       <div className="w-full max-w-sm rounded-xl border border-retro-purple/40 bg-void/85 p-5 text-center shadow-[0_0_80px_rgba(169,134,255,0.16)] backdrop-blur-xl sm:p-7">
@@ -231,7 +293,7 @@ export function Freeplay() {
     {phase === "explore" && <section aria-label="Simulation controls" className="absolute inset-x-3 bottom-3 z-20 rounded-xl border border-retro-purple/25 bg-void/88 px-3 py-2.5 shadow-[0_20px_90px_rgba(4,2,18,0.65)] backdrop-blur-2xl sm:inset-x-auto sm:left-1/2 sm:w-[min(680px,calc(100vw-400px))] sm:min-w-[560px] sm:-translate-x-1/2 sm:px-4 sm:py-3">
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
         <div className="flex items-center gap-1 rounded-lg border border-line/80 bg-void/60 p-1">
-          {([["first-person","First person"],["orbit","Orbit"],["overhead","Map"]] as const).map(([mode,label])=><button key={mode} type="button" onClick={()=>setCameraMode(mode)} aria-pressed={cameraMode===mode} className={`rounded-md px-3 py-1.5 text-[0.62rem] uppercase tracking-[0.08em] transition ${cameraMode===mode?"bg-retro-purple/20 text-retro-purple":"text-muted-foreground hover:text-bone"}`}>{label}</button>)}
+          {([["first-person","First person"],["orbit","Orbit"],["overhead","Map"]] as const).map(([mode,label])=><button key={mode} type="button" onClick={()=>{setCameraMode(mode);recordTutorialAction("camera");}} aria-pressed={cameraMode===mode} className={`rounded-md px-3 py-1.5 text-[0.62rem] uppercase tracking-[0.08em] transition ${cameraMode===mode?"bg-retro-purple/20 text-retro-purple":"text-muted-foreground hover:text-bone"}`}>{label}</button>)}
         </div>
         <div className="flex items-center gap-1 rounded-lg border border-line/80 bg-void/60 p-1">
           <button type="button" aria-label="Zoom out" onClick={()=>setZoom((value)=>Math.min(1.8,value+0.12))} className="rounded p-1.5 text-bone hover:bg-white/10"><ZoomOut size={15}/></button>
@@ -249,9 +311,9 @@ export function Freeplay() {
         <p className="type-data text-right text-[0.55rem] uppercase tracking-[0.1em] text-muted-foreground">WASD / arrows to move<br/>Move cursor to look</p>
       </div>
       <div className="mt-2.5 flex items-center gap-2 sm:gap-3">
-        <button type="button" disabled={reducedMotion} onClick={()=>setPlaying((value)=>!value)} className="flex h-9 shrink-0 items-center gap-2 rounded-lg bg-retro-red px-3 text-[0.63rem] font-semibold uppercase tracking-[0.1em] text-void transition hover:bg-[#ff91a2] disabled:cursor-not-allowed disabled:opacity-50" aria-label={playing?"Pause simulation":"Play simulation"} title={reducedMotion ? "Autoplay is paused by your reduced-motion setting" : undefined}>{playing?<Pause size={14}/>:<Play size={14}/>}<span className="hidden sm:inline">{playing?"Pause":"Run time"}</span></button>
+        <button type="button" disabled={reducedMotion} onClick={()=>{setPlaying((value)=>!value);recordTutorialAction("timeline");recordTutorialAction("time");}} className="flex h-9 shrink-0 items-center gap-2 rounded-lg bg-retro-red px-3 text-[0.63rem] font-semibold uppercase tracking-[0.1em] text-void transition hover:bg-[#ff91a2] disabled:cursor-not-allowed disabled:opacity-50" aria-label={playing?"Pause simulation":"Play simulation"} title={reducedMotion ? "Autoplay is paused by your reduced-motion setting" : undefined}>{playing?<Pause size={14}/>:<Play size={14}/>}<span className="hidden sm:inline">{playing?"Pause":"Run time"}</span></button>
         <label className="sr-only" htmlFor="playback-speed">Playback speed</label><select id="playback-speed" value={speed} onChange={(event)=>setSpeed(Number(event.target.value))} className="h-9 rounded-lg border border-line bg-void px-2 text-[0.62rem] text-bone"><option value={15}>15×</option><option value={60}>60×</option><option value={240}>240×</option></select>
-        <input aria-label="Simulation time of day in UTC" type="range" min={0} max={1439} value={dayMinute} onChange={(event)=>setTimestamp((date)=>{const next=new Date(date);next.setUTCHours(0,Number(event.target.value),0,0);return next;})} className="h-1.5 min-w-0 flex-1 cursor-pointer accent-[#ff5364]"/>
+        <input aria-label="Simulation time of day in UTC" type="range" min={0} max={1439} value={dayMinute} onChange={(event)=>{if(guided){recordTutorialAction("time");recordTutorialAction("timeline");}setTimestamp((date)=>{const next=new Date(date);next.setUTCHours(0,Number(event.target.value),0,0);return next;});}} className="h-1.5 min-w-0 flex-1 cursor-pointer accent-[#ff5364]"/>
         <div className="relative">
           <button type="button" id="simulation-date-trigger" aria-haspopup="dialog" aria-expanded={datePickerOpen} onClick={()=>{if(!datePickerOpen){setMapOpen(false);setMobileTelemetryOpen(false);setCalendarMonth(new Date(Date.UTC(timestamp.getUTCFullYear(),timestamp.getUTCMonth(),1)));}setDatePickerOpen((open)=>!open);}} className="inline-flex h-9 items-center gap-2 rounded-lg border border-line bg-void px-2.5 text-[0.58rem] text-bone transition hover:border-retro-purple/60 hover:bg-retro-purple/10"><CalendarDays size={14} className="text-retro-purple"/><span>{chosenDateLabel}</span></button>
           {datePickerOpen && createPortal(<div className="fixed inset-0 z-[60] grid place-items-center bg-void/70 p-4 backdrop-blur-sm" onMouseDown={(event)=>{if(event.target===event.currentTarget)setDatePickerOpen(false);}}><div role="dialog" data-no-flight-controls aria-label="Choose simulation date and UTC time" aria-modal="true" className="w-[min(380px,calc(100vw-2rem))] rounded-xl border border-retro-purple/40 bg-[#100e20]/[.98] p-4 shadow-[0_18px_70px_rgba(4,2,18,0.9)] backdrop-blur-2xl">
@@ -259,7 +321,7 @@ export function Freeplay() {
             <div className="mt-3 grid grid-cols-7 gap-1 text-center">{["S","M","T","W","T","F","S"].map((day,index)=><span key={`${day}-${index}`} className="type-data py-1 text-[0.55rem] text-muted-foreground">{day}</span>)}
               {calendarDays.map((day,index)=>day===null?<span key={`empty-${index}`}/>:<button key={day} type="button" aria-pressed={timestamp.getUTCFullYear()===calendarMonth.getUTCFullYear()&&timestamp.getUTCMonth()===calendarMonth.getUTCMonth()&&timestamp.getUTCDate()===day} onClick={()=>chooseUtcDay(day)} className={`grid aspect-square place-items-center rounded-md type-data text-xs transition ${timestamp.getUTCFullYear()===calendarMonth.getUTCFullYear()&&timestamp.getUTCMonth()===calendarMonth.getUTCMonth()&&timestamp.getUTCDate()===day?"bg-retro-purple text-void":"text-bone hover:bg-retro-blue/15 hover:text-retro-blue"}`}>{day}</button>)}
             </div>
-            <div className="mt-3 flex items-center justify-between border-t border-line/80 pt-3"><label htmlFor="simulation-utc-hour" className="type-data text-[0.56rem] uppercase tracking-[0.1em] text-muted-foreground">UTC time</label><div className="flex items-center gap-1.5"><select id="simulation-utc-hour" aria-label="UTC hour" value={timestamp.getUTCHours()} onChange={(event)=>setTimestamp((date)=>{const next=new Date(date);next.setUTCHours(Number(event.target.value));return next;})} className="h-8 rounded border border-line bg-void px-2 type-data text-xs text-bone">{Array.from({length:24},(_,hour)=><option key={hour} value={hour}>{String(hour).padStart(2,"0")}</option>)}</select><span className="text-muted-foreground">:</span><select aria-label="UTC minute" value={timestamp.getUTCMinutes()} onChange={(event)=>setTimestamp((date)=>{const next=new Date(date);next.setUTCMinutes(Number(event.target.value));return next;})} className="h-8 rounded border border-line bg-void px-2 type-data text-xs text-bone">{Array.from({length:60},(_,minute)=><option key={minute} value={minute}>{String(minute).padStart(2,"0")}</option>)}</select><span className="type-data text-[0.55rem] text-retro-blue">Z</span></div></div>
+            <div className="mt-3 flex items-center justify-between border-t border-line/80 pt-3"><label htmlFor="simulation-utc-hour" className="type-data text-[0.56rem] uppercase tracking-[0.1em] text-muted-foreground">UTC time</label><div className="flex items-center gap-1.5"><select id="simulation-utc-hour" aria-label="UTC hour" value={timestamp.getUTCHours()} onChange={(event)=>{if(guided){recordTutorialAction("time");recordTutorialAction("timeline");}setTimestamp((date)=>{const next=new Date(date);next.setUTCHours(Number(event.target.value));return next;});}} className="h-8 rounded border border-line bg-void px-2 type-data text-xs text-bone">{Array.from({length:24},(_,hour)=><option key={hour} value={hour}>{String(hour).padStart(2,"0")}</option>)}</select><span className="text-muted-foreground">:</span><select aria-label="UTC minute" value={timestamp.getUTCMinutes()} onChange={(event)=>{if(guided){recordTutorialAction("time");recordTutorialAction("timeline");}setTimestamp((date)=>{const next=new Date(date);next.setUTCMinutes(Number(event.target.value));return next;});}} className="h-8 rounded border border-line bg-void px-2 type-data text-xs text-bone">{Array.from({length:60},(_,minute)=><option key={minute} value={minute}>{String(minute).padStart(2,"0")}</option>)}</select><span className="type-data text-[0.55rem] text-retro-blue">Z</span></div></div>
             <button type="button" onClick={()=>setDatePickerOpen(false)} className="mt-3 w-full rounded border border-retro-purple/45 bg-retro-purple/10 px-3 py-2 type-data text-[0.58rem] uppercase tracking-[0.12em] text-retro-purple hover:bg-retro-purple/20">Done</button>
           </div></div>, document.body)}
         </div>
