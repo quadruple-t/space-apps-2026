@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Activity, ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Clock3, Crosshair, Globe2, Map, Pause, Play, RotateCcw, ZoomIn, ZoomOut, X } from "lucide-react";
 import type { CameraMode, MoveCommand } from "@/scenes/lunar/camera-rig";
@@ -11,6 +12,8 @@ import type { CelestialState, LunarSite, MissionMetrics } from "@/integrations/s
 import { interpolateTerrain, MOON_REGIONS, SCAFFOLD_MOON_GRID, type TerrainSample } from "@/integrations/terrain/moon-samples";
 import { MoonLocationPicker } from "./moon-location-picker";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import { lunarSiteFor, siteFromDriveParams, timeFromDriveParams } from "@/lib/drive-link";
+import { currentTimeMs, useFreeplay } from "@/lib/freeplay-store";
 
 const LunarScene = dynamic(() => import("@/scenes/lunar/lunar-scene"), { ssr: false });
 const initialTime = new Date("2026-11-14T12:00:00.000Z");
@@ -22,17 +25,27 @@ function Readout({ label, value, tone = "neutral" }: { label: string; value: str
   return <div className="hud-readout"><div className="hud-label">{label}</div><div className={`type-data mt-1 text-sm ${color}`}>{value}</div></div>;
 }
 
-export function Freeplay() {
-  const [site, setSite] = useState<LunarSite>(MOON_REGIONS[0].site);
-  const [activeSite, setActiveSite] = useState<LunarSite>(MOON_REGIONS[0].site);
-  const [phase, setPhase] = useState<"choose" | "transfer" | "descent" | "explore">("choose");
-  const [timestamp, setTimestamp] = useState(initialTime);
+export function SurfaceDrive() {
+  // Start at the site and time chosen in Freeplay (URL first, so reloads and shared links work).
+  const params = useSearchParams();
+  const [start] = useState(() => {
+    const fp = useFreeplay.getState();
+    return {
+      site: siteFromDriveParams(params) ?? (fp.site ? lunarSiteFor(fp.site) : null),
+      time: timeFromDriveParams(params) ?? (fp.site ? new Date(currentTimeMs(fp)) : initialTime),
+    };
+  });
+  const [pickHere, setPickHere] = useState(false);
+  const [site, setSite] = useState<LunarSite>(start.site ?? MOON_REGIONS[0].site);
+  const [activeSite, setActiveSite] = useState<LunarSite>(start.site ?? MOON_REGIONS[0].site);
+  const [phase, setPhase] = useState<"choose" | "transfer" | "descent" | "explore">(start.site ? "transfer" : "choose");
+  const [timestamp, setTimestamp] = useState(start.time);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(60);
-  const [cameraMode, setCameraMode] = useState<CameraMode>("first-person");
+  const [cameraMode, setCameraMode] = useState<CameraMode>(start.site ? "orbit" : "first-person");
   const [moveCommand, setMoveCommand] = useState<MoveCommand>(null);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [calendarMonth, setCalendarMonth] = useState(() => new Date(Date.UTC(initialTime.getUTCFullYear(), initialTime.getUTCMonth(), 1)));
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date(Date.UTC(start.time.getUTCFullYear(), start.time.getUTCMonth(), 1)));
   const [zoom, setZoom] = useState(1);
   const [celestial, setCelestial] = useState<CelestialState | null>(null);
   const [metrics, setMetrics] = useState<MissionMetrics | null>(null);
@@ -161,7 +174,7 @@ export function Freeplay() {
 
     <header className="absolute inset-x-3 top-3 z-20 flex items-center justify-between gap-2 sm:inset-x-5 sm:top-4">
       <div className="flex min-w-0 items-center gap-2 rounded-lg border border-line/80 bg-void/75 p-1.5 shadow-xl backdrop-blur-xl sm:gap-3 sm:p-2">
-        <Link href="/" aria-label="Exit simulation to Lunaris360 home" className="grid size-9 shrink-0 place-items-center rounded-md bg-retro-purple/15 text-retro-purple transition hover:bg-retro-purple/25"><ArrowLeft size={17}/></Link>
+        <Link href="/freeplay" aria-label="Exit surface drive back to Freeplay" className="grid size-9 shrink-0 place-items-center rounded-md bg-retro-purple/15 text-retro-purple transition hover:bg-retro-purple/25"><ArrowLeft size={17}/></Link>
         <div className="min-w-0 pr-2"><div className="type-data text-[0.6rem] uppercase tracking-[0.16em] text-retro-purple">Lunaris360 / Freeplay</div><div className="truncate text-xs font-medium text-bone">Lunar surface simulation</div></div>
         <span className="hidden h-8 w-px bg-line sm:block"/>
         {phase === "explore" && <button type="button" onClick={()=>setMapOpen((open)=>{if(!open){setMobileTelemetryOpen(false);setDatePickerOpen(false);}return !open;})} aria-expanded={mapOpen} className="inline-flex items-center gap-2 rounded-md border border-line px-2.5 py-2 text-[0.65rem] uppercase tracking-[0.1em] text-muted-foreground hover:border-retro-purple/60 hover:text-bone sm:px-3"><Map size={14} className="text-retro-purple"/><span className="hidden sm:inline">{mapOpen?"Hide map":"Map & samples"}</span></button>}
@@ -172,7 +185,19 @@ export function Freeplay() {
       </div>
     </header>
 
-    {phase === "choose" && <MoonLocationPicker selectedSite={site} onSelect={setSite} onContinue={beginDescent} sunAzimuthDeg={celestial?.sun.azimuthDeg} sunElevationDeg={celestial?.sun.elevationDeg}/>}
+    {phase === "choose" && (pickHere
+      ? <MoonLocationPicker selectedSite={site} onSelect={setSite} onContinue={beginDescent} sunAzimuthDeg={celestial?.sun.azimuthDeg} sunElevationDeg={celestial?.sun.elevationDeg}/>
+      : <div className="absolute inset-0 z-30 grid place-items-center bg-void/60 p-4 backdrop-blur-[3px]">
+          <div className="hud-panel w-full max-w-md p-5 text-center">
+            <Globe2 className="mx-auto text-retro-purple" size={22} aria-hidden />
+            <h1 className="type-heading mt-2 text-lg text-bone">Pick a site first</h1>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">The surface drive starts where you are in Freeplay. Choose a point on the Globe (or one of your saved sites), then open Surface drive again.</p>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-center">
+              <Link href="/freeplay" className="rounded bg-retro-purple px-4 py-2 text-[0.62rem] font-semibold uppercase tracking-[0.1em] text-void hover:bg-[#c2aaff]">Go to the globe</Link>
+              <button type="button" onClick={() => setPickHere(true)} className="rounded border border-line px-4 py-2 text-[0.62rem] uppercase tracking-[0.1em] text-muted-foreground hover:text-bone">Choose a site here</button>
+            </div>
+          </div>
+        </div>)}
 
     {(phase === "transfer" || phase === "descent") && <div className="pointer-events-none absolute inset-0 z-30 grid place-items-center bg-void/15 px-5 backdrop-blur-[1px]">
       <div className="w-full max-w-sm rounded-xl border border-retro-purple/40 bg-void/85 p-5 text-center shadow-[0_0_80px_rgba(169,134,255,0.16)] backdrop-blur-xl sm:p-7">

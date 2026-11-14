@@ -126,6 +126,21 @@ Recommended order:
 4. Keep `smoothHorizonMask()` as the explicit, labelled fallback for pins
    outside DEM coverage — never silently present it as terrain.
 
+## 7. Freeplay globe imagery and overlays
+
+Map tiles only; no analysis uses them. Both services send `Access-Control-Allow-Origin: *`, so the browser
+loads them directly (checked 2026-11-14). Defined in `scenes/cesium/moon-layers.ts`.
+
+| Layer | Service | Identifier |
+|---|---|---|
+| Base mosaic | NASA Moon Trek WMTS | `LRO_WAC_Mosaic_Global_303ppd_v02` (`https://trek.nasa.gov/tiles/Moon/EQ/…/1.0.0/default/default028mm/{z}/{row}/{col}.jpg`) |
+| Slope | Moon Trek WMTS | `LRO_LOLA_ClrSlope_Global_16ppd` + `LRO_LOLA_ClrSlope_SPole75S_120m_EQ` (69°S–90°S). The public Trek layer list hides slope products; they are in the catalog API (`TrekServices/ws/index/eq/searchItems`). |
+| Illumination % (polar) | LROC Lunaserv WMS 1.1.1 (`https://wms.im-ldi.com/`, EPSG:4326) | `luna_polar_illumination_pct` |
+| Permanently shadowed regions | LROC Lunaserv WMS | `luna_psr_81s` |
+| Elevation (color shaded relief) | LROC Lunaserv WMS | `luna_wac_dtm` |
+
+The globe's star background is Cesium's bundled Tycho-2 sky box.
+
 ## References
 
 - Smith, D. E. et al. (2010), *Space Sci. Rev.* 150, 209–241, doi:10.1007/s11214-009-9512-y

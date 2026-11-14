@@ -18,10 +18,10 @@ export const NAV_LINKS: NavLink[] = [
   { label: "Overview", href: "/" },
   { label: "Mission Control", href: "/mission-control" },
   { label: "Mission", href: "/mission" },
-  { label: "Explore", href: "/explore" },
+  { label: "Explore", href: "/freeplay" },
 ];
 
-export const LAUNCH_HREF = "/explore";
+export const LAUNCH_HREF = "/freeplay";
 
 export type Experience = {
   id: "mission" | "explore" | "compare";
@@ -60,7 +60,7 @@ export const EXPERIENCES: Experience[] = [
     description:
       "Choose a lunar region or coordinates, move around the scene, and change the date and time. Freeplay reads JPL Horizons positions and available LOLA horizon data; the rendered surface remains procedural.",
     cta: "Explore the Moon",
-    href: "/explore",
+    href: "/freeplay/drive",
   },
   {
     id: "compare",
@@ -103,7 +103,7 @@ export const DATA_SOURCES: DataSource[] = [
 export const FOOTER_LINKS = {
   experiences: [
     { label: "Guided Mission", href: "/mission" },
-    { label: "Free Exploration", href: "/explore" },
+    { label: "Free Exploration", href: "/freeplay/drive" },
     { label: "Mission Comparison", href: "/compare" },
   ],
   project: [

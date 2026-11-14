@@ -21,6 +21,13 @@
 # production
 /build
 
+# Cesium runtime bundle, copied from node_modules by scripts/copy-cesium.mjs
+/public/cesium/
+
+# Horizons runtime cache written by the API route (prefetch/ and the test fixture are tracked)
+/public/data/horizons/*.json
+!/public/data/horizons/apollo11-sun.json
+
 # misc
 .DS_Store
 *.pem

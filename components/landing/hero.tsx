@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/page-container";
+import { LAUNCH_HREF } from "@/data/site";
 import { LunarSceneLoader } from "@/scenes/lunar/lunar-scene-loader";
 import { HeroHud } from "./hero-hud";
 
@@ -35,7 +36,7 @@ export function Hero() {
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="xl">
-                <Link href="#explore">Explore Lunaris360</Link>
+                <Link href={LAUNCH_HREF}>Launch Freeplay</Link>
               </Button>
               <Button asChild size="xl" variant="outline">
                 <Link href="#mission">Discover the Mission</Link>
