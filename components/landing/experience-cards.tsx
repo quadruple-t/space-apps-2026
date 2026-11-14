@@ -14,8 +14,7 @@ export function ExperienceCards() {
         <Reveal>
           <SectionHeading id="explore-title" title="Three ways to explore.">
             <p>
-              Learn the environment step by step, roam the terrain on your own, or put candidate sites side by side.
-              Each mode has its own space in Lunaris360.
+              Freeplay is ready to explore. The guided tutorial and multi-mission comparison are still being built.
             </p>
           </SectionHeading>
         </Reveal>
@@ -30,7 +29,7 @@ export function ExperienceCards() {
             >
               <div className="flex items-center justify-between px-6 pt-6">
                 <span className="type-data text-xs text-bone/55">{exp.index}</span>
-                <StatusBadge>In development</StatusBadge>
+                <StatusBadge>{exp.id === "explore" ? "Available now" : "In development"}</StatusBadge>
               </div>
               <div className="px-6 pt-6 opacity-80 transition-opacity duration-300 group-hover:opacity-100">
                 <ExperienceGlyph id={exp.id} />
@@ -49,7 +48,7 @@ export function ExperienceCards() {
                   </ul>
                 )}
                 <div className="mt-auto pt-8">
-                  <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
+                  <Button asChild size="lg" variant={exp.id === "explore" ? "default" : "outline"} className="w-full sm:w-auto">
                     <Link href={exp.href}>{exp.cta}</Link>
                   </Button>
                 </div>

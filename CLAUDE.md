@@ -4,18 +4,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Lunaris360: a 3D lunar mission-planning website with an immersive Freeplay simulator (NASA Space Apps Challenge 2026). Terrain and displayed science values are illustrative. No LOLA or JPL Horizons data is integrated, so do not present values as measured or operational.
+Lunaris360: a lunar mission-planning and educational website (NASA Space Apps Challenge 2026). Freeplay uses stored JPL Horizons ephemerides and available precomputed LOLA horizon masks through the versioned science API. The rendered 3D surface is procedural and separate from those horizon calculations. Unsupported locations use a labelled smooth-sphere horizon; never present it as terrain-derived. The Guided Mission is a non-interactive introduction and Mission Comparison is an empty layout. Do not present the app as an operational mission system.
 
 ## Commands
 
 ```bash
 npm run dev      # http://localhost:3000 (Tailwind v4 via PostCSS)
-npm run build    # production build; all routes prerender static
+npm run build    # production build and type-check
 npm run start    # serve the production build
 npm run lint     # ESLint (Next.js + React Compiler rules)
+npm test         # Vitest unit tests
+npm run test:rules # Firestore security-rules tests (starts emulator)
 ```
 
-There is no test runner configured. Use `npm run lint` and `npm run build` (which type-checks) to verify changes.
+`npm run build` also type-checks the application. Emulator-backed scripts are documented in README.md.
 
 ## Stack notes
 
@@ -26,16 +28,23 @@ There is no test runner configured. Use `npm run lint` and `npm run build` (whic
 
 ## Architecture
 
-- `app/`: routes `/`, `/mission`, `/explore`, `/compare`, `/science`. `explore` hosts the interactive Freeplay experience; `mission` and `compare` provide the surrounding mission flows.
+- `app/`: routes `/`, `/mission`, `/explore`, `/compare`, `/science`, plus the versioned `/api/v1/` science and catalog API. `/explore` hosts working Freeplay controls; `/mission` is an overview and `/compare` is currently an empty-state shell.
+- Before changing or adding `/api/v1` endpoints, read `docs/API.md`; keep that reference in sync with route behavior, parameters, payloads, and authentication.
 - `scenes/lunar/`: the reusable 3D scene. `lunar-scene.tsx` composes `terrain.ts` (height function and mesh builder), `celestial.tsx` (Sun, Earth, stars), `camera-rig.tsx` and `landing-site.tsx`. `lunar-scene-loader.tsx` loads it client-side via `next/dynamic`.
-- `data/`: site copy, nav and experiences (`site.ts`), data sources and glossary (`science.ts`), and `hero-scene.ts`, whose Sun/Earth angles are shared by the 3D scene **and** the HUD/SVG graphics so they stay consistent.
-- `lib/horizon.ts`: `HorizonModel` (`mask`, `sunPath`, `earth`) is the shape the `HorizonProfile` SVG chart renders. `createIllustrativeHorizon()` is the placeholder for computed masks.
+- `integrations/science/`: client API adapter and provider types. The API performs authoritative science lookups from Firestore; the illustrative mock provider is not Freeplay's live provider.
+- `lib/ephemeris/`, `lib/terrain/`, `lib/firestore/`: decode stored ephemeris and terrain data, compute local sky positions and test visibility against horizon masks.
+- `integrations/terrain/moon-samples.ts` and `scenes/lunar/terrain.ts`: scaffold samples and procedural mesh used to render the scene; this is not a LOLA DEM surface.
+- `data/`: site copy, nav and experiences (`site.ts`), data sources and glossary (`science.ts`), and `hero-scene.ts` for illustrative landing-page readouts.
+- `lib/horizon.ts`: illustrative horizon model used by conceptual landing-page diagrams, not the live Freeplay science provider.
 - `components/graphics/`: static SVG diagrams, including the lunar horizon illustration that renders first and acts as the fallback when WebGL is unavailable or the scene errors.
 
-### Planned seams for the simulator
+### Science data and provenance
 
-- Replace `heightAt(x, z)` in `scenes/lunar/terrain.ts` with a LOLA DEM sampler. The mesh builder and scene stay unchanged.
-- Replace `createIllustrativeHorizon()` with computed horizon masks and Horizons ephemerides.
+- Freeplay calls `/api/v1/science/*`; public catalog and science reads use the Web SDK and Firestore public-read rules.
+- The API uses stored JPL Horizons ephemerides (main series 2026–2030 plus historical chunks) for local Sun/Earth position and timeline calculations.
+- Horizon source priority is site-specific LOLA mask, available LOLA polar grid cell, then smooth-sphere fallback. The fallback must stay labelled and its sunlight/visibility shares must be described as upper bounds.
+- Keep display terrain and science terrain clearly distinct. Procedural geometry is for visual orientation; LOLA masks drive obstruction calculations only where coverage exists.
+- Hero HUD values and landing-page horizon graphics are illustrative and must not be described as live telemetry.
 
 ## Conventions
 

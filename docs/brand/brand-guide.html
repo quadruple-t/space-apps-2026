@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shadowline — Brand &amp; Style Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#080712; --charcoal:#151327; --regolith:#a39ab8; --bone:#f0ebf7;
+    --sun:#ff5364; --sun-dim:#963752; --earth:#4b9bff; --earth-dim:#365588;
+    --purple:#a986ff; --line:#302c4a; --muted:#b2abc4; --panel:#100e20;
+    --ease:cubic-bezier(.22,1,.36,1); --radius:6px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth;scroll-padding-top:96px;background:var(--void);color-scheme:dark}
+  body{
+    margin:0;background:var(--void);color:var(--bone);
+    font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:16px;line-height:1.65;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  }
+  ::selection{background:color-mix(in oklab,var(--sun) 35%,transparent)}
+  a{color:inherit}
+  .wrap{width:100%;max-width:1200px;margin:0 auto;padding:0 24px}
+  @media(min-width:768px){.wrap{padding:0 40px}}
+
+  .display{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 125;font-weight:800;
+    text-transform:uppercase;letter-spacing:-.01em;line-height:.92;text-wrap:balance}
+  .heading{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 118;font-weight:700;
+    text-transform:uppercase;letter-spacing:-.005em;line-height:1}
+  .mono{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+
+  /* ---------- top bar ---------- */
+  .topbar{position:sticky;top:0;z-index:50;border-bottom:1px solid color-mix(in oklab,var(--line) 80%,transparent);
+    background:color-mix(in oklab,var(--void) 88%,transparent);backdrop-filter:blur(14px)}
+  .topbar-in{display:flex;align-items:center;justify-content:space-between;gap:20px;height:64px}
+  .brand{display:inline-flex;align-items:center;gap:10px;color:var(--bone)}
+  .brand .word{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 125;font-weight:700;
+    font-size:14px;letter-spacing:.14em;text-transform:uppercase}
+  .topbar nav{display:none;gap:4px}
+  @media(min-width:900px){.topbar nav{display:flex}}
+  .topbar nav a{padding:8px 10px;border-radius:4px;font-size:13px;color:var(--muted);text-decoration:none;
+    transition:color .2s var(--ease)}
+  .topbar nav a:hover,.topbar nav a:focus-visible{color:var(--bone)}
+  .topbar .tag{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line);padding:88px 0 0}
+  .hero:before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(900px 420px at 82% 16%,rgb(169 134 255 / .13),transparent 62%),
+      radial-gradient(700px 380px at 8% 84%,rgb(255 83 100 / .10),transparent 60%);}
+  .hero .wrap{position:relative;z-index:1}
+  .kicker{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.14em}
+  .kicker .hairline{width:48px;height:1px;background:var(--line)}
+  .hero h1{font-size:clamp(3rem,9vw,8rem);margin:26px 0 0;max-width:12ch}
+  .hero h1 .accent{color:var(--sun)}
+  .lede{max-width:56ch;margin:30px 0 0;font-size:clamp(1.125rem,2vw,1.4rem);color:color-mix(in oklab,var(--bone) 82%,transparent)}
+  .meta{display:flex;flex-wrap:wrap;gap:10px 28px;margin:40px 0 0;padding:18px 0 0;border-top:1px solid var(--line);
+    font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+  .meta b{color:var(--bone);font-weight:500}
+  .horizon{display:block;width:100%;height:auto;margin-top:44px;color:var(--bone)}
+  .horizon .glow{filter:drop-shadow(0 0 12px rgb(255 83 100 / .55))}
+
+  /* ---------- sections ---------- */
+  section.block{padding:88px 0;border-bottom:1px solid var(--line)}
+  @media(min-width:768px){section.block{padding:112px 0}}
+  .sec-head{display:grid;gap:18px;max-width:760px;margin-bottom:44px}
+  .sec-num{display:flex;align-items:center;gap:12px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .sec-num .n{color:var(--sun)}
+  .sec-num .hairline{flex:1;height:1px;background:var(--line);max-width:80px}
+  .sec-head h2{font-size:clamp(1.9rem,4.4vw,3.4rem);margin:0}
+  .sec-head p{margin:0;color:var(--muted);max-width:64ch;font-size:1.05rem}
+
+  h3.sub{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 118;font-weight:700;
+    text-transform:uppercase;letter-spacing:.02em;font-size:1.05rem;margin:52px 0 18px}
+  h3.sub:first-of-type{margin-top:0}
+
+  /* ---------- swatches ---------- */
+  .swatches{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+  .swatch{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--charcoal)}
+  .chip{height:96px;display:flex;align-items:flex-end;justify-content:flex-end;padding:10px;
+    font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgb(255 255 255 / .62)}
+  .swatch .info{padding:14px 15px 16px}
+  .swatch .name{font-size:13px;font-weight:600;display:flex;justify-content:space-between;gap:8px;align-items:center}
+  .swatch .name button{all:unset;cursor:pointer;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);
+    border:1px solid var(--line);border-radius:3px;padding:2px 6px;transition:.2s var(--ease)}
+  .swatch .name button:hover{color:var(--bone);border-color:color-mix(in oklab,var(--bone) 40%,transparent)}
+  .swatch .role{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
+  .swatch .ratio{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted);margin-top:8px;letter-spacing:.04em}
+
+  .ratio-note{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:22px}
+  .note{border-left:2px solid var(--line);padding:2px 0 2px 16px;font-size:13px;color:var(--muted)}
+  .note b{color:var(--bone);font-weight:600}
+  .note.sun{border-color:var(--sun)} .note.earth{border-color:var(--earth)} .note.purple{border-color:var(--purple)}
+
+  /* ---------- type ---------- */
+  .specimen{border:1px solid var(--line);border-radius:var(--radius);padding:26px;background:var(--charcoal);margin-bottom:14px}
+  .specimen .label{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+    font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:18px}
+  .spec-display{font-size:clamp(2rem,6vw,4.6rem)}
+  .spec-heading{font-size:clamp(1.4rem,3.2vw,2.3rem)}
+  .spec-body{font-size:1.05rem;max-width:62ch;color:var(--muted)}
+  .spec-body strong{color:var(--bone)}
+  .spec-data{font-size:1.5rem}
+  .spec-data small{display:block;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+  .scale-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+  .scale-table th,.scale-table td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  .scale-table th{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:400}
+  .scale-table td{color:var(--muted)} .scale-table td:first-child{color:var(--bone);font-weight:500}
+
+  /* ---------- logo ---------- */
+  .logo-grid{display:grid;gap:14px;grid-template-columns:1fr}
+  @media(min-width:820px){.logo-grid{grid-template-columns:1.15fr .85fr}}
+  .logo-stage{border:1px solid var(--line);border-radius:var(--radius);background:
+    radial-gradient(600px 300px at 50% 120%,rgb(169 134 255 / .10),transparent 65%),var(--charcoal);
+    min-height:280px;display:grid;place-items:center;padding:40px}
+  .clearspace{position:relative;padding:34px;border:1px dashed color-mix(in oklab,var(--bone) 30%,transparent)}
+  .clearspace .corner{position:absolute;width:9px;height:9px;border:1px solid var(--bone);opacity:.7}
+  .clearspace .corner.tl{top:-1px;left:-1px;border-right:0;border-bottom:0}
+  .clearspace .corner.tr{top:-1px;right:-1px;border-left:0;border-bottom:0}
+  .clearspace .corner.bl{bottom:-1px;left:-1px;border-right:0;border-top:0}
+  .clearspace .corner.br{bottom:-1px;right:-1px;border-left:0;border-top:0}
+  .logo-lock{display:inline-flex;align-items:center;gap:10px}
+  .logo-lock .word{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 125;font-weight:700;
+    font-size:16px;letter-spacing:.14em;text-transform:uppercase}
+  .logo-notes{display:grid;gap:14px}
+  .lognote{border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;background:var(--charcoal)}
+  .lognote h4{margin:0 0 6px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:600}
+  .lognote p{margin:0;font-size:13px;color:var(--muted)}
+  .donts{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:16px}
+  .dont{border:1px solid color-mix(in oklab,var(--sun) 26%,var(--line));border-radius:var(--radius);
+    background:color-mix(in oklab,var(--sun) 4%,var(--charcoal));padding:20px;text-align:center;position:relative}
+  .dont .x{position:absolute;top:6px;right:8px;color:var(--sun);font-size:13px;line-height:1}
+  .dont p{margin:12px 0 0;font-size:11px;color:var(--muted);line-height:1.45}
+  .bad{display:inline-block;color:var(--bone)}
+  .bad.rot{transform:rotate(-9deg)}
+  .bad.squash{transform:scaleX(1.45)}
+  .bad.condensed{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 62;font-weight:700;letter-spacing:.14em;font-size:14px}
+  .bad.nosun svg .sundot{display:none}
+
+  /* ---------- layout demo ---------- */
+  .grid-demo{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--charcoal)}
+  .grid-demo .bar{display:flex;justify-content:space-between;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line);
+    font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .grid-demo .canvas{padding:22px;position:relative;
+    background-image:repeating-linear-gradient(to right,color-mix(in oklab,var(--line) 55%,transparent) 0 1px,transparent 1px 8.333%);
+    background-position:0 0;background-size:100% 100%}
+  .grid-demo .ghost{border:1px dashed color-mix(in oklab,var(--purple) 38%,transparent);border-radius:2px;padding:18px;
+    background:rgb(169 134 255 / .05);font-size:11px;color:var(--muted);text-align:center}
+  .metrics{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-top:16px}
+  .metric{border:1px solid var(--line);border-radius:var(--radius);padding:16px;background:var(--charcoal)}
+  .metric .v{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 125;font-weight:800;font-size:28px;line-height:1}
+  .metric .k{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+
+  /* ---------- components ---------- */
+  .component-row{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin:18px 0 8px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:48px;padding:0 24px;
+    border-radius:var(--radius);border:1px solid transparent;font-size:15px;font-weight:500;text-decoration:none;
+    transition:all .2s var(--ease);cursor:pointer;background:none;font-family:"IBM Plex Sans",sans-serif;color:var(--bone)}
+  .btn.primary{background:var(--bone);color:#100d20;box-shadow:0 0 0 1px rgb(240 235 247 / .2)}
+  .btn.primary:hover{background:#fff;box-shadow:0 0 32px -6px rgb(169 134 255 / .55)}
+  .btn.outline{border-color:color-mix(in oklab,var(--bone) 25%,transparent);background:color-mix(in oklab,var(--void) 40%,transparent);backdrop-filter:blur(2px)}
+  .btn.outline:hover{border-color:color-mix(in oklab,var(--bone) 60%,transparent);background:rgb(240 235 247 / .06)}
+  .btn.ghost{border-color:transparent;color:var(--muted)}
+  .btn.ghost:hover{background:var(--charcoal);color:var(--bone)}
+  .badge{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:3px;
+    padding:2px 8px;font-family:"IBM Plex Mono",monospace;font-size:11px;color:color-mix(in oklab,var(--bone) 65%,transparent)}
+  .badge i{width:6px;height:6px;border-radius:50%;border:1px solid color-mix(in oklab,var(--sun) 80%,transparent)}
+  .hud{max-width:320px;border:1px solid color-mix(in oklab,var(--purple) 24%,var(--line));border-radius:10px;
+    background:color-mix(in oklab,var(--void) 82%,transparent);backdrop-filter:blur(18px);padding:6px;
+    box-shadow:0 18px 70px rgb(3 2 14 / 34%),inset 0 1px rgb(255 255 255 / 4%)}
+  .hud .readout{position:relative;padding:14px}
+  .hud .br{position:absolute;width:10px;height:10px;border-color:color-mix(in oklab,var(--bone) 40%,transparent)}
+  .hud .br.tl{top:0;left:0;border-left:1px solid;border-top:1px solid}
+  .hud .br.tr{top:0;right:0;border-right:1px solid;border-top:1px solid}
+  .hud .br.bl{bottom:0;left:0;border-left:1px solid;border-bottom:1px solid}
+  .hud .br.brr{bottom:0;right:0;border-right:1px solid;border-bottom:1px solid}
+  .hud dt{display:flex;align-items:center;gap:8px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;
+    text-transform:uppercase;letter-spacing:.14em;color:color-mix(in oklab,var(--bone) 70%,transparent);margin:0}
+  .hud dt i{width:6px;height:6px;border-radius:50%;background:color-mix(in oklab,var(--bone) 70%,transparent)}
+  .hud dt i.sun{background:var(--sun);box-shadow:0 0 10px var(--sun)}
+  .hud dt i.earth{background:var(--earth);box-shadow:0 0 10px var(--earth)}
+  .hud dd{margin:6px 0 0;font-family:"IBM Plex Mono",monospace;font-size:15px}
+  .hud dd.note{font-family:"IBM Plex Sans",sans-serif;font-size:12px;color:color-mix(in oklab,var(--bone) 60%,transparent);margin-top:2px}
+  .card{max-width:360px;border:1px solid var(--line);border-radius:var(--radius);background:color-mix(in oklab,var(--charcoal) 40%,transparent);
+    padding:24px;transition:.3s var(--ease)}
+  .card:hover{border-color:color-mix(in oklab,var(--bone) 30%,transparent);background:color-mix(in oklab,var(--charcoal) 70%,transparent)}
+  .card .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+  .card .idx{font-family:"IBM Plex Mono",monospace;font-size:11px;color:color-mix(in oklab,var(--bone) 55%,transparent)}
+  .card h4{font-family:Archivo,sans-serif;font-variation-settings:"wdth" 118;font-weight:700;text-transform:uppercase;
+    font-size:22px;margin:0;letter-spacing:-.005em}
+  .card p{font-size:13.5px;color:var(--muted);line-height:1.6;margin:8px 0 0}
+
+  /* ---------- voice table ---------- */
+  .voice{display:grid;gap:12px;grid-template-columns:1fr}
+  @media(min-width:700px){.voice{grid-template-columns:1fr 1fr}}
+  .voice-col{border:1px solid var(--line);border-radius:var(--radius);padding:20px;background:var(--charcoal)}
+  .voice-col.good{border-top:2px solid var(--earth)}
+  .voice-col.badcol{border-top:2px solid var(--sun)}
+  .voice-col h4{margin:0 0 12px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .voice-col ul{margin:0;padding:0;list-style:none;display:grid;gap:10px;font-size:13.5px}
+  .voice-col li{display:flex;gap:9px;line-height:1.5;color:var(--muted)}
+  .voice-col li:before{content:"";width:6px;height:6px;border-radius:50%;flex:0 0 auto;margin-top:7px;background:var(--earth)}
+  .voice-col.badcol li{text-decoration:line-through;text-decoration-color:color-mix(in oklab,var(--sun) 65%,transparent)}
+  .voice-col.badcol li:before{background:var(--sun)}
+
+  /* ---------- do / don't rows ---------- */
+  .rules{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  .rule{border:1px solid var(--line);border-radius:var(--radius);padding:18px;background:var(--charcoal)}
+  .rule h4{margin:0 0 8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+  .rule p{margin:0;font-size:13px;color:var(--muted);line-height:1.55}
+  .rule.good h4{color:var(--earth)} .rule.badr h4{color:var(--sun)}
+
+  /* ---------- marketing ---------- */
+  .apps{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+  .app{border:1px solid var(--line);border-radius:var(--radius);padding:22px;background:var(--charcoal)}
+  .app .tagline{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--sun);margin-bottom:10px}
+  .app h4{margin:0 0 10px;font-size:15px;font-family:Archivo,sans-serif;font-variation-settings:"wdth" 118;text-transform:uppercase;letter-spacing:.02em}
+  .app ul{margin:0;padding-left:16px;font-size:13px;color:var(--muted);line-height:1.65}
+  .app li{margin:2px 0}
+
+  .callout{border:1px solid color-mix(in oklab,var(--sun) 25%,var(--line));background:color-mix(in oklab,var(--sun) 4%,transparent);
+    border-radius:var(--radius);padding:18px 20px;display:flex;gap:14px;margin-top:22px}
+  .callout i{width:8px;height:8px;border-radius:50%;border:1px solid var(--sun);flex:0 0 auto;margin-top:7px}
+  .callout p{margin:0;font-size:13.5px;color:color-mix(in oklab,var(--bone) 85%,transparent);line-height:1.6}
+
+  .ref{background:var(--charcoal);border:1px solid var(--line);border-radius:var(--radius);padding:24px;
+    font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:2;overflow-x:auto;color:var(--muted)}
+  .ref b{color:var(--bone);font-weight:500}
+  .ref .c{color:var(--sun)} .ref .e{color:var(--earth)} .ref .p{color:var(--purple)}
+
+  footer{padding:56px 0 72px;background:var(--void)}
+  footer .row{display:flex;flex-wrap:wrap;gap:20px;justify-content:space-between;align-items:flex-end;
+    border-top:1px solid var(--line);padding-top:28px}
+  footer p{margin:0;font-size:12px;color:var(--muted)}
+  footer .mono{font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+
+  a:focus-visible,button:focus-visible{outline:2px solid var(--sun);outline-offset:3px}
+  .copy-toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);opacity:0;pointer-events:none;
+    background:var(--bone);color:#100d20;padding:9px 16px;border-radius:4px;font-size:12px;font-weight:600;
+    transition:.3s var(--ease);z-index:99}
+  .copy-toast.on{opacity:1;transform:translate(-50%,0)}
+
+  @media(prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar-in">
+    <a class="brand" href="#top" aria-label="Shadowline brand guide, back to top">
+      <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true">
+        <defs><clipPath id="clip-nav"><circle cx="16" cy="16" r="13"/></clipPath></defs>
+        <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <g clip-path="url(#clip-nav)">
+          <path d="M2 19.5 L8 16.2 L11.5 18 L16.5 13.8 L20 16.6 L24 15 L30 18.5 V32 H2 Z" fill="currentColor"/>
+        </g>
+        <circle cx="9.2" cy="14.1" r="1.9" fill="#ff5364"/>
+      </svg>
+      <span class="word">Shadowline</span>
+    </a>
+    <nav aria-label="Guide sections">
+      <a href="#color">Color</a>
+      <a href="#type">Type</a>
+      <a href="#logo">Logo</a>
+      <a href="#layout">Layout</a>
+      <a href="#voice">Voice</a>
+      <a href="#applications">Marketing</a>
+      <a href="#tokens">Tokens</a>
+    </nav>
+    <span class="tag mono">Brand v1.0</span>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ================= HERO ================= -->
+  <div class="hero">
+    <div class="wrap">
+      <div class="kicker mono"><span>Brand &amp; style guide</span><span class="hairline"></span><span>NASA Space Apps 2026</span></div>
+      <h1 class="display">The dark<br>side, made<br><span class="accent">legible.</span></h1>
+      <p class="lede">Shadowline is an interactive 3D mission-planning environment for the lunar south pole. This guide is the single source of truth for how it looks, sounds, and behaves in front of an audience.</p>
+      <div class="meta mono">
+        <span><b>Version</b> 1.0 · Nov 2026</span>
+        <span><b>Tokens</b> app/globals.css</span>
+        <span><b>Type</b> Archivo · Plex Sans · Plex Mono</span>
+        <span><b>Mode</b> Dark only</span>
+      </div>
+    </div>
+    <svg class="horizon" viewBox="0 0 1200 220" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="skyfade" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#080712" stop-opacity="0"/>
+          <stop offset="1" stop-color="#080712" stop-opacity="1"/>
+        </linearGradient>
+      </defs>
+      <path d="M0 176 L70 164 L130 170 L196 148 L258 158 L320 138 L388 152 L450 132 L520 146 L590 120 L650 140 L720 128 L790 150 L860 136 L930 154 L1000 142 L1070 158 L1130 148 L1200 166"
+            fill="none" stroke="currentColor" stroke-opacity=".55" stroke-width="1.25"/>
+      <path d="M0 176 L70 164 L130 170 L196 148 L258 158 L320 138 L388 152 L450 132 L520 146 L590 120 L650 140 L720 128 L790 150 L860 136 L930 154 L1000 142 L1070 158 L1130 148 L1200 166 V220 H0 Z"
+            fill="#080712"/>
+      <circle class="glow" cx="1070" cy="96" r="7" fill="#ff5364"/>
+      <circle cx="1070" cy="96" r="19" fill="none" stroke="#ff5364" stroke-opacity=".28"/>
+    </svg>
+  </div>
+
+  <!-- ================= 01 COLOR ================= -->
+  <section class="block" id="color">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="sec-num mono"><span class="n">01</span><span class="hairline"></span><span>Color</span></div>
+        <h2 class="display">Color means<br>something.</h2>
+        <p>Every hue maps to a fact in the simulation. Coral is the Sun. Blue is Earth. Purple is the interface. Nothing is decorative, and there is no light mode.</p>
+      </div>
+
+      <h3 class="sub">Core palette</h3>
+      <div class="swatches">
+        <article class="swatch">
+          <div class="chip" style="background:#080712;color:#b2abc4">#080712</div>
+          <div class="info"><div class="name">Void <button data-hex="080712" aria-label="Copy void hex">copy</button></div>
+            <div class="role">Page background and cinematic base.</div></div>
+        </article>
+        <article class="swatch">
+          <div class="chip" style="background:#151327">#151327</div>
+          <div class="info"><div class="name">Charcoal <button data-hex="151327" aria-label="Copy charcoal hex">copy</button></div>
+            <div class="role">Cards, panels, raised surfaces.</div></div>
+        </article>
+        <article class="swatch">
+          <div class="chip" style="background:#302c4a">#302c4a</div>
+          <div class="info"><div class="name">Line <button data-hex="302c4a" aria-label="Copy line hex">copy</button></div>
+            <div class="role">Hairline borders and rules. Decorative only — 1.5:1.</div></div>
+        </article>
+        <article class="swatch">
+          <div class="chip" style="background:#a39ab8;color:#151327">#a39ab8</div>
+          <div class="info"><div class="name">Regolith <button data-hex="a39ab8" aria-label="Copy regolith hex">copy</button></div>
+            <div class="role">Secondary text and diagram labels. 7.5:1 on void.</div></div>
+        </article>
+        <article class="swatch">
+          <div class="chip" style="background:#f0ebf7;color:#151327">#f0ebf7</div>
+          <div class="info"><div class="name">Bone <button data-hex="f0ebf7" aria-label="Copy bone hex">copy</button></div>
+            <div class="role">Primary text, logo, lunar linework. 17.6:1.</div></div>
+        </article>
+        <article class="swatch">
+          <div class="chip" style="background:#ff5364;color:#3a0710">#ff5364</div>
+          <div class="info"><div class="name">Sun <button data-hex="ff5364" aria-label="Copy sun hex">copy</button></div>
+            <div class="role">Sunlight, active controls, focus. 6.4:1.</div></div>
+        </article>
+        <article class="swatch">
+          <div class="chip" style="background:#4b9bff;color:#041427">#4b9bff</div>
+          <div class="info"><div class="name">Earth <button data-hex="4b9bff" aria-label="Copy earth hex">copy</button></div>
+            <div class="role">Earth, communications, line of sight. 7.1:1.</div></div>
+        </article>
+        <article class="swatch">
+          <div class="chip" style="background:#a986ff;color:#150a2e">#a986ff</div>
+          <div class="info"><div class="name">Retro purple <button data-hex="a986ff" aria-label="Copy purple hex">copy</button></div>
+            <div class="role">Interface chrome, HUD borders, nav. 7.2:1.</div></div>
+        </article>
+        <article class="swatch">
+          <div class="chip" style="background:#963752">#963752</div>
+          <div class="info"><div class="name">Sun dim <button data-hex="963752" aria-label="Copy sun dim hex">copy</button></div>
+            <div class="role">Shadowed sun fills. Not for body text (2.6:1).</div></div>
+        </article>
+        <article class="swatch">
+          <div class="chip" style="background:#365588">#365588</div>
+          <div class="info"><div class="name">Earth dim <button data-hex="365588" aria-label="Copy earth dim hex">copy</button></div>
+            <div class="role">Muted Earth reference. Not for body text (2.4:1).</div></div>
+        </article>
+      </div>
+
+      <div class="ratio-note">
+        <div class="note sun"><b>Coral = the Sun.</b> Grazing light, active controls, focus rings, one primary emphasis. Never a large fill, never “error” on its own.</div>
+        <div class="note earth"><b>Blue = Earth.</b> Visibility, communications, line of sight, the second data series. Never generic “technology”.</div>
+        <div class="note purple"><b>Purple = interface.</b> Chrome, nav, HUD borders, tertiary data points. Never a warning or success state.</div>
+      </div>
+
+      <h3 class="sub">Proportion · 60 / 30 / 10</h3>
+      <div class="swatches" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
+        <div class="swatch"><div class="chip" style="height:64px;background:#080712;align-items:center;justify-content:center;color:#a39ab8;font-size:12px">60%</div><div class="info"><div class="name" style="font-size:12px">Void + charcoal</div></div></div>
+        <div class="swatch"><div class="chip" style="height:64px;background:linear-gradient(90deg,#a39ab8,#f0ebf7);align-items:center;justify-content:center;color:#151327;font-size:12px">30%</div><div class="info"><div class="name" style="font-size:12px">Bone + regolith</div></div></div>
+        <div class="swatch"><div class="chip" style="height:64px;background:linear-gradient(90deg,#ff5364,#4b9bff,#a986ff);align-items:center;justify-content:center;color:#080712;font-size:12px">10%</div><div class="info"><div class="name" style="font-size:12px">One accent</div></div></div>
+      </div>
+
+      <div class="callout"><i></i><p><b>Never add a hue.</b> If a chart needs another series, change opacity, dash pattern, or line weight first. No green, yellow, orange, teal, or extra pink. Gradients are void-to-transparent scrims only.</p></div>
+    </div>
+  </section>
+
+  <!-- ================= 02 TYPE ================= -->
+  <section class="block" id="type">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="sec-num mono"><span class="n">02</span><span class="hairline"></span><span>Typography</span></div>
+        <h2 class="display">Wide, tight,<br>instrumental.</h2>
+        <p>Archivo carries the voice. IBM Plex Sans carries the explanation. IBM Plex Mono carries the facts. Three faces, no substitutions.</p>
+      </div>
+
+      <div class="specimen">
+        <div class="label"><span>Display / Archivo · wdth 125 · 800</span><span>Uppercase · 0.92 leading · -0.01em</span></div>
+        <div class="display spec-display">Beyond the horizon.</div>
+      </div>
+
+      <div class="specimen">
+        <div class="label"><span>Heading / Archivo · wdth 118 · 700</span><span>Uppercase · 1.0 leading</span></div>
+        <div class="heading spec-heading">Three ways to explore.</div>
+      </div>
+
+      <div class="specimen">
+        <div class="label"><span>Body / IBM Plex Sans · 400</span><span>16–18px · 60–70ch measure</span></div>
+        <p class="spec-body" style="margin:0"><strong>Terrain decides the mission.</strong> At the lunar south pole, the Sun never rises far above the horizon. A ridge a few hundred metres away can mean the difference between continuous power and permanent shadow. Shadowline makes that geometry explorable.</p>
+      </div>
+
+      <div class="specimen">
+        <div class="label"><span>Data / IBM Plex Mono · 400/500</span><span>Tabular figures · 0.02em</span></div>
+        <div class="mono spec-data">SUN ELEVATION&nbsp;&nbsp;+1.6°<small>89.5° S · 222.7° E · GRAZING LIGHT</small></div>
+      </div>
+
+      <h3 class="sub">Scale</h3>
+      <table class="scale-table">
+        <thead><tr><th>Level</th><th>Size</th><th>Face &amp; treatment</th></tr></thead>
+        <tbody>
+          <tr><td>Hero display</td><td class="mono">clamp(2.6–6.75rem)</td><td>Archivo 800, wdth 125, uppercase</td></tr>
+          <tr><td>Page display</td><td class="mono">clamp(2.6–6rem)</td><td>Archivo 800, wdth 125, uppercase</td></tr>
+          <tr><td>Section heading</td><td class="mono">clamp(2–4.25rem)</td><td>Archivo 700, wdth 118, uppercase</td></tr>
+          <tr><td>Card title</td><td class="mono">1.5rem</td><td>Archivo 700, wdth 118, uppercase</td></tr>
+          <tr><td>Lede</td><td class="mono">1.25–1.5rem</td><td>Plex Sans 400, bone/85</td></tr>
+          <tr><td>Body</td><td class="mono">1rem / 1.125rem</td><td>Plex Sans 400, muted</td></tr>
+          <tr><td>Data value</td><td class="mono">0.95rem</td><td>Plex Mono, tabular</td></tr>
+          <tr><td>Data label</td><td class="mono">0.58–0.68rem</td><td>Plex Mono, uppercase, 0.14em</td></tr>
+          <tr><td>Caption / legal</td><td class="mono">0.7rem min</td><td>bone/60 floor</td></tr>
+        </tbody>
+      </table>
+
+      <div class="rules" style="margin-top:24px">
+        <div class="rule good"><h4>Do</h4><p>Load Archivo with the <span class="mono">wdth</span> axis. Set headlines in sentence case and uppercase with CSS, so screen readers hear normal text.</p></div>
+        <div class="rule badr"><h4>Don't</h4><p>Don't substitute Inter, Montserrat, or a condensed grotesque. Don't add tracking to display type. Don't set paragraphs in mono.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 03 LOGO ================= -->
+  <section class="block" id="logo">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="sec-num mono"><span class="n">03</span><span class="hairline"></span><span>Logo</span></div>
+        <h2 class="display">The sun on<br>the ridge.</h2>
+        <p>The mark is a lunar disc cut by a ridgeline, with the Sun resting on the horizon — the exact moment of grazing light the product exists to show.</p>
+      </div>
+
+      <div class="logo-grid">
+        <div class="logo-stage">
+          <div class="clearspace">
+            <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+            <span class="logo-lock">
+              <svg viewBox="0 0 32 32" width="72" height="72" aria-label="Shadowline mark">
+                <defs><clipPath id="clip-main"><circle cx="16" cy="16" r="13"/></clipPath></defs>
+                <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                <g clip-path="url(#clip-main)">
+                  <path d="M2 19.5 L8 16.2 L11.5 18 L16.5 13.8 L20 16.6 L24 15 L30 18.5 V32 H2 Z" fill="currentColor"/>
+                </g>
+                <circle cx="9.2" cy="14.1" r="1.9" fill="#ff5364"/>
+              </svg>
+              <span class="word">Shadowline</span>
+            </span>
+          </div>
+        </div>
+        <div class="logo-notes">
+          <div class="lognote"><h4>Clear space</h4><p>Half the disc diameter on every side — 14 px at the default 28 px mark. Nothing enters this zone.</p></div>
+          <div class="lognote"><h4>Minimum size</h4><p>Mark alone 24 px. Full lockup 120 px wide.</p></div>
+          <div class="lognote"><h4>Color</h4><p>Stroke and ridge in bone. Sun dot always <span class="mono">#ff5364</span>. Never place the lockup on coral, blue, or purple.</p></div>
+        </div>
+      </div>
+
+      <h3 class="sub">Don't</h3>
+      <div class="donts">
+        <div class="dont"><span class="x">✕</span>
+          <span class="bad rot"><svg viewBox="0 0 32 32" width="44" height="44" aria-hidden="true"><defs><clipPath id="d1"><circle cx="16" cy="16" r="13"/></clipPath></defs><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="1.5"/><g clip-path="url(#d1)"><path d="M2 19.5 L8 16.2 L11.5 18 L16.5 13.8 L20 16.6 L24 15 L30 18.5 V32 H2 Z" fill="currentColor"/></g><circle cx="9.2" cy="14.1" r="1.9" fill="#ff5364"/></svg></span>
+          <p>Don't rotate or tilt the mark.</p></div>
+        <div class="dont"><span class="x">✕</span>
+          <span class="bad squash"><svg viewBox="0 0 32 32" width="44" height="44" aria-hidden="true"><defs><clipPath id="d2"><circle cx="16" cy="16" r="13"/></clipPath></defs><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="1.5"/><g clip-path="url(#d2)"><path d="M2 19.5 L8 16.2 L11.5 18 L16.5 13.8 L20 16.6 L24 15 L30 18.5 V32 H2 Z" fill="currentColor"/></g><circle cx="9.2" cy="14.1" r="1.9" fill="#ff5364"/></svg></span>
+          <p>Don't stretch or squash it.</p></div>
+        <div class="dont"><span class="x">✕</span>
+          <span class="bad nosun"><svg viewBox="0 0 32 32" width="44" height="44" aria-hidden="true"><defs><clipPath id="d3"><circle cx="16" cy="16" r="13"/></clipPath></defs><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="1.5"/><g clip-path="url(#d3)"><path d="M2 19.5 L8 16.2 L11.5 18 L16.5 13.8 L20 16.6 L24 15 L30 18.5 V32 H2 Z" fill="currentColor"/></g><circle class="sundot" cx="9.2" cy="14.1" r="1.9" fill="#ff5364"/></svg></span>
+          <p>Don't remove or recolor the sun dot.</p></div>
+        <div class="dont"><span class="x">✕</span>
+          <span class="bad condensed">SHADOWLINE</span>
+          <p>Don't condense or re-track the wordmark.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 04 LAYOUT ================= -->
+  <section class="block" id="layout">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="sec-num mono"><span class="n">04</span><span class="hairline"></span><span>Layout &amp; motion</span></div>
+        <h2 class="display">Space is the<br>signal.</h2>
+        <p>A 1320 px canvas with generous gutters, 96–128 px section rhythm, 6 px radii, and hairline rules. Motion explains arrival — it never performs.</p>
+      </div>
+
+      <div class="grid-demo">
+        <div class="bar mono"><span>1320 px max · 12 columns</span><span>20 / 32 / 48 px gutters</span></div>
+        <div class="canvas">
+          <div class="ghost mono">Content column · max 65–70ch</div>
+        </div>
+      </div>
+
+      <div class="metrics">
+        <div class="metric"><div class="v">1320</div><div class="k">Max container px</div></div>
+        <div class="metric"><div class="v">96–128</div><div class="k">Section padding px</div></div>
+        <div class="metric"><div class="v">6</div><div class="k">Base radius px</div></div>
+        <div class="metric"><div class="v">1px</div><div class="k">Hairline borders</div></div>
+        <div class="metric"><div class="v">0.22, 1, 0.36, 1</div><div class="k">Easing curve</div></div>
+        <div class="metric"><div class="v">700ms</div><div class="k">Reveal duration</div></div>
+      </div>
+
+      <h3 class="sub">Motion rules</h3>
+      <div class="rules">
+        <div class="rule good"><h4>Do</h4><p>One orchestrated entrance per page. Stagger 90–120 ms, four items maximum. Transform and opacity only.</p></div>
+        <div class="rule good"><h4>Do</h4><p>Honor <span class="mono">prefers-reduced-motion</span>: freeze the camera, remove reveals, render on demand.</p></div>
+        <div class="rule badr"><h4>Don't</h4><p>No bounce, spin, or parallax for its own sake. No animated gradients. No auto-playing motion on social without a static version.</p></div>
+      </div>
+
+      <h3 class="sub">Components</h3>
+      <div class="component-row">
+        <a class="btn primary" href="#layout" onclick="return false">Launch Freeplay</a>
+        <a class="btn outline" href="#layout" onclick="return false">Discover the Mission</a>
+        <a class="btn ghost" href="#layout" onclick="return false">Ghost action</a>
+        <span class="badge"><i></i>In development</span>
+      </div>
+      <div class="component-row" style="align-items:flex-start;gap:24px">
+        <div class="hud">
+          <div class="readout">
+            <span class="br tl"></span><span class="br tr"></span><span class="br bl"></span><span class="br brr"></span>
+            <dl>
+              <dt><i class="sun"></i>Sun elevation</dt>
+              <dd>+1.6°</dd>
+              <dd class="note">Grazing the horizon</dd>
+            </dl>
+          </div>
+        </div>
+        <div class="card">
+          <div class="top"><span class="idx">01</span><span class="badge"><i></i>In development</span></div>
+          <h4>Guided Mission</h4>
+          <p>An interactive tutorial that teaches you to read the lunar south pole the way a mission planner does.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 05 VOICE ================= -->
+  <section class="block" id="voice">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="sec-num mono"><span class="n">05</span><span class="hairline"></span><span>Voice</span></div>
+        <h2 class="display">Calm flight<br>director.</h2>
+        <p>Cinematic product, unromantic copy. Short sentences, concrete nouns, and uncertainty stated out loud. The visualization carries the emotion; the words carry the facts.</p>
+      </div>
+
+      <div class="voice">
+        <div class="voice-col good">
+          <h4>Say</h4>
+          <ul>
+            <li>Sun elevation +1.6°, grazing the horizon.</li>
+            <li>Terrain decides which sites keep a line to Earth.</li>
+            <li>Illustrative values.</li>
+            <li>Find the strongest candidate.</li>
+            <li>Launch Freeplay.</li>
+            <li>Lunar south pole.</li>
+          </ul>
+        </div>
+        <div class="voice-col badcol">
+          <h4>Not</h4>
+          <ul>
+            <li>Bathed in ethereal lunar light.</li>
+            <li>Unlock the power of mission intelligence.</li>
+            <li>Sample data.</li>
+            <li>Revolutionary multi-factor scoring engine.</li>
+            <li>Get started today!</li>
+            <li>Moon's South Pole (in body copy).</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3 class="sub">Copy standards</h3>
+      <div class="rules">
+        <div class="rule"><h4>Sentence case</h4><p>Store copy in sentence case. Uppercase is a CSS treatment for display type, never typed capitals.</p></div>
+        <div class="rule"><h4>Numbers</h4><p>One decimal for angles. Degree symbol with a space: <span class="mono">+1.6°</span>, <span class="mono">89.5° S</span>, <span class="mono">222.7° E</span>.</p></div>
+        <div class="rule"><h4>Names</h4><p><b>Shadowline</b> is one word. Capitalize <b>Freeplay</b>, <b>Guided Mission</b>, and <b>Mission Comparison</b> as product modes.</p></div>
+        <div class="rule"><h4>Buttons</h4><p>Verb first, two to three words: Launch Freeplay, Begin Tutorial, Explore the Moon, Compare Missions.</p></div>
+      </div>
+
+      <h3 class="sub">Required disclosure</h3>
+      <div class="specimen" style="margin-bottom:0">
+        <div class="label"><span>Every public asset showing the simulator</span><span>Plex Mono · ≥ 11px · bone/60</span></div>
+        <p class="mono" style="margin:0;font-size:13px;color:color-mix(in oklab,var(--bone) 60%,transparent);line-height:1.7">Conceptual preview. Procedurally generated terrain and illustrative values, not mission telemetry or LOLA-derived data.<br><br>Visuals are conceptual. Not affiliated with or endorsed by NASA.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 06 APPLICATIONS ================= -->
+  <section class="block" id="applications">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="sec-num mono"><span class="n">06</span><span class="hairline"></span><span>Marketing applications</span></div>
+        <h2 class="display">One accent,<br>one idea.</h2>
+        <p>Every asset should feel like a frame from the instrument: mostly void, one accent, a number that means something, and the disclosure in place.</p>
+      </div>
+
+      <div class="apps">
+        <div class="app">
+          <div class="tagline mono">Social</div>
+          <h4>1080 × 1080 / 1350</h4>
+          <ul>
+            <li>Void background, one 2–5 word headline</li>
+            <li>One accent element only</li>
+            <li>HUD cluster in a corner for texture</li>
+            <li>Logo bottom-left, 120 px lockup</li>
+            <li>Disclosure bottom-right, ≥ 11 px</li>
+            <li>Three text elements maximum</li>
+          </ul>
+        </div>
+        <div class="app">
+          <div class="tagline mono">Slides</div>
+          <h4>16:9 presentation</h4>
+          <ul>
+            <li>64 px margins, dark throughout</li>
+            <li>Title 64–96 px, body 24–28 px</li>
+            <li>One idea per slide</li>
+            <li>Direct labels over legends</li>
+            <li>Source line in Plex Mono</li>
+          </ul>
+        </div>
+        <div class="app">
+          <div class="tagline mono">Print</div>
+          <h4>One-pager</h4>
+          <ul>
+            <li>Dark page if full color</li>
+            <li>Bone page + void text if constrained</li>
+            <li>12-column grid, 8 px base unit</li>
+            <li>Display at 80% of screen size</li>
+            <li>Disclaimer and Space Apps line mandatory</li>
+          </ul>
+        </div>
+        <div class="app">
+          <div class="tagline mono">Video</div>
+          <h4>Screen capture</h4>
+          <ul>
+            <li>1440p+, void, no browser chrome</li>
+            <li>Keep the HUD in frame</li>
+            <li>Slow, single-direction moves</li>
+            <li>Plex Sans captions, mono timestamps</li>
+            <li>End card: logo, tagline, disclaimer</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3 class="sub">Co-branding</h3>
+      <div class="rules">
+        <div class="rule good"><h4>Do</h4><p>Keep clear space around both the Shadowline lockup and the NASA Space Apps mark. Never merge them into one unit.</p></div>
+        <div class="rule badr"><h4>Don't</h4><p>Never imply NASA endorsement, use the NASA meatball as decoration, or omit the non-affiliation line.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 07 TOKENS ================= -->
+  <section class="block" id="tokens">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="sec-num mono"><span class="n">07</span><span class="hairline"></span><span>Tokens</span></div>
+        <h2 class="display">Copy, paste,<br>ship.</h2>
+        <p>These values are identical to the product. Use them in landing pages, decks, and vendor briefs so nothing drifts.</p>
+      </div>
+
+      <div class="ref">
+<b>/* COLOR */</b><br>
+--void: <span class="c">#080712</span>;&nbsp;&nbsp; --charcoal: <span class="c">#151327</span>;&nbsp;&nbsp; --line: <span class="c">#302c4a</span>;<br>
+--bone: <span class="c">#f0ebf7</span>;&nbsp;&nbsp; --regolith: <span class="c">#a39ab8</span>;&nbsp;&nbsp; --muted: <span class="c">#b2abc4</span>;<br>
+--sun: <span class="c">#ff5364</span>;&nbsp;&nbsp;&nbsp;&nbsp; --sun-dim: <span class="c">#963752</span>;<br>
+--earth: <span class="e">#4b9bff</span>;&nbsp;&nbsp; --earth-dim: <span class="e">#365588</span>;<br>
+--purple: <span class="p">#a986ff</span>;&nbsp; --panel: <span class="p">#100e20</span>;<br><br>
+<b>/* TYPE */</b><br>
+display&nbsp; Archivo 800 · wdth 125 · uppercase · 0.92<br>
+heading&nbsp; Archivo 700 · wdth 118 · uppercase · 1.0<br>
+body&nbsp;&nbsp;&nbsp;&nbsp; IBM Plex Sans 400<br>
+data&nbsp;&nbsp;&nbsp;&nbsp; IBM Plex Mono 400/500 · tabular<br><br>
+<b>/* SPACE */</b><br>
+container 1320px&nbsp; ·&nbsp; gutters 20/32/48<br>
+section 96/128px&nbsp; ·&nbsp; radius 6px&nbsp; ·&nbsp; border 1px<br><br>
+<b>/* MOTION */</b><br>
+ease cubic-bezier(.22, 1, .36, 1)<br>
+hover 200ms&nbsp; ·&nbsp; reveal 700ms&nbsp; ·&nbsp; hero 1100ms
+      </div>
+
+      <div class="callout" style="margin-top:26px"><i></i><p><b>Full source of truth:</b> <span class="mono">docs/brand/BRAND_GUIDE.md</span> for the complete rules, <span class="mono">docs/brand/shadowline-tokens.css</span> for the drop-in stylesheet, and <span class="mono">app/globals.css</span> for the shipped values.</p></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="row">
+      <div>
+        <span class="logo-lock" style="color:var(--bone)">
+          <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true">
+            <defs><clipPath id="clip-foot"><circle cx="16" cy="16" r="13"/></clipPath></defs>
+            <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <g clip-path="url(#clip-foot)"><path d="M2 19.5 L8 16.2 L11.5 18 L16.5 13.8 L20 16.6 L24 15 L30 18.5 V32 H2 Z" fill="currentColor"/></g>
+            <circle cx="9.2" cy="14.1" r="1.9" fill="#ff5364"/>
+          </svg>
+          <span class="word">Shadowline</span>
+        </span>
+        <p style="margin-top:12px">Where lunar exploration meets mission intelligence.</p>
+      </div>
+      <p class="mono">Brand v1.0 · November 2026</p>
+    </div>
+    <p style="margin-top:24px">Visuals are conceptual. Not affiliated with or endorsed by NASA.</p>
+  </div>
+</footer>
+
+<div class="copy-toast mono" id="toast" role="status" aria-live="polite">Hex copied</div>
+
+<script>
+  const toast = document.getElementById('toast');
+  let toastTimer;
+  document.querySelectorAll('[data-hex]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const hex = '#' + btn.dataset.hex;
+      try { await navigator.clipboard.writeText(hex); } catch (e) {}
+      toast.textContent = hex + ' copied';
+      toast.classList.add('on');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('on'), 1400);
+    });
+  });
+</script>
+</body>
+</html>

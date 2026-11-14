@@ -1,0 +1,77 @@
+{
+ "name": "de Gerlache Rim 2",
+ "family": "artemis-candidate",
+ "siteKind": "region-reference",
+ "country": "USA",
+ "agency": "NASA",
+ "mission": "Artemis IV (first crewed landing, planned early 2028)",
+ "landingTimeUtc": null,
+ "landingTimePrecision": null,
+ "outcome": "planned",
+ "outcomeDetail": null,
+ "coordinates": null,
+ "latDeg": null,
+ "lonDeg": null,
+ "coordsVerified": false,
+ "coordsFrame": "MOON_ME",
+ "coordsUncertaintyM": null,
+ "coordsAsPublished": null,
+ "representativePoint": {
+  "latDeg": -88.48,
+  "lonDeg": -88.34,
+  "method": "nearest named feature centre (NOT a region centroid): de Gerlache crater. The region is on the rim; the PGDA tile is ambiguous between Site11 and SL2.",
+  "sources": [
+   {
+    "label": "USGS Gazetteer of Planetary Nomenclature, de Gerlache (feature 1439)",
+    "url": "https://planetarynames.wr.usgs.gov/Feature/de%20Gerlache",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   }
+  ]
+ },
+ "chapterId": "ch3-lunar-base",
+ "blurb": "Artemis-era candidate region 'de Gerlache Rim 2' (one of nine NASA named on 28 Oct 2024). The point shown is an approximate region reference, not a NASA coordinate.",
+ "sources": [
+  {
+   "label": "NASA, update on Artemis III Moon landing regions (28 Oct 2024)",
+   "url": "https://www.prnewswire.com/news-releases/nasa-provides-update-on-artemis-iii-moon-landing-regions-302288659.html",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "NASA, Artemis IV mission page",
+   "url": "https://www.nasa.gov/mission/artemis-iv/",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "NASA, candidate regions for landing next Americans on the Moon (19 Aug 2022)",
+   "url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "NASA, adds mission to Artemis lunar program, updates architecture (27 Feb 2026)",
+   "url": "https://www.nasa.gov/news-release/nasa-adds-mission-to-artemis-lunar-program-updates-architecture/",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "USGS Gazetteer of Planetary Nomenclature, de Gerlache (feature 1439)",
+   "url": "https://planetarynames.wr.usgs.gov/Feature/de%20Gerlache",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ],
+ "terrainSummary": {
+  "hasMask": true,
+  "slope100mDeg": 16.87,
+  "nearestPsrKm": 0.0,
+  "nearestColdTrapKm": 0.0,
+  "insidePsr": true
+ },
+ "notes": [
+  "NASA has never published coordinates or boundaries for the candidate regions. Label every point 'approximate region reference'."
+ ],
+ "updatedAt": "2026-11-14T17:31:42Z"
+}

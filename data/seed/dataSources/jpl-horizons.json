@@ -1,0 +1,15 @@
+{
+ "label": "JPL Horizons API (observer tables, DE441)",
+ "kind": "api",
+ "version": "DE441",
+ "citation": "JPL Solar System Dynamics, Horizons System",
+ "doi": null,
+ "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html",
+ "license": null,
+ "usedFor": [
+  "ephemerisGlobal (Sun/Earth sub-points and ranges)",
+  "Sun angular diameter",
+  "client-math validation fixture"
+ ],
+ "retrievedAt": "2026-11-14"
+}

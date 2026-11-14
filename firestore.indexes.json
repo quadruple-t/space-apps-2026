@@ -1,0 +1,132 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "sites",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "family",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "sites",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "country",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "sites",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "chapterId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "name",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": [
+    {
+      "collectionGroup": "ephemerisGlobal",
+      "fieldPath": "data",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "terrain",
+      "fieldPath": "mask",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "terrain",
+      "fieldPath": "maskP05",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "terrain",
+      "fieldPath": "maskP95",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "terrain",
+      "fieldPath": "distAtMaxKm",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "terrainGrid",
+      "fieldPath": "masks",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "terrainGrid",
+      "fieldPath": "maskErr",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "terrainGrid",
+      "fieldPath": "cellStats",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "psrLayer",
+      "fieldPath": "polygons",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "psrLayer",
+      "fieldPath": "index",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "psrLayer",
+      "fieldPath": "names",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "demo",
+      "fieldPath": "series",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "demo",
+      "fieldPath": "mask",
+      "ttl": false,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "catalog",
+      "fieldPath": "sites",
+      "ttl": false,
+      "indexes": []
+    }
+  ]
+}

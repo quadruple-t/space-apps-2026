@@ -1,0 +1,317 @@
+/* ==========================================================================
+   SHADOWLINE — brand tokens v1.0 (November 2026)
+   Drop-in stylesheet for marketing pages, decks exported to HTML, and vendor
+   work. Values are identical to app/globals.css in the product repo.
+   Dark only. There is no light theme — do not invert these.
+   ========================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap");
+
+:root {
+  /* ---- Surfaces ---------------------------------------------------------- */
+  --sl-void: #080712;          /* page background, cinematic base */
+  --sl-charcoal: #151327;      /* cards, panels */
+  --sl-panel: #100e20;         /* floating panels above void */
+  --sl-secondary: #211d37;     /* chips, quiet surfaces */
+  --sl-accent-surface: #292341;/* hover surface */
+  --sl-line: #302c4a;          /* hairlines — decorative only, 1.5:1 */
+  --sl-input: #45405f;         /* field borders */
+
+  /* ---- Text -------------------------------------------------------------- */
+  --sl-bone: #f0ebf7;          /* primary text — 17.6:1 on void */
+  --sl-regolith: #a39ab8;      /* secondary text — 7.5:1 */
+  --sl-muted: #b2abc4;         /* body copy — 9.1:1 */
+  --sl-text-on-light: #100d20; /* text on bone fills */
+
+  /* ---- Semantic accents -------------------------------------------------- */
+  --sl-sun: #ff5364;           /* Sun, active control, focus — 6.4:1 */
+  --sl-sun-dim: #963752;       /* shadowed sun fills — not body text */
+  --sl-earth: #4b9bff;         /* Earth, comms, line of sight — 7.1:1 */
+  --sl-earth-dim: #365588;     /* muted Earth — not body text */
+  --sl-purple: #a986ff;        /* interface chrome, HUD — 7.2:1 */
+  --sl-destructive: #ff5364;
+
+  /* ---- Illustration only (3D scenes / diagrams) -------------------------- */
+  --sl-lunar-lit: #ece9e2;
+  --sl-lunar-shadow: #8b8a85;
+  --sl-diagram-fill: #26262a;
+  --sl-deep: #050506;
+  --sl-atmosphere: #5ac7ff;
+  --sl-sun-bloom: #ff91a2;
+
+  /* ---- Shape ------------------------------------------------------------- */
+  --sl-radius: 6px;
+  --sl-radius-sm: 3.6px;
+  --sl-radius-md: 4.8px;
+  --sl-radius-lg: 6px;
+  --sl-radius-xl: 8.4px;
+  --sl-radius-2xl: 10.8px;
+  --sl-border: 1px solid var(--sl-line);
+
+  /* ---- Layout ------------------------------------------------------------ */
+  --sl-container: 1320px;
+  --sl-gutter: 20px;
+  --sl-section-y: 96px;
+  --sl-nav-height: 4rem;
+
+  /* ---- Motion ------------------------------------------------------------ */
+  --sl-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --sl-duration-hover: 200ms;
+  --sl-duration-border: 300ms;
+  --sl-duration-reveal: 700ms;
+
+  /* ---- Type -------------------------------------------------------------- */
+  --sl-font-display: "Archivo", system-ui, sans-serif;
+  --sl-font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --sl-font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+@media (min-width: 640px) {
+  :root { --sl-gutter: 32px; --sl-section-y: 128px; }
+}
+@media (min-width: 1024px) {
+  :root { --sl-gutter: 48px; }
+}
+
+/* --------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+
+.sl-root {
+  background: var(--sl-void);
+  color: var(--sl-bone);
+  font-family: var(--sl-font-sans);
+  font-size: 16px;
+  line-height: 1.65;
+  color-scheme: dark;
+  -webkit-font-smoothing: antialiased;
+}
+
+.sl-root ::selection {
+  background: color-mix(in oklab, var(--sl-sun) 35%, transparent);
+  color: var(--sl-bone);
+}
+
+.sl-root :focus-visible {
+  outline: 2px solid var(--sl-sun);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------------------
+   Typography — Archivo must load with the wdth axis or the brand disappears.
+   -------------------------------------------------------------------------- */
+
+.sl-display {
+  font-family: var(--sl-font-display);
+  font-variation-settings: "wdth" 125;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 0.92;
+  text-wrap: balance;
+  margin: 0;
+}
+
+.sl-heading {
+  font-family: var(--sl-font-display);
+  font-variation-settings: "wdth" 118;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+  line-height: 1;
+  text-wrap: balance;
+  margin: 0;
+}
+
+.sl-lede {
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  line-height: 1.5;
+  color: color-mix(in oklab, var(--sl-bone) 85%, transparent);
+  text-wrap: pretty;
+  max-width: 60ch;
+}
+
+.sl-body {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--sl-muted);
+  max-width: 68ch;
+  text-wrap: pretty;
+}
+
+.sl-mono,
+.sl-data {
+  font-family: var(--sl-font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* 0.58–0.75rem instrument label */
+.sl-label {
+  font-family: var(--sl-font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  line-height: 1.25;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--sl-bone) 70%, transparent);
+}
+
+/* Legal and captions — never below 0.7rem / bone/60 */
+.sl-caption {
+  font-family: var(--sl-font-mono);
+  font-size: 0.7rem;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  color: color-mix(in oklab, var(--sl-bone) 60%, transparent);
+}
+
+/* --------------------------------------------------------------------------
+   Surfaces and components
+   -------------------------------------------------------------------------- */
+
+.sl-container {
+  width: 100%;
+  max-width: var(--sl-container);
+  margin-inline: auto;
+  padding-inline: var(--sl-gutter);
+}
+
+.sl-section {
+  padding-block: var(--sl-section-y);
+  border-top: var(--sl-border);
+}
+
+.sl-card {
+  background: color-mix(in oklab, var(--sl-charcoal) 40%, transparent);
+  border: var(--sl-border);
+  border-radius: var(--sl-radius);
+  padding: 24px;
+  transition: border-color var(--sl-duration-border) var(--sl-ease),
+              background-color var(--sl-duration-border) var(--sl-ease);
+}
+
+.sl-card:hover {
+  border-color: color-mix(in oklab, var(--sl-bone) 30%, transparent);
+  background: color-mix(in oklab, var(--sl-charcoal) 70%, transparent);
+}
+
+.sl-panel {
+  border: 1px solid color-mix(in oklab, var(--sl-purple) 24%, var(--sl-line));
+  border-radius: 0.6rem;
+  background: color-mix(in oklab, var(--sl-void) 82%, transparent);
+  box-shadow: 0 18px 70px rgb(3 2 14 / 34%), inset 0 1px rgb(255 255 255 / 4%);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.sl-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 48px;
+  padding-inline: 24px;
+  border: 1px solid transparent;
+  border-radius: var(--sl-radius);
+  font-family: var(--sl-font-sans);
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--sl-text-on-light);
+  background: var(--sl-bone);
+  box-shadow: 0 0 0 1px rgb(240 235 247 / 20%);
+  cursor: pointer;
+  transition: background-color var(--sl-duration-hover) var(--sl-ease),
+              box-shadow var(--sl-duration-hover) var(--sl-ease),
+              border-color var(--sl-duration-hover) var(--sl-ease);
+}
+
+.sl-button:hover {
+  background: #fff;
+  box-shadow: 0 0 32px -6px rgb(169 134 255 / 55%);
+}
+
+.sl-button--outline {
+  color: var(--sl-bone);
+  background: color-mix(in oklab, var(--sl-void) 40%, transparent);
+  border-color: color-mix(in oklab, var(--sl-bone) 25%, transparent);
+  box-shadow: none;
+  backdrop-filter: blur(2px);
+}
+
+.sl-button--outline:hover {
+  background: rgb(240 235 247 / 6%);
+  border-color: color-mix(in oklab, var(--sl-bone) 60%, transparent);
+  box-shadow: none;
+}
+
+.sl-button--ghost {
+  color: var(--sl-muted);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.sl-button--ghost:hover {
+  color: var(--sl-bone);
+  background: var(--sl-charcoal);
+  box-shadow: none;
+}
+
+.sl-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border: 1px solid var(--sl-line);
+  border-radius: 3px;
+  font-family: var(--sl-font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+  color: color-mix(in oklab, var(--sl-bone) 65%, transparent);
+}
+
+.sl-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in oklab, var(--sl-sun) 80%, transparent);
+}
+
+.sl-rule {
+  height: 1px;
+  border: 0;
+  background: var(--sl-line);
+  margin: 0;
+}
+
+.sl-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--sl-font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sl-muted);
+}
+
+.sl-eyebrow::after {
+  content: "";
+  width: 48px;
+  height: 1px;
+  background: var(--sl-line);
+}
+
+/* Motion — always ship a reduced-motion path. */
+@media (prefers-reduced-motion: reduce) {
+  .sl-root *,
+  .sl-root *::before,
+  .sl-root *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

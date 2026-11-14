@@ -1,0 +1,17 @@
+{
+ "label": "LOLA south pole DEMs, PSR maps, slope and roughness (PGDA product 90)",
+ "kind": "dem",
+ "version": null,
+ "citation": "Barker, M.K. et al. (2023), Planet. Sci. J. 4:183",
+ "doi": "10.3847/PSJ/acf3e1",
+ "url": "https://pgda.gsfc.nasa.gov/products/90",
+ "license": null,
+ "usedFor": [
+  "horizon masks (20/40/80/240 m nests)",
+  "terrainGrid",
+  "PSR polygons (LPSR_80S_20MPP_ADJ)",
+  "slope and roughness at 100 m"
+ ],
+ "dataDoi": "10.60903/gsfcpgda-lola-spole",
+ "retrievedAt": "2026-11-14T17:39:34Z"
+}

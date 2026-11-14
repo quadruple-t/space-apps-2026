@@ -10,8 +10,7 @@ const SUNLIT_PCT = Math.round(
 const EARTH_MARGIN = MODEL.earth.elevation - maskElevationAt(MODEL.mask, MODEL.earth.azimuth);
 
 /**
- * Concept frame for the planned simulator: the 3D scene with a landing-site
- * marker, sight lines and readouts computed on the illustrative horizon.
+ * Concept frame for the landing page; the live simulator is available in Freeplay.
  */
 export function SimulatorPreview() {
   return (
@@ -27,7 +26,7 @@ export function SimulatorPreview() {
           <span className="type-data truncate text-xs text-bone/70">lunaris360 / explore / site-a</span>
         </div>
         <span className="type-data shrink-0 whitespace-nowrap rounded-sm border border-sun/40 px-2 py-0.5 text-[0.68rem] text-sun">
-          Concept interface
+          Landing page concept
         </span>
       </div>
 
@@ -55,8 +54,8 @@ export function SimulatorPreview() {
         </div>
       </div>
       <figcaption className="border-t border-line px-4 py-3 text-xs text-muted-foreground">
-        Concept of the planned simulator. Terrain is procedural and every readout is computed on an illustrative
-        horizon profile, not real lunar data.
+        Landing page concept artwork. Freeplay provides live controls and scientific ephemeris calculations; this
+        preview uses a procedural scene and illustrative readouts.
       </figcaption>
     </figure>
   );
