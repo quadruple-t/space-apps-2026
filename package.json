@@ -6,7 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:rules": "npx -y firebase-tools@15.36.0 emulators:exec --only firestore --project shadowline-2t12 \"vitest run --config vitest.rules.config.ts\"",
+    "emulators": "npx -y firebase-tools@15.36.0 emulators:start --project shadowline-2t12",
+    "seed:emulator": "tsx scripts/seed-firestore.ts --emulator",
+    "seed:prod": "tsx scripts/seed-firestore.ts --prod",
+    "smoke": "tsx scripts/smoke-emulator.ts"
   },
   "dependencies": {
     "@react-three/fiber": "^9.8.2",

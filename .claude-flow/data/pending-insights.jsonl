@@ -99,3 +99,5 @@
 {"type":"edit","file":"/Users/tduba/dev/space-apps-2026/scripts/seed-firestore.ts","success":true,"timestamp":1794678674306,"sessionId":null}
 {"type":"edit","file":"/Users/tduba/dev/space-apps-2026/scripts/smoke-emulator.ts","success":true,"timestamp":1794678773592,"sessionId":null}
 {"type":"edit","file":"/Users/tduba/dev/space-apps-2026/tests/rules/firestore.rules.test.ts","success":true,"timestamp":1794678813203,"sessionId":null}
+{"type":"edit","file":"/Users/tduba/dev/space-apps-2026/tests/firestore/data-layer.test.ts","success":true,"timestamp":1794678857237,"sessionId":null}
+{"type":"edit","file":"/Users/tduba/dev/space-apps-2026/scripts/data-pipeline/pipeline/dem.py","success":true,"timestamp":1794678869233,"sessionId":null}
