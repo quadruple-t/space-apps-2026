@@ -3,7 +3,6 @@ import { CommsDiagram, LightingDiagram, TradeoffDiagram } from "@/components/gra
 import { PageContainer } from "@/components/layout/page-container";
 import { Reveal } from "@/components/ui/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { ChapterTrail } from "./chapter-trail";
 import { cn } from "@/lib/utils";
 
 type Challenge = {
@@ -46,9 +45,8 @@ const ACCENT = {
 
 export function ChallengeSection() {
   return (
-    <section id="challenge" aria-labelledby="overview-title" className="relative py-24 sm:py-32">
+    <section id="overview" aria-labelledby="overview-title" className="relative py-24 sm:py-32">
       <PageContainer>
-        <ChapterTrail active="overview" />
         <Reveal>
           <SectionHeading id="overview-title" title="A world where every degree matters.">
             <p>
@@ -61,7 +59,7 @@ export function ChallengeSection() {
 
         <ul className="mt-16 grid gap-5 md:grid-cols-3 lg:gap-6">
           {CHALLENGES.map((c, i) => (
-            <Reveal as="li" key={c.index} delay={i * 90} className="mission-panel group flex flex-col border border-line bg-charcoal/50 transition-colors duration-300 hover:border-bone/25">
+            <Reveal as="li" key={c.index} delay={i * 90} className="group flex flex-col rounded-lg border border-line bg-charcoal/50 transition-colors duration-300 hover:border-bone/25">
               <div className="border-b border-line px-5 pb-4 pt-6">{c.diagram}</div>
               <div className="flex flex-1 flex-col p-6">
                 <p
