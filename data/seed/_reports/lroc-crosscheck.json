@@ -1,0 +1,474 @@
+{
+ "maxAllowedMoveM": 50.0,
+ "rows": [
+  {
+   "id": "apollo-11-tranquility",
+   "curated": [
+    0.67416,
+    23.47314
+   ],
+   "shapefile": [
+    0.67416,
+    23.47314
+   ],
+   "deltaM": 0.0,
+   "shapefileUncertM": 0.3,
+   "action": "kept"
+  },
+  {
+   "id": "apollo-12-oceanus-procellarum",
+   "curated": [
+    -3.0128,
+    -23.4219
+   ],
+   "shapefile": [
+    -3.0128,
+    -23.4219
+   ],
+   "deltaM": 0.0,
+   "shapefileUncertM": 2.2,
+   "action": "kept"
+  },
+  {
+   "id": "apollo-14-fra-mauro",
+   "curated": [
+    -3.64589,
+    -17.47194
+   ],
+   "shapefile": [
+    -3.64589,
+    -17.47194
+   ],
+   "deltaM": 0.0,
+   "shapefileUncertM": 0.4,
+   "action": "kept"
+  },
+  {
+   "id": "apollo-15-hadley-apennine",
+   "curated": [
+    26.13239,
+    3.6333
+   ],
+   "shapefile": [
+    26.13239,
+    3.6333
+   ],
+   "deltaM": 0.0,
+   "shapefileUncertM": 1.0,
+   "action": "kept"
+  },
+  {
+   "id": "apollo-16-descartes",
+   "curated": [
+    -8.9734,
+    15.5011
+   ],
+   "shapefile": [
+    -8.9734,
+    15.5011
+   ],
+   "deltaM": 0.0,
+   "shapefileUncertM": 3.0,
+   "action": "kept"
+  },
+  {
+   "id": "apollo-17-taurus-littrow",
+   "curated": [
+    20.1911,
+    30.7723
+   ],
+   "shapefile": [
+    20.1911,
+    30.7723
+   ],
+   "deltaM": 0.0,
+   "shapefileUncertM": 3.5,
+   "action": "kept"
+  },
+  {
+   "id": "surveyor-1",
+   "curated": [
+    -2.4745,
+    -43.3398
+   ],
+   "shapefile": [
+    -2.4745,
+    -43.3398
+   ],
+   "deltaM": 0.0,
+   "shapefileUncertM": 5.4,
+   "action": "kept"
+  },
+  {
+   "id": "surveyor-3",
+   "curated": [
+    -3.0162,
+    -23.418
+   ],
+   "shapefile": [
+    -3.0162,
+    -23.418
+   ],
+   "deltaM": 0.0,
+   "shapefileUncertM": 2.6,
+   "action": "kept"
+  },
+  {
+   "id": "surveyor-5",
+   "curated": [
+    1.4551,
+    23.1943
+   ],
+   "shapefile": [
+    1.4551,
+    23.1942
+   ],
+   "deltaM": 3.0,
+   "shapefileUncertM": 9.4,
+   "action": "kept"
+  },
+  {
+   "id": "surveyor-6",
+   "curated": [
+    0.4742,
+    -1.4275
+   ],
+   "shapefile": [
+    0.4743,
+    -1.4275
+   ],
+   "deltaM": 3.0,
+   "shapefileUncertM": 6.6,
+   "action": "kept"
+  },
+  {
+   "id": "surveyor-7",
+   "curated": [
+    -40.9812,
+    -11.5127
+   ],
+   "shapefile": [
+    -40.9811,
+    -11.5127
+   ],
+   "deltaM": 3.0,
+   "shapefileUncertM": 2.7,
+   "action": "kept"
+  },
+  {
+   "id": "luna-16",
+   "curated": [
+    -0.5137,
+    56.3638
+   ],
+   "shapefile": [
+    -0.5137,
+    56.3638
+   ],
+   "deltaM": 0.0,
+   "shapefileUncertM": 3.7,
+   "action": "kept"
+  },
+  {
+   "id": "luna-17-lunokhod-1",
+   "curated": [
+    38.23764,
+    -35.00163
+   ],
+   "shapefile": [
+    38.23764,
+    -35.00163
+   ],
+   "deltaM": 0.0,
+   "shapefileUncertM": 0.5,
+   "action": "kept"
+  },
+  {
+   "id": "lunokhod-1-final",
+   "curated": [
+    38.315,
+    -35.0081
+   ],
+   "shapefile": [
+    38.3151705,
+    -35.0079815
+   ],
+   "deltaM": 5.9,
+   "shapefileUncertM": 0.0,
+   "action": "kept"
+  },
+  {
+   "id": "luna-20",
+   "curated": [
+    3.7863,
+    56.6242
+   ],
+   "shapefile": [
+    3.7863,
+    56.6242
+   ],
+   "deltaM": 0.0,
+   "shapefileUncertM": 4.3,
+   "action": "kept"
+  },
+  {
+   "id": "luna-21-lunokhod-2",
+   "curated": [
+    25.9994,
+    30.4076
+   ],
+   "shapefile": [
+    25.9994,
+    30.4076
+   ],
+   "deltaM": 0.0,
+   "shapefileUncertM": 13.4,
+   "action": "kept"
+  },
+  {
+   "id": "lunokhod-2-final",
+   "curated": [
+    25.8323,
+    30.9222
+   ],
+   "shapefile": [
+    25.8323185,
+    30.9221468
+   ],
+   "deltaM": 1.6,
+   "shapefileUncertM": 0.0,
+   "action": "kept"
+  },
+  {
+   "id": "luna-23",
+   "curated": [
+    12.6667,
+    62.1511
+   ],
+   "shapefile": [
+    12.6667,
+    62.1511
+   ],
+   "deltaM": 0.0,
+   "shapefileUncertM": 3.0,
+   "action": "kept"
+  },
+  {
+   "id": "luna-24-mare-crisium",
+   "curated": [
+    12.7142,
+    62.2129
+   ],
+   "shapefile": [
+    12.7142,
+    62.2129
+   ],
+   "deltaM": 0.0,
+   "shapefileUncertM": 3.7,
+   "action": "kept"
+  },
+  {
+   "id": "luna-25-impact",
+   "curated": [
+    -57.865,
+    61.36
+   ],
+   "shapefile": [
+    -57.8651,
+    61.3588
+   ],
+   "deltaM": 19.6,
+   "shapefileUncertM": 18.5,
+   "action": "kept"
+  },
+  {
+   "id": "change-3",
+   "curated": [
+    44.1214,
+    -19.5117
+   ],
+   "shapefile": [
+    44.1214,
+    -19.5117
+   ],
+   "deltaM": 0.0,
+   "shapefileUncertM": 9.1,
+   "action": "kept"
+  },
+  {
+   "id": "change-4-von-karman",
+   "curated": [
+    -45.4561,
+    177.5885
+   ],
+   "shapefile": [
+    -45.4562,
+    177.5886
+   ],
+   "deltaM": 3.7,
+   "shapefileUncertM": 10.0,
+   "action": "kept"
+  },
+  {
+   "id": "change-5",
+   "curated": [
+    43.0576,
+    -51.9161
+   ],
+   "shapefile": [
+    43.0576,
+    -51.9161
+   ],
+   "deltaM": 0.0,
+   "shapefileUncertM": 10.0,
+   "action": "kept"
+  },
+  {
+   "id": "change-6-apollo-basin",
+   "curated": [
+    -41.6385,
+    -153.9852
+   ],
+   "shapefile": [
+    -41.6383,
+    -153.9857
+   ],
+   "deltaM": 12.9,
+   "shapefileUncertM": 10.0,
+   "action": "kept"
+  },
+  {
+   "id": "beresheet-impact",
+   "curated": [
+    32.5956,
+    19.3496
+   ],
+   "shapefile": [
+    32.5953,
+    19.3495
+   ],
+   "deltaM": 9.4,
+   "shapefileUncertM": 10.0,
+   "action": "kept"
+  },
+  {
+   "id": "chandrayaan-2-vikram",
+   "curated": [
+    -70.881,
+    22.784
+   ],
+   "shapefile": [
+    -70.8811,
+    22.7834
+   ],
+   "deltaM": 6.7,
+   "shapefileUncertM": 9.1,
+   "action": "kept"
+  },
+  {
+   "id": "chandrayaan-3-shiv-shakti",
+   "curated": [
+    -69.3741,
+    32.32
+   ],
+   "shapefile": [
+    -69.374,
+    32.3187
+   ],
+   "deltaM": 14.2,
+   "shapefileUncertM": 10.0,
+   "action": "replaced-by-shapefile"
+  },
+  {
+   "id": "hakuto-r-m1-impact",
+   "curated": [
+    47.581,
+    44.094
+   ],
+   "shapefile": [
+    47.58,
+    44.0938
+   ],
+   "deltaM": 30.6,
+   "shapefileUncertM": 10.0,
+   "action": "kept"
+  },
+  {
+   "id": "slim-shioli",
+   "curated": [
+    -13.316,
+    25.251
+   ],
+   "shapefile": [
+    -13.316,
+    25.251
+   ],
+   "deltaM": 0.0,
+   "shapefileUncertM": 10.0,
+   "action": "kept"
+  },
+  {
+   "id": "im-1-odysseus",
+   "curated": [
+    -80.13,
+    1.44
+   ],
+   "shapefile": [
+    -80.1276,
+    1.4367
+   ],
+   "deltaM": 74.8,
+   "shapefileUncertM": 10.0,
+   "action": "replaced-by-shapefile"
+  },
+  {
+   "id": "blue-ghost-m1",
+   "curated": [
+    18.5623,
+    61.8103
+   ],
+   "shapefile": [
+    18.5622,
+    61.8102
+   ],
+   "deltaM": 4.2,
+   "shapefileUncertM": 10.0,
+   "action": "kept"
+  },
+  {
+   "id": "im-2-athena",
+   "curated": [
+    -84.7906,
+    29.1957
+   ],
+   "shapefile": [
+    -84.7906,
+    29.19567
+   ],
+   "deltaM": 0.1,
+   "shapefileUncertM": 5.0,
+   "action": "kept"
+  },
+  {
+   "id": "hakuto-r-m2-resilience-impact",
+   "curated": [
+    60.4445,
+    -4.588
+   ],
+   "shapefile": [
+    60.4445,
+    -4.588
+   ],
+   "deltaM": 0.0,
+   "shapefileUncertM": 10.0,
+   "action": "kept"
+  }
+ ],
+ "noLandingCheck": {
+  "checkedThrough": "2026-11-14",
+  "result": "No lunar landing attempt found between 26 Oct 2026 and 14 Nov 2026. Blue Ghost Mission 2 and IM-3 are listed as slipped to 2027.",
+  "sources": [
+   "spaceReview5344"
+  ]
+ }
+}

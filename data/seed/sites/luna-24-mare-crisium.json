@@ -1,0 +1,60 @@
+{
+ "name": "Luna 24 (Mare Crisium)",
+ "family": "luna",
+ "siteKind": "landing",
+ "country": "USSR",
+ "agency": "Soviet space program",
+ "mission": "Luna 24",
+ "landingTimeUtc": "1976-08-18T02:00:00Z",
+ "landingTimePrecision": "minute",
+ "outcome": "success",
+ "outcomeDetail": null,
+ "coordinates": {
+  "latDeg": 12.7142,
+  "lonDeg": 62.2129,
+  "elevationM": -3669.9
+ },
+ "latDeg": 12.7142,
+ "lonDeg": 62.2129,
+ "coordsVerified": true,
+ "coordsFrame": "MOON_ME",
+ "coordsUncertaintyM": 3.7,
+ "coordsAsPublished": {
+  "latDeg": 12.75,
+  "lonDeg": 62.2,
+  "source": {
+   "label": "NSSDCA, Soviet lunar missions",
+   "url": "https://nssdc.gsfc.nasa.gov/planetary/lunar/lunarussr.html",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ },
+ "representativePoint": null,
+ "chapterId": null,
+ "blurb": "Robotic sample return from an equatorial mare; the last landing for 37 years.",
+ "sources": [
+  {
+   "label": "LROC, Coordinates of Lunar Anthropogenic Targets (28 Jul 2016; Wagner et al. 2017, Icarus 283:92-103)",
+   "url": "https://lroc.im-ldi.com/data/support/downloads/2016_LROC_Coordinates_of_Human_Features.pdf",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "NSSDCA, Soviet lunar missions",
+   "url": "https://nssdc.gsfc.nasa.gov/planetary/lunar/lunarussr.html",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "LROC RDR shapefile, Anthropogenic Features on the Moon (last updated 2026-08-14)",
+   "url": "https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_ANTHROPOGENIC_OBJECTS",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ],
+ "terrainSummary": null,
+ "notes": [
+  "Elevation = shapefile RADIUS (NAC DTM) minus 1,737,400 m."
+ ],
+ "updatedAt": "2026-11-14T17:31:42Z"
+}

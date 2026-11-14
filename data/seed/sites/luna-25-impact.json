@@ -1,0 +1,68 @@
+{
+ "name": "Luna 25 (impact crater)",
+ "family": "luna",
+ "siteKind": "impact",
+ "country": "Russia",
+ "agency": "Roscosmos",
+ "mission": "Luna 25",
+ "landingTimeUtc": "2023-08-19T11:58:00Z",
+ "landingTimePrecision": "minute",
+ "outcome": "failure",
+ "outcomeDetail": {
+  "summary": "Crashed during a pre-landing orbit burn: the engine fired for 127 s instead of 84 s. LROC calls this crater 'likely' Luna 25's; the intended site was about 424 km away.",
+  "causeClass": "propulsion-burn",
+  "sources": [
+   {
+    "label": "SpacePolicyOnline, Luna 25's engines fired longer than planned",
+    "url": "https://spacepolicyonline.com/news/luna-25s-engines-fired-longer-than-planned/",
+    "retrievedAt": "2026-11-14",
+    "tier": "C"
+   },
+   {
+    "label": "LROC, Luna 25 impact site (images/1311)",
+    "url": "https://lroc.im-ldi.com/images/1311",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   }
+  ]
+ },
+ "coordinates": {
+  "latDeg": -57.865,
+  "lonDeg": 61.36,
+  "elevationM": -342.4
+ },
+ "latDeg": -57.865,
+ "lonDeg": 61.36,
+ "coordsVerified": true,
+ "coordsFrame": "MOON_ME",
+ "coordsUncertaintyM": 40,
+ "coordsAsPublished": null,
+ "representativePoint": null,
+ "chapterId": null,
+ "blurb": "Russia's first lunar lander since 1976, lost before its landing attempt.",
+ "sources": [
+  {
+   "label": "LROC, Luna 25 impact site (images/1311)",
+   "url": "https://lroc.im-ldi.com/images/1311",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "SpacePolicyOnline, Luna 25's engines fired longer than planned",
+   "url": "https://spacepolicyonline.com/news/luna-25s-engines-fired-longer-than-planned/",
+   "retrievedAt": "2026-11-14",
+   "tier": "C"
+  },
+  {
+   "label": "LROC RDR shapefile, Anthropogenic Features on the Moon (last updated 2026-08-14)",
+   "url": "https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_ANTHROPOGENIC_OBJECTS",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ],
+ "terrainSummary": null,
+ "notes": [
+  "Elevation = shapefile RADIUS (SLDEM) minus 1,737,400 m."
+ ],
+ "updatedAt": "2026-11-14T17:31:42Z"
+}

@@ -1,0 +1,76 @@
+{
+ "name": "IM-2 Athena (Mons Mouton area)",
+ "family": "clps",
+ "siteKind": "landing",
+ "country": "USA",
+ "agency": "Intuitive Machines / NASA CLPS",
+ "mission": "IM-2",
+ "landingTimeUtc": "2025-03-06T17:30:00Z",
+ "landingTimePrecision": "approx",
+ "outcome": "partial",
+ "outcomeDetail": {
+  "summary": "Landed on its side in a shadowed crater about 20 m across, after 'noisy' laser-altimeter data may have contributed. With the Sun's direction, panel orientation and extreme cold in the crater, it could not recharge; operations ended in under 13 hours.",
+  "causeClass": "nav-sensor+lighting-thermal",
+  "sources": [
+   {
+    "label": "NASA, receives some data before Intuitive Machines ends lunar mission",
+    "url": "https://www.nasa.gov/news-release/nasa-receives-some-data-before-intuitive-machines-ends-lunar-mission/",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   {
+    "label": "SpaceNews, IM-2 lunar lander mission ends",
+    "url": "https://spacenews.com/im-2-lunar-lander-mission-ends/",
+    "retrievedAt": "2026-11-14",
+    "tier": "C"
+   },
+   {
+    "label": "LROC, IM-2 Athena landing site (images/1408)",
+    "url": "https://lroc.im-ldi.com/images/1408",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   }
+  ]
+ },
+ "coordinates": {
+  "latDeg": -84.7906,
+  "lonDeg": 29.1957,
+  "elevationM": 5321.4
+ },
+ "latDeg": -84.7906,
+ "lonDeg": 29.1957,
+ "coordsVerified": true,
+ "coordsFrame": "MOON_ME",
+ "coordsUncertaintyM": 5.0,
+ "coordsAsPublished": null,
+ "representativePoint": null,
+ "chapterId": "ch2-robotic-explorer",
+ "blurb": "Came down in a shadowed crater and lost power within hours: where you end up decides whether you get power.",
+ "sources": [
+  {
+   "label": "LROC, IM-2 Athena landing site (images/1408)",
+   "url": "https://lroc.im-ldi.com/images/1408",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "NASA, receives some data before Intuitive Machines ends lunar mission",
+   "url": "https://www.nasa.gov/news-release/nasa-receives-some-data-before-intuitive-machines-ends-lunar-mission/",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "LROC RDR shapefile, Anthropogenic Features on the Moon (last updated 2026-08-14)",
+   "url": "https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_ANTHROPOGENIC_OBJECTS",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ],
+ "terrainSummary": null,
+ "notes": [
+  "Coordinate uncertainty from the LROC anthropogenic shapefile (UNCERTAIN column).",
+  "Elevation = shapefile RADIUS (NAC DTM) minus 1,737,400 m.",
+  "NASA: 'approximately 11:30 a.m. March 6' with no time zone; the same release uses CST elsewhere, giving about 17:30 UTC."
+ ],
+ "updatedAt": "2026-11-14T17:31:42Z"
+}

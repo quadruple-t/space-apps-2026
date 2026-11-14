@@ -1,0 +1,94 @@
+{
+ "label": "Intuitive Machines Nova-C (IM-1, IM-2)",
+ "agency": "Intuitive Machines / NASA CLPS",
+ "mission": "IM-1 / IM-2",
+ "fields": {
+  "arrayPowerW": {
+   "value": null,
+   "unit": "W",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "panelAreaM2": {
+   "value": null,
+   "unit": "m2",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "cellEfficiency": {
+   "value": null,
+   "unit": "fraction",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "batteryWh": {
+   "value": null,
+   "unit": "Wh",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "batteryAh": {
+   "value": null,
+   "unit": "Ah",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "busV": {
+   "value": null,
+   "unit": "V",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "baseLoadW": {
+   "value": null,
+   "unit": "W",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "commsLoadW": {
+   "value": null,
+   "unit": "W",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "designLifeHours": {
+   "value": 240,
+   "unit": "h",
+   "basis": "derived",
+   "sourceIdx": 0,
+   "note": "NASA press kits: 'approx. 10 days (lunar surface operations)'; 10 x 24 h"
+  }
+ },
+ "facts": [
+  {
+   "text": "IM-1 operated on the lunar surface for approximately seven Earth days (NASA IM-2 press kit).",
+   "sourceIdx": 1
+  },
+  {
+   "text": "Array power, battery capacity and bus voltage are unsourced: the 200 W / 25 Ah / 28 V figures appear only on Wikipedia, and the NASA press kits give no power specifications.",
+   "sourceIdx": null
+  }
+ ],
+ "sources": [
+  {
+   "label": "NASA IM-1 press kit",
+   "url": "https://www.nasa.gov/wp-content/uploads/2024/01/np-2023-12-016-jsc-clps-im-press-kit-web-508.pdf",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "NASA IM-2 press kit",
+   "url": "https://nasa.gov/wp-content/uploads/2025/02/np-2025-02-005-jsc-clps-intuitive-machines-press-kit-508-2-25-25.pdf",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ]
+}

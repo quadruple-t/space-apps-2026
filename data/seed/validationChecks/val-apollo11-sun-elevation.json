@@ -1,0 +1,20 @@
+{
+ "siteId": "apollo-11-tranquility",
+ "time": "1969-07-20T20:17:39Z",
+ "quantity": "sun-elevation-deg",
+ "computed": null,
+ "computedBy": null,
+ "historical": 10.65,
+ "historicalKind": "computed-reconstruction",
+ "historicalSource": {
+  "label": "ALSJ, Earth and Sun Altitude/Azimuth at landing (Fjeld and Scotti; computed reconstruction spot-checked against JPL Horizons)",
+  "url": "https://www.apollojournals.org/alsj/alsj-EarthSun_AltAz.html",
+  "retrievedAt": "2026-11-14",
+  "tier": "B"
+ },
+ "toleranceDeg": 0.5,
+ "deltaDeg": null,
+ "status": "pending",
+ "note": "ALSJ used older site coordinates (0.6875 N, 23.4333 E), 1.27 km from LROC.",
+ "range": null
+}

@@ -1,0 +1,13 @@
+{
+ "label": "ALSJ Earth and Sun altitude/azimuth at Apollo landings",
+ "kind": "document",
+ "version": null,
+ "citation": "Fjeld, P. & Scotti, J., Apollo Lunar Surface Journal",
+ "doi": null,
+ "url": "https://www.apollojournals.org/alsj/alsj-EarthSun_AltAz.html",
+ "license": null,
+ "usedFor": [
+  "validation: Apollo 11-17 Sun elevation (computed reconstructions)"
+ ],
+ "retrievedAt": "2026-11-14"
+}

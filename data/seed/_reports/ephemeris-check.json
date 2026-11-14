@@ -1,0 +1,169 @@
+{
+ "generatedAt": "2026-11-14T17:42:55Z",
+ "toleranceDeg": 0.02,
+ "nEpochs": 30,
+ "rows": [
+  {
+   "site": "Apollo 11 (LROC)",
+   "body": "sun",
+   "exact": {
+    "maxAbsDEl": 0.00019042289168424986,
+    "meanAbsDEl": 0.0001777277706720722,
+    "maxAbsDAz": 0.00584409405456654,
+    "maxAbsDAzCosEl": 0.00016044093332405162
+   },
+   "interpolated": {
+    "maxAbsDEl": 0.00019154455395664627,
+    "meanAbsDEl": 0.00017647372727274123,
+    "maxAbsDAz": 0.005713499583862358,
+    "maxAbsDAzCosEl": 0.000156855655850571
+   }
+  },
+  {
+   "site": "Apollo 11 (LROC)",
+   "body": "earth",
+   "exact": {
+    "maxAbsDEl": 0.005891687494973041,
+    "meanAbsDEl": 0.0035942573276988316,
+    "maxAbsDAz": 0.003930806278503951,
+    "maxAbsDAzCosEl": 0.0012875372657687942
+   },
+   "interpolated": {
+    "maxAbsDEl": 0.005945686817774742,
+    "meanAbsDEl": 0.0036212937299374913,
+    "maxAbsDAz": 0.004206891730405005,
+    "maxAbsDAzCosEl": 0.0013779691727806337
+   }
+  },
+  {
+   "site": "Shackleton rim",
+   "body": "sun",
+   "exact": {
+    "maxAbsDEl": 2.361059945998889e-06,
+    "meanAbsDEl": 1.107989302792193e-06,
+    "maxAbsDAz": 0.00018977683785692534,
+    "maxAbsDAzCosEl": 0.00018977662228097377
+   },
+   "interpolated": {
+    "maxAbsDEl": 1.2908755576246378e-05,
+    "meanAbsDEl": 8.300667792944064e-06,
+    "maxAbsDAz": 0.00019176285348976307,
+    "maxAbsDAzCosEl": 0.00019176159301152246
+   }
+  },
+  {
+   "site": "Shackleton rim",
+   "body": "earth",
+   "exact": {
+    "maxAbsDEl": 0.0004782448457349986,
+    "meanAbsDEl": 0.00024532420934546734,
+    "maxAbsDAz": 0.005929453312546684,
+    "maxAbsDAzCosEl": 0.005925939058178434
+   },
+   "interpolated": {
+    "maxAbsDEl": 0.0005616848541372121,
+    "meanAbsDEl": 0.0002477898656849516,
+    "maxAbsDAz": 0.005980433273720109,
+    "maxAbsDAzCosEl": 0.005976888804669021
+   }
+  },
+  {
+   "site": "S-pole -84.8/33.0",
+   "body": "sun",
+   "exact": {
+    "maxAbsDEl": 1.738511176097024e-05,
+    "meanAbsDEl": 1.0536792224076959e-05,
+    "maxAbsDAz": 0.0001904966383676765,
+    "maxAbsDAzCosEl": 0.00018967752962831985
+   },
+   "interpolated": {
+    "maxAbsDEl": 2.383633954949893e-05,
+    "meanAbsDEl": 1.1051580956165466e-05,
+    "maxAbsDAz": 0.00019240513125851066,
+    "maxAbsDAzCosEl": 0.00019150712308598714
+   }
+  },
+  {
+   "site": "S-pole -84.8/33.0",
+   "body": "earth",
+   "exact": {
+    "maxAbsDEl": 0.0005845753751505534,
+    "meanAbsDEl": 0.00030183338431204534,
+    "maxAbsDAz": 0.005946972463391376,
+    "maxAbsDAzCosEl": 0.005909109676490247
+   },
+   "interpolated": {
+    "maxAbsDEl": 0.0005199428732085565,
+    "meanAbsDEl": 0.0002888999403015904,
+    "maxAbsDAz": 0.005999907016757788,
+    "maxAbsDAzCosEl": 0.005961707209679392
+   }
+  },
+  {
+   "site": "Chandrayaan-3 (LROC)",
+   "body": "sun",
+   "exact": {
+    "maxAbsDEl": 6.548737435263519e-05,
+    "meanAbsDEl": 4.1738896056614513e-05,
+    "maxAbsDAz": 0.00020278049879607352,
+    "maxAbsDAzCosEl": 0.0001890401946699059
+   },
+   "interpolated": {
+    "maxAbsDEl": 7.007633942235358e-05,
+    "meanAbsDEl": 4.1042657574241746e-05,
+    "maxAbsDAz": 0.00020403093185450416,
+    "maxAbsDAzCosEl": 0.00019048604719177798
+   }
+  },
+  {
+   "site": "Chandrayaan-3 (LROC)",
+   "body": "earth",
+   "exact": {
+    "maxAbsDEl": 0.0014733659381036546,
+    "meanAbsDEl": 0.0007551244532755537,
+    "maxAbsDAz": 0.006069328052603851,
+    "maxAbsDAzCosEl": 0.005747814198203885
+   },
+   "interpolated": {
+    "maxAbsDEl": 0.0014580837286644055,
+    "meanAbsDEl": 0.0007379492291111234,
+    "maxAbsDAz": 0.006141006957591344,
+    "maxAbsDAzCosEl": 0.00580382607454409
+   }
+  },
+  {
+   "site": "Chang'e-4 (LROC)",
+   "body": "sun",
+   "exact": {
+    "maxAbsDEl": 0.0001322983191989202,
+    "meanAbsDEl": 9.010158839772113e-05,
+    "maxAbsDAz": 0.00025628629265384006,
+    "maxAbsDAzCosEl": 0.00018497964203419295
+   },
+   "interpolated": {
+    "maxAbsDEl": 0.0001409510228791433,
+    "meanAbsDEl": 9.009523884798329e-05,
+    "maxAbsDAz": 0.0002481827911537948,
+    "maxAbsDAzCosEl": 0.00018411546827989164
+   }
+  },
+  {
+   "site": "Chang'e-4 (LROC)",
+   "body": "earth",
+   "exact": {
+    "maxAbsDEl": 0.0009400435540314334,
+    "meanAbsDEl": 0.00037883707394617734,
+    "maxAbsDAz": 0.008295405597721128,
+    "maxAbsDAzCosEl": 0.005909744013031889
+   },
+   "interpolated": {
+    "maxAbsDEl": 0.000877857240105584,
+    "meanAbsDEl": 0.00038358892973230734,
+    "maxAbsDAz": 0.008393331699608098,
+    "maxAbsDAzCosEl": 0.005959778809782936
+   }
+  }
+ ],
+ "worstDeg": 0.005976888804669021,
+ "pass": true
+}

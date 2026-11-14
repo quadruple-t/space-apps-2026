@@ -1,0 +1,96 @@
+{
+  "_note": "Lander power presets (prompt §5.5; docs/research/power-costs-outcomes.md §1-2). Only sourced values are numbers; everything else is null. basis: sourced | derived | assumption. sources are refs.json keys; sourceIdx points into each preset's sources array. 60_curated.py fills every missing field with {value: null, basis: 'sourced', sourceIdx: null, note: 'unsourced'} and validates.",
+  "presets": [
+    {
+      "id": "chandrayaan-3-vikram", "label": "Chandrayaan-3 Vikram lander", "agency": "ISRO", "mission": "Chandrayaan-3",
+      "sources": ["isroCh3Details", "isroCh3"],
+      "fields": {
+        "arrayPowerW": {"value": 738, "unit": "W", "basis": "sourced", "sourceIdx": 0, "note": "ISRO: '738W, WS with Bias'"},
+        "designLifeHours": {"value": 336, "unit": "h", "basis": "derived", "sourceIdx": 0, "note": "ISRO: 'One lunar day (~14 Earth days)'; 14 x 24 h"}
+      },
+      "facts": [
+        {"text": "Communicates with IDSN and the Pragyan rover; the Chandrayaan-2 orbiter is planned as a contingency link (ISRO).", "sourceIdx": 0},
+        {"text": "Lander mass 1752 kg including the 26 kg rover (ISRO).", "sourceIdx": 0}
+      ]
+    },
+    {
+      "id": "pragyan-rover", "label": "Chandrayaan-3 Pragyan rover", "agency": "ISRO", "mission": "Chandrayaan-3",
+      "sources": ["isroCh3Details", "theWeekPragyan"],
+      "fields": {
+        "arrayPowerW": {"value": 50, "unit": "W", "basis": "sourced", "sourceIdx": 0, "note": "ISRO: '50W' (rover)"},
+        "batteryAh": {"value": 10, "unit": "Ah", "basis": "sourced", "sourceIdx": 1, "note": "Secondary source (The Week, tier C): 'The capacity of the rover battery is 10 Ampere-hour (Ah).'"}
+      },
+      "facts": [{"text": "Communicates only with the lander (ISRO).", "sourceIdx": 0}]
+    },
+    {
+      "id": "chandrayaan-2-vikram", "label": "Chandrayaan-2 Vikram lander", "agency": "ISRO", "mission": "Chandrayaan-2",
+      "sources": ["isroCh2Spacecraft"],
+      "fields": {
+        "arrayPowerW": {"value": 650, "unit": "W", "basis": "sourced", "sourceIdx": 0, "note": "ISRO: electric power generation '650 W'"},
+        "designLifeHours": {"value": 336, "unit": "h", "basis": "derived", "sourceIdx": 0, "note": "ISRO: 'one lunar day, which is equivalent to about 14 Earth days'; 14 x 24 h"}
+      },
+      "facts": [{"text": "Vikram mass 1,471 kg (ISRO).", "sourceIdx": 0}]
+    },
+    {
+      "id": "blue-ghost-m1", "label": "Firefly Blue Ghost Mission 1", "agency": "Firefly Aerospace / NASA CLPS", "mission": "Blue Ghost Mission 1",
+      "sources": ["fireflyBgm1", "fireflyBgm1Ops", "nasaBgm1PressKit"],
+      "fields": {
+        "arrayPowerW": {"value": 400, "unit": "W", "basis": "sourced", "sourceIdx": 0, "note": "Firefly: solar arrays 'provide up to 400 W' (a maximum, not a typical output)"}
+      },
+      "facts": [
+        {"text": "More than 14 days of surface operations (346 hours of daylight), then operated just over 5 hours into the lunar night (Firefly).", "sourceIdx": 1},
+        {"text": "Planned: about one lunar day plus several hours into the lunar night (NASA press kit).", "sourceIdx": 2}
+      ]
+    },
+    {
+      "id": "nova-c", "label": "Intuitive Machines Nova-C (IM-1, IM-2)", "agency": "Intuitive Machines / NASA CLPS", "mission": "IM-1 / IM-2",
+      "sources": ["nasaIm1PressKit", "nasaIm2PressKit"],
+      "fields": {
+        "designLifeHours": {"value": 240, "unit": "h", "basis": "derived", "sourceIdx": 0, "note": "NASA press kits: 'approx. 10 days (lunar surface operations)'; 10 x 24 h"}
+      },
+      "facts": [
+        {"text": "IM-1 operated on the lunar surface for approximately seven Earth days (NASA IM-2 press kit).", "sourceIdx": 1},
+        {"text": "Array power, battery capacity and bus voltage are unsourced: the 200 W / 25 Ah / 28 V figures appear only on Wikipedia, and the NASA press kits give no power specifications.", "sourceIdx": null}
+      ]
+    },
+    {
+      "id": "slim", "label": "JAXA SLIM", "agency": "JAXA", "mission": "SLIM",
+      "sources": ["jaxaSlimReview"],
+      "fields": {},
+      "facts": [
+        {"text": "Power hardware: a lightweight 'SUS laminated battery' and a 'thin-film solar cell' (first adoption in Japan for curved surfaces) (JAXA).", "sourceIdx": 0},
+        {"text": "'SLIM was therefore not designed to stay active through the night.' (JAXA)", "sourceIdx": 0},
+        {"text": "Array power and battery capacity are unsourced.", "sourceIdx": null}
+      ]
+    },
+    {
+      "id": "apollo-lm", "label": "Apollo Lunar Module (batteries, J-mission configuration)", "agency": "NASA / Grumman", "mission": "Apollo 15-17",
+      "sources": ["grummanLmEps"],
+      "fields": {
+        "batteryAh": {"value": 2075, "unit": "Ah", "basis": "derived", "sourceIdx": 0, "note": "Descent stage: 5 batteries x 415 Ah (Grumman). Ascent stage adds 2 x 296 Ah."},
+        "busV": {"value": 28, "unit": "V", "basis": "sourced", "sourceIdx": 0, "note": "'28 volts dc' nominal, '24 to 32 volts dc' range (Grumman)"},
+        "batteryWh": {"value": 58100, "unit": "Wh", "basis": "derived", "sourceIdx": 0, "note": "5 x 415 Ah x 28 V (descent only); ascent adds about 16.6 kWh"}
+      },
+      "facts": [
+        {"text": "Silver-zinc batteries, 20 cells, potassium hydroxide electrolyte (Grumman).", "sourceIdx": 0},
+        {"text": "This describes the 5-descent-battery LM of the later J-missions; the Apollo 11 LM battery count is unsourced.", "sourceIdx": null}
+      ]
+    },
+    {
+      "id": "teaching-lander", "label": "Teaching lander (simulator defaults)", "agency": "Shadowline", "mission": null,
+      "sources": ["isroCh3Details", "azur3g30", "nssdcMoon"],
+      "fields": {
+        "cellEfficiency": {"value": 0.292, "unit": "fraction", "basis": "sourced", "sourceIdx": 1, "note": "Triple-junction cell, 29.2% BOL at 1367 W/m2, AM0, 28 °C (AZUR SPACE 3G30-Advanced datasheet). Bare cell; packing and degradation not included."},
+        "panelAreaM2": {"value": 1.857, "unit": "m2", "basis": "derived", "sourceIdx": 0, "note": "Derived: area a 29.2%-efficient array needs to produce 738 W (Chandrayaan-3 Vikram) at 1361 W/m2 and normal incidence: 738 / (1361 x 0.292). Not Vikram's real panel area."},
+        "arrayPowerW": {"value": null, "unit": "W", "basis": "assumption", "sourceIdx": null, "note": "Team to choose; no published default."},
+        "batteryWh": {"value": null, "unit": "Wh", "basis": "assumption", "sourceIdx": null, "note": "Team to choose; no published source for a teaching default."},
+        "batteryAh": {"value": null, "unit": "Ah", "basis": "assumption", "sourceIdx": null, "note": "Team to choose."},
+        "busV": {"value": null, "unit": "V", "basis": "assumption", "sourceIdx": null, "note": "Team to choose."},
+        "baseLoadW": {"value": null, "unit": "W", "basis": "assumption", "sourceIdx": null, "note": "Team to choose; no lander base load is published in the sources found."},
+        "commsLoadW": {"value": null, "unit": "W", "basis": "assumption", "sourceIdx": null, "note": "Team to choose; no lander comms load is published in the sources found."},
+        "designLifeHours": {"value": null, "unit": "h", "basis": "assumption", "sourceIdx": null, "note": "Set by the chosen mission profile."}
+      },
+      "facts": [{"text": "Array power model: P = S(r) x A x eta x cos(incidence) x packing/degradation factor, with S(r) = S0 (1 AU / r)^2 and r from the ephemeris. The packing/degradation factor is a model assumption.", "sourceIdx": 2}]
+    }
+  ]
+}

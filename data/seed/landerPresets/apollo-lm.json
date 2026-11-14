@@ -1,0 +1,88 @@
+{
+ "label": "Apollo Lunar Module (batteries, J-mission configuration)",
+ "agency": "NASA / Grumman",
+ "mission": "Apollo 15-17",
+ "fields": {
+  "arrayPowerW": {
+   "value": null,
+   "unit": "W",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "panelAreaM2": {
+   "value": null,
+   "unit": "m2",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "cellEfficiency": {
+   "value": null,
+   "unit": "fraction",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "batteryWh": {
+   "value": 58100,
+   "unit": "Wh",
+   "basis": "derived",
+   "sourceIdx": 0,
+   "note": "5 x 415 Ah x 28 V (descent only); ascent adds about 16.6 kWh"
+  },
+  "batteryAh": {
+   "value": 2075,
+   "unit": "Ah",
+   "basis": "derived",
+   "sourceIdx": 0,
+   "note": "Descent stage: 5 batteries x 415 Ah (Grumman). Ascent stage adds 2 x 296 Ah."
+  },
+  "busV": {
+   "value": 28,
+   "unit": "V",
+   "basis": "sourced",
+   "sourceIdx": 0,
+   "note": "'28 volts dc' nominal, '24 to 32 volts dc' range (Grumman)"
+  },
+  "baseLoadW": {
+   "value": null,
+   "unit": "W",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "commsLoadW": {
+   "value": null,
+   "unit": "W",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  },
+  "designLifeHours": {
+   "value": null,
+   "unit": "h",
+   "basis": "sourced",
+   "sourceIdx": null,
+   "note": "unsourced (see docs/MISSING_DATA.md)"
+  }
+ },
+ "facts": [
+  {
+   "text": "Silver-zinc batteries, 20 cells, potassium hydroxide electrolyte (Grumman).",
+   "sourceIdx": 0
+  },
+  {
+   "text": "This describes the 5-descent-battery LM of the later J-missions; the Apollo 11 LM battery count is unsourced.",
+   "sourceIdx": null
+  }
+ ],
+ "sources": [
+  {
+   "label": "Grumman Apollo News Reference, LM Electrical Power",
+   "url": "https://www.apollojournals.org/alsj/LM11_Electric_ppEP1-5.pdf",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ]
+}

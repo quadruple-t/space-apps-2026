@@ -1,0 +1,51 @@
+{
+ "name": "Chang'e-4 (Von Kármán crater)",
+ "family": "change",
+ "siteKind": "landing",
+ "country": "China",
+ "agency": "CNSA",
+ "mission": "Chang'e-4",
+ "landingTimeUtc": "2019-01-03T02:26:00Z",
+ "landingTimePrecision": "minute",
+ "outcome": "success",
+ "outcomeDetail": null,
+ "coordinates": {
+  "latDeg": -45.4561,
+  "lonDeg": 177.5885,
+  "elevationM": -5928.2
+ },
+ "latDeg": -45.4561,
+ "lonDeg": 177.5885,
+ "coordsVerified": true,
+ "coordsFrame": "MOON_ME",
+ "coordsUncertaintyM": 3,
+ "coordsAsPublished": null,
+ "representativePoint": null,
+ "chapterId": "ch2-robotic-explorer",
+ "blurb": "First landing on the far side, where Earth never rises above the horizon, so direct-to-Earth radio is impossible.",
+ "sources": [
+  {
+   "label": "LROC, Chang'e 4 DTM (images/1100, 30 Apr 2019)",
+   "url": "https://lroc.im-ldi.com/images/1100",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "The Planetary Society, Chang'e-4 success (citing Chinese state media)",
+   "url": "https://planetary.org/blogs/jason-davis/change4-success.html",
+   "retrievedAt": "2026-11-14",
+   "tier": "C"
+  },
+  {
+   "label": "LROC RDR shapefile, Anthropogenic Features on the Moon (last updated 2026-08-14)",
+   "url": "https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_ANTHROPOGENIC_OBJECTS",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ],
+ "terrainSummary": null,
+ "notes": [
+  "Elevation = shapefile RADIUS (NAC DTM) minus 1,737,400 m."
+ ],
+ "updatedAt": "2026-11-14T17:31:42Z"
+}

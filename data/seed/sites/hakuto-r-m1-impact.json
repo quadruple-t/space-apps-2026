@@ -1,0 +1,64 @@
+{
+ "name": "HAKUTO-R Mission 1 (probable impact)",
+ "family": "commercial",
+ "siteKind": "impact",
+ "country": "Japan",
+ "agency": "ispace",
+ "mission": "HAKUTO-R Mission 1",
+ "landingTimeUtc": "2023-04-25T16:40:00Z",
+ "landingTimePrecision": "approx",
+ "outcome": "failure",
+ "outcomeDetail": {
+  "summary": "After crossing a roughly 3 km crater rim, the lander's software rejected its altitude data. A landing-site change made after critical design review had not been carried into the simulations of the navigation route.",
+  "causeClass": "terrain-software",
+  "sources": [
+   {
+    "label": "ispace, results of the HAKUTO-R Mission 1 lunar landing (26 May 2023)",
+    "url": "https://www.ispace-inc.com/2023/05/26/ispace-announces-results-of-the-hakuto-r-mission-1-lunar-landing/",
+    "retrievedAt": "2026-11-14",
+    "tier": "B"
+   }
+  ]
+ },
+ "coordinates": {
+  "latDeg": 47.581,
+  "lonDeg": 44.094,
+  "elevationM": -2910.3
+ },
+ "latDeg": 47.581,
+ "lonDeg": 44.094,
+ "coordsVerified": true,
+ "coordsFrame": "MOON_ME",
+ "coordsUncertaintyM": 10.0,
+ "coordsAsPublished": null,
+ "representativePoint": null,
+ "chapterId": null,
+ "blurb": "A crater rim on an unsimulated route confused the lander's altimetry: a real case of terrain on the approach path mattering.",
+ "sources": [
+  {
+   "label": "LROC, HAKUTO-R Mission 1 probable impact site (images/1302)",
+   "url": "https://lroc.im-ldi.com/images/1302",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "ispace, results of the HAKUTO-R Mission 1 lunar landing (26 May 2023)",
+   "url": "https://www.ispace-inc.com/2023/05/26/ispace-announces-results-of-the-hakuto-r-mission-1-lunar-landing/",
+   "retrievedAt": "2026-11-14",
+   "tier": "B"
+  },
+  {
+   "label": "LROC RDR shapefile, Anthropogenic Features on the Moon (last updated 2026-08-14)",
+   "url": "https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_ANTHROPOGENIC_OBJECTS",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ],
+ "terrainSummary": null,
+ "notes": [
+  "Coordinate uncertainty from the LROC anthropogenic shapefile (UNCERTAIN column).",
+  "Elevation = shapefile RADIUS (NAC DTM) minus 1,737,400 m.",
+  "LROC: 'moments before the touchdown on 25 April at 12:40 p.m. EDT' (16:40 UTC)."
+ ],
+ "updatedAt": "2026-11-14T17:31:42Z"
+}

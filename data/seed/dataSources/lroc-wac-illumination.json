@@ -1,0 +1,13 @@
+{
+ "label": "LROC WAC south polar illumination maps, 100 m (PCT and TWI)",
+ "kind": "map",
+ "version": "15 Feb 2010 - 5 Feb 2011",
+ "citation": "Speyerer, E.J. & Robinson, M.S. (2013), Icarus 222:122-136",
+ "doi": "10.1016/j.icarus.2012.10.010",
+ "url": "https://data.lroc.im-ldi.com/lroc/view_rdr/WAC_POLE_ILL_PCT_SOUTH",
+ "license": null,
+ "usedFor": [
+  "lit-fraction cross-check (validationChecks)"
+ ],
+ "retrievedAt": "2026-11-14T17:24:51Z"
+}

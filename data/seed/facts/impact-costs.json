@@ -1,0 +1,245 @@
+{
+ "title": "What a lunar landing attempt costs",
+ "rows": [
+  {
+   "label": "Headline",
+   "value": "A single lunar landing attempt typically costs on the order of $100 million.",
+   "unit": null,
+   "quote": "Order-of-magnitude statement supported by Beresheet (~$100M), Peregrine ($107.9M task order) and IM-1 ($122.0M task order); counter-examples: Chandrayaan-3 (~$30M excl. launch) and IM-2 PRIME-1 ($50.0M).",
+   "source": {
+    "label": "NASA OIG IG-24-013, NASA's Commercial Lunar Payload Services Initiative",
+    "url": "https://oig.nasa.gov/wp-content/uploads/2024/06/final-report-ig-24-013-nasas-commercial-lunar-payload-services-initiative.pdf",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "tier": "A",
+   "note": "Not a rule: costs range from about $30M to about $140M among documented attempts."
+  },
+  {
+   "label": "Beresheet (2019, crashed)",
+   "value": 100,
+   "unit": "million",
+   "quote": "The mission cost about $100 million",
+   "source": {
+    "label": "AP via Star-Advertiser, Israeli moon mission fails",
+    "url": "https://www.staradvertiser.com/2019/04/11/news/israeli-moon-mission-fails-after-spacecraft-apparently-crashes/",
+    "retrievedAt": "2026-11-14",
+    "tier": "C"
+   },
+   "currency": "USD",
+   "approxUsd": 100000000,
+   "tier": "C",
+   "note": "Includes launch; press figure."
+  },
+  {
+   "label": "Chandrayaan-2 project (2019; lander crashed, orbiter succeeded)",
+   "value": 603,
+   "unit": "crore",
+   "quote": "approved cost ... Rs. 603 Crore (excluding launch cost)",
+   "source": {
+    "label": "PIB (Govt. of India), Chandrayaan-2 statement, 20 Nov 2019",
+    "url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=1592495",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "currency": "INR",
+   "tier": "A",
+   "note": "Includes the orbiter. approx. $85.7M at the FRED 2019 annual average (70.3777 INR/USD)",
+   "approxUsd": 85700000.0,
+   "fxSource": {
+    "label": "FRED, India / U.S. Foreign Exchange Rate, annual (AEXINUS)",
+    "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=AEXINUS",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   }
+  },
+  {
+   "label": "Chandrayaan-2 launch vehicle (GSLV Mk III M1)",
+   "value": 367,
+   "unit": "crore",
+   "quote": "GSLV MK III M1 vehicle is Rs. 367 Crore",
+   "source": {
+    "label": "PIB (Govt. of India), Chandrayaan-2 statement, 20 Nov 2019",
+    "url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=1592495",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "currency": "INR",
+   "tier": "A",
+   "approxUsd": 52100000.0,
+   "note": "approx. $52.1M at the FRED 2019 annual average (70.3777 INR/USD)",
+   "fxSource": {
+    "label": "FRED, India / U.S. Foreign Exchange Rate, annual (AEXINUS)",
+    "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=AEXINUS",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   }
+  },
+  {
+   "label": "Chandrayaan-3 (2023, success)",
+   "value": 250,
+   "unit": "crore",
+   "quote": "The approved cost of Chandrayaan-3 is Rs. 250 Crores (Excluding Launch Vehicle Cost)",
+   "source": {
+    "label": "PIB (Govt. of India), Chandrayaan-3 statement, 3 Aug 2023",
+    "url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=1945483",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "currency": "INR",
+   "tier": "A",
+   "approxUsd": 30300000.0,
+   "note": "approx. $30.3M at the FRED 2023 annual average (82.5708 INR/USD)",
+   "fxSource": {
+    "label": "FRED, India / U.S. Foreign Exchange Rate, annual (AEXINUS)",
+    "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=AEXINUS",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   }
+  },
+  {
+   "label": "SLIM total development (2024, landed in wrong attitude)",
+   "value": 14.9,
+   "unit": "billion",
+   "quote": "Total project development cost 14.9 billion yen",
+   "source": {
+    "label": "JAXA SLIM project review briefing, Dec 2024",
+    "url": "https://www.isas.jaxa.jp/en/topics/files/SLIM-press-briefing-20241226.pdf",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "currency": "JPY",
+   "tier": "A",
+   "note": "About $106M at the 2023 rate; budget at project start was ¥18.05B. approx. $98.4M at the FRED 2024 annual average (151.4551 JPY/USD)",
+   "approxUsd": 98400000.0,
+   "fxSource": {
+    "label": "FRED, Japan / U.S. Foreign Exchange Rate, annual (AEXJPUS)",
+    "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=AEXJPUS",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   }
+  },
+  {
+   "label": "Peregrine Mission One (2024, never reached the Moon)",
+   "value": 107.9,
+   "unit": "million",
+   "quote": "OIG Table 2: Astrobotic TO2-AB, $79.5M initial, $107.9M current task order value",
+   "source": {
+    "label": "NASA OIG IG-24-013, NASA's Commercial Lunar Payload Services Initiative",
+    "url": "https://oig.nasa.gov/wp-content/uploads/2024/06/final-report-ig-24-013-nasas-commercial-lunar-payload-services-initiative.pdf",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "currency": "USD",
+   "approxUsd": 107900000,
+   "tier": "A",
+   "note": "NASA task-order (delivery) value, not the full mission cost to the vendor."
+  },
+  {
+   "label": "IM-1 Odysseus (2024, landed and tipped)",
+   "value": 122.0,
+   "unit": "million",
+   "quote": "CLPS paid Intuitive Machines about $122 million",
+   "source": {
+    "label": "NASA OIG IG-24-013, NASA's Commercial Lunar Payload Services Initiative",
+    "url": "https://oig.nasa.gov/wp-content/uploads/2024/06/final-report-ig-24-013-nasas-commercial-lunar-payload-services-initiative.pdf",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "currency": "USD",
+   "approxUsd": 122000000,
+   "tier": "A",
+   "note": "Task-order value. NASA's six IM-1 instruments cost the agency about $9.5 million."
+  },
+  {
+   "label": "IM-2 PRIME-1 task order (2025, landed on its side)",
+   "value": 50.0,
+   "unit": "million",
+   "quote": "Intuitive Machines (PRIME-1) October 2020 47.0 50.0",
+   "source": {
+    "label": "NASA OIG IG-24-013, NASA's Commercial Lunar Payload Services Initiative",
+    "url": "https://oig.nasa.gov/wp-content/uploads/2024/06/final-report-ig-24-013-nasas-commercial-lunar-payload-services-initiative.pdf",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "currency": "USD",
+   "approxUsd": 50000000,
+   "tier": "A",
+   "note": "Task-order value."
+  },
+  {
+   "label": "Blue Ghost Mission 1 (2025, success)",
+   "value": 101.5,
+   "unit": "million",
+   "quote": "OIG Table 2: Firefly TO19D, $93.3M initial, $101.5M current",
+   "source": {
+    "label": "NASA OIG IG-24-013, NASA's Commercial Lunar Payload Services Initiative",
+    "url": "https://oig.nasa.gov/wp-content/uploads/2024/06/final-report-ig-24-013-nasas-commercial-lunar-payload-services-initiative.pdf",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "currency": "USD",
+   "approxUsd": 101500000,
+   "tier": "A",
+   "note": "Task-order value."
+  },
+  {
+   "label": "CLPS contract cap",
+   "value": 2.6,
+   "unit": "billion",
+   "quote": "combined maximum contract value of $2.6 billion through 2028",
+   "source": {
+    "label": "NASA IM-1 press kit",
+    "url": "https://www.nasa.gov/wp-content/uploads/2024/01/np-2023-12-016-jsc-clps-im-press-kit-web-508.pdf",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "currency": "USD",
+   "approxUsd": 2600000000,
+   "tier": "A"
+  },
+  {
+   "label": "'Shots on goal'",
+   "value": "NASA informally refers to this risk posture as taking 'shots on goal.'",
+   "unit": null,
+   "quote": "NASA informally refers to this risk posture as taking 'shots on goal.'",
+   "source": {
+    "label": "House Science, Space and Technology Committee hearing charter, 1 Apr 2025 (CLPS)",
+    "url": "https://republicans-science.house.gov/_cache/files/0/8/08794b1b-508d-4b7a-8008-341e51828609/3A2F66B634F78F4A4A5430D8B5C1C68D2A0EDD05462C88DC1E0AC8149943A700.sst-hearing-charter---leveraging-commercial-innovation-for-lunar-exploration-a-review-of-nasas-clps-initiative.pdf",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   "tier": "A",
+   "note": "Quoted from a 2025 House Science Committee hearing charter, not a NASA document."
+  },
+  {
+   "label": "HAKUTO-R Mission 1 cost",
+   "value": "unsourced",
+   "unit": null,
+   "quote": "",
+   "source": {
+    "label": "ispace, results of the HAKUTO-R Mission 1 lunar landing (26 May 2023)",
+    "url": "https://www.ispace-inc.com/2023/05/26/ispace-announces-results-of-the-hakuto-r-mission-1-lunar-landing/",
+    "retrievedAt": "2026-11-14",
+    "tier": "B"
+   },
+   "tier": "B",
+   "note": "No cost found in an opened source; listed in docs/MISSING_DATA.md."
+  },
+  {
+   "label": "Luna 25 cost",
+   "value": "unsourced",
+   "unit": null,
+   "quote": "",
+   "source": {
+    "label": "SpacePolicyOnline, Luna 25's engines fired longer than planned",
+    "url": "https://spacepolicyonline.com/news/luna-25s-engines-fired-longer-than-planned/",
+    "retrievedAt": "2026-11-14",
+    "tier": "C"
+   },
+   "tier": "C",
+   "note": "No cost found in an opened source; listed in docs/MISSING_DATA.md."
+  }
+ ],
+ "updatedAt": "2026-11-14T17:49:56Z"
+}

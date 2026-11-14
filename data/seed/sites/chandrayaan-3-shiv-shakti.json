@@ -1,0 +1,92 @@
+{
+ "name": "Chandrayaan-3 (Statio Shiv Shakti)",
+ "family": "chandrayaan",
+ "siteKind": "landing",
+ "country": "India",
+ "agency": "ISRO",
+ "mission": "Chandrayaan-3",
+ "landingTimeUtc": "2023-08-23",
+ "landingTimePrecision": "date",
+ "outcome": "success",
+ "outcomeDetail": {
+  "summary": "Soft-landed with the Pragyan rover. Designed for one lunar day (about 14 Earth days); the rover and lander were put to sleep on 2 and 4 Sep 2023 and never answered again.",
+  "causeClass": "none",
+  "sources": [
+   {
+    "label": "ISRO monthly summary, August 2023",
+    "url": "https://www.isro.gov.in/media_isro/pdf/Monthly_summary/MonthlySummary_August2023Eng.pdf",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   {
+    "label": "ISRO, Chandrayaan-3 details",
+    "url": "https://www.isro.gov.in/Chandrayaan3_Details.html",
+    "retrievedAt": "2026-11-14",
+    "tier": "A"
+   },
+   {
+    "label": "Tribune India (PTI), ISRO attempt to wake Chandrayaan-3 lander and rover",
+    "url": "https://www.tribuneindia.com/news/india/isro-makes-attempt-to-wake-up-chandrayaan-3s-lander-rover-no-signals-from-them-so-far-546808",
+    "retrievedAt": "2026-11-14",
+    "tier": "C"
+   }
+  ]
+ },
+ "coordinates": {
+  "latDeg": -69.374,
+  "lonDeg": 32.3187,
+  "elevationM": 532.3
+ },
+ "latDeg": -69.374,
+ "lonDeg": 32.3187,
+ "coordsVerified": true,
+ "coordsFrame": "MOON_ME",
+ "coordsUncertaintyM": 10.0,
+ "coordsAsPublished": {
+  "latDeg": -69.367621,
+  "lonDeg": 32.348126,
+  "source": {
+   "label": "ISRO, Chandrayaan-3 details",
+   "url": "https://www.isro.gov.in/Chandrayaan3_Details.html",
+   "retrievedAt": "2026-11-14",
+   "tier": "A",
+   "note": "ISRO's planned prime landing site, 359 m from where Vikram actually landed"
+  }
+ },
+ "representativePoint": null,
+ "chapterId": "ch2-robotic-explorer",
+ "blurb": "Solar-powered and built for one lunar day; it went to sleep as night fell and never woke.",
+ "sources": [
+  {
+   "label": "LROC, Chandrayaan-3 landing site (images/1314, 5 Sep 2023)",
+   "url": "https://lroc.im-ldi.com/images/1314",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "ISRO, Chandrayaan-3 details",
+   "url": "https://www.isro.gov.in/Chandrayaan3_Details.html",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "ISRO, Chandrayaan-3 mission page",
+   "url": "https://www.isro.gov.in/Chandrayaan3.html",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "LROC RDR shapefile, Anthropogenic Features on the Moon (last updated 2026-08-14)",
+   "url": "https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_ANTHROPOGENIC_OBJECTS",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ],
+ "terrainSummary": null,
+ "notes": [
+  "Coordinates taken from the LROC anthropogenic shapefile (2026-08-14), which gives more decimals; previous value -69.3741, 32.32 moved 14 m.",
+  "Elevation = shapefile RADIUS (NAC DTM) minus 1,737,400 m.",
+  "ISRO's pre-landing estimate: powered descent 'around 1745 Hrs. IST'. The exact touchdown time is unsourced from a primary."
+ ],
+ "updatedAt": "2026-11-14T17:31:42Z"
+}
