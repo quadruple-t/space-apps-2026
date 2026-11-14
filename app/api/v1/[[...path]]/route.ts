@@ -1,5 +1,6 @@
 import { FieldPath, FieldValue } from "firebase-admin/firestore";
-import { adminDb, verifyFirebaseToken } from "@/lib/firebase/admin";
+import { adminCredentialsRequired, adminDb, hasAdminCredentials, verifyFirebaseToken } from "@/lib/firebase/admin";
+import { publicReadDb } from "@/lib/firebase/public-read-db";
 import { errorJson, json, serialize } from "@/lib/api/http";
 import { decodeFloat32, decodeInt16, decodeUint8 } from "@/lib/bytes";
 import { decodeCellStats } from "@/lib/firestore/binary";
@@ -22,6 +23,7 @@ function docValue(snap: FirebaseFirestore.DocumentSnapshot) {
 function binary(value: unknown): Uint8Array {
   if (value instanceof Uint8Array) return value;
   if (typeof value === "string") return new Uint8Array(Buffer.from(value, "base64"));
+  if (value && typeof value === "object" && "toUint8Array" in value && typeof value.toUint8Array === "function") return value.toUint8Array();
   throw new Error("Expected a Firestore binary value");
 }
 function ephemerisChunk(id: string, d: FirebaseFirestore.DocumentData): EphemerisChunk {
@@ -65,10 +67,13 @@ export async function GET(request: Request, context: { params: Promise<{ path?: 
   try {
     const { path = [] } = await context.params;
     const [root, id, child, childId] = path;
-    const db = adminDb();
     const url = new URL(request.url);
 
     if (path.length === 0 || root === "manifest") return json({ version: "v1", basePath: "/api/v1", resources: ["catalog/sites", "catalog/meta", "science/celestial", "science/horizon", "science/metrics", "science/compare", "science/timeline", ...Object.keys(PUBLIC_COLLECTIONS), "users/{uid}/sessions", "users/{uid}/reports", "users/{uid}/progress"] });
+    if (root === "users" && !hasAdminCredentials()) return adminCredentialsRequired();
+    // Public endpoints use the Web SDK and public Firestore rules. This avoids making
+    // catalog/science reads depend on a local service-account key or ADC configuration.
+    const db = root === "users" ? adminDb() : publicReadDb();
     if (root === "catalog") {
       if (id === "sites" && !child) {
         const snap = await db.doc("catalog/siteIndex").get();
@@ -235,7 +240,7 @@ export async function GET(request: Request, context: { params: Promise<{ path?: 
     const snap = await query.get();
     return json({ items: snap.docs.map(docValue), count: snap.size, limit, hasMore: snap.size === limit, nextCursor: snap.docs.at(-1)?.id ?? null });
   } catch (error) {
-    console.error("GET /api/v1 failed", error);
+    console.error("GET /api/v1 failed:", error instanceof Error ? error.message : error);
     return errorJson("Data service unavailable", 503);
   }
 }
@@ -244,6 +249,7 @@ export async function POST(request: Request, context: { params: Promise<{ path?:
   const { path = [] } = await context.params;
   const [root, uid, resource, itemId] = path;
   if (root !== "users" || !uid || !resource) return errorJson("Writes are only available for authenticated owner data", 404);
+  if (!hasAdminCredentials()) return adminCredentialsRequired();
   const decoded = await verifyFirebaseToken(request.headers.get("authorization"));
   if (!decoded) return errorJson("Valid Firebase ID token required", 401);
   if (decoded.uid !== uid) return errorJson("Forbidden", 403);
@@ -307,6 +313,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ path
   const { path = [] } = await context.params;
   const [root, uid, resource, itemId] = path;
   if (root !== "users" || !uid || !resource || !itemId || !["sessions", "reports"].includes(resource) || !validId(itemId)) return errorJson("Unknown resource", 404);
+  if (!hasAdminCredentials()) return adminCredentialsRequired();
   const decoded = await verifyFirebaseToken(request.headers.get("authorization"));
   if (!decoded) return errorJson("Valid Firebase ID token required", 401);
   if (decoded.uid !== uid) return errorJson("Forbidden", 403);

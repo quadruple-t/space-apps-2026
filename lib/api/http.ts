@@ -11,6 +11,9 @@ export function errorJson(message: string, status = 400) {
 export function serialize(value: unknown): unknown {
   if (value === null || value === undefined) return value ?? null;
   if (Buffer.isBuffer(value) || value instanceof Uint8Array) return Buffer.from(value).toString("base64");
+  if (typeof value === "object" && value !== null && "toUint8Array" in value && typeof value.toUint8Array === "function") {
+    return Buffer.from(value.toUint8Array()).toString("base64");
+  }
   if (ArrayBuffer.isView(value)) return Array.from(value as unknown as ArrayLike<number>);
   if (Array.isArray(value)) return value.map(serialize);
   if (typeof value === "object") {

@@ -32,6 +32,6 @@ The checked-in data pipeline fetches JPL Horizons ephemerides and LOLA/PDS terra
 
 ## Authentication and setup
 
-Send `Authorization: Bearer <Firebase ID token>` for owner resources. The route verifies the token and derives the allowed UID from its signed claims; a caller cannot read or write another UID's documents. Set `FIREBASE_PROJECT_ID` and either `FIREBASE_SERVICE_ACCOUNT_JSON` or Application Default Credentials for local/server use. For the emulators, set `FIRESTORE_EMULATOR_HOST=127.0.0.1:8080` and `FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099`, then start the Firebase emulators.
+Send `Authorization: Bearer <Firebase ID token>` for owner resources. The route verifies the token and derives the allowed UID from its signed claims; a caller cannot read or write another UID's documents. Set `FIREBASE_PROJECT_ID` and either `FIREBASE_SERVICE_ACCOUNT_JSON` or Application Default Credentials for hosted use and authenticated owner resources. In local development, public GET endpoints can use the Firebase Web API configuration (`NEXT_PUBLIC_FIREBASE_API_KEY` and `NEXT_PUBLIC_FIREBASE_PROJECT_ID`) under the Firestore public-read rules, so Admin credentials are not needed for catalog and science reads. For the emulators, set `FIRESTORE_EMULATOR_HOST=127.0.0.1:8080` and `FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099`, then start the Firebase emulators.
 
 Errors use `{ "error": { "message": "..." } }`. Collection reads accept `limit` up to 250 and return `{ items, count, limit, hasMore }`.
