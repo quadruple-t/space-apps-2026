@@ -21,7 +21,7 @@ export const NAV_LINKS: NavLink[] = [
   { label: "Explore", href: "/#explore", sectionId: "explore" },
 ];
 
-export const LAUNCH_HREF = "/explore";
+export const LAUNCH_HREF = "/freeplay";
 
 export type Experience = {
   id: "mission" | "explore" | "compare";
