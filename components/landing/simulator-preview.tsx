@@ -18,15 +18,15 @@ export function SimulatorPreview() {
     <figure className="overflow-hidden rounded-xl border border-line bg-void shadow-[0_40px_120px_-40px_rgba(0,0,0,0.9)]">
       {/* Window chrome */}
       <div className="flex items-center justify-between gap-4 border-b border-line bg-charcoal/70 px-4 py-2.5">
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <span aria-hidden className="flex gap-1.5">
             <span className="size-2 rounded-full bg-bone/20" />
             <span className="size-2 rounded-full bg-bone/20" />
             <span className="size-2 rounded-full bg-bone/20" />
           </span>
-          <span className="type-data text-xs text-bone/70">shadowline / explore / site-a</span>
+          <span className="type-data truncate text-xs text-bone/70">shadowline / explore / site-a</span>
         </div>
-        <span className="type-data rounded-sm border border-sun/40 px-2 py-0.5 text-[0.68rem] text-sun">
+        <span className="type-data shrink-0 whitespace-nowrap rounded-sm border border-sun/40 px-2 py-0.5 text-[0.68rem] text-sun">
           Concept interface
         </span>
       </div>
