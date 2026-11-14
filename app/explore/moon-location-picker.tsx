@@ -3,7 +3,7 @@
 import { useMemo, useState, type FormEvent, type KeyboardEvent } from "react";
 import { ArrowRight, MapPin, X } from "lucide-react";
 import type { LunarSite } from "@/integrations/science/types";
-import { interpolateTerrain, MOON_REGIONS, SCAFFOLD_MOON_GRID, type MoonRegion } from "@/integrations/terrain/moon-samples";
+import { interpolateTerrain, MOON_REGIONS, SCAFFOLD_MOON_GRID, terrainGridForSite, type MoonRegion, type TerrainGrid } from "@/integrations/terrain/moon-samples";
 import { MoonSunDiagram } from "@/components/graphics/moon-sun-diagram";
 
 type Props = {
@@ -18,6 +18,37 @@ type Props = {
 };
 const mapX = (longitudeDeg: number) => (longitudeDeg / 360) * 720;
 const mapY = (latitudeDeg: number) => ((90 - latitudeDeg) / 180) * 360;
+const RELIEF_COLORS = ["#22213d", "#314b70", "#477b9b", "#8aa6ad", "#c9b998", "#f0d9b7"];
+
+function TerrainReliefMap({ grid, selectedSite }: { grid: TerrainGrid; selectedSite: LunarSite }) {
+  const values = grid.samples.flatMap((row) => row.map((sample) => sample.elevationMeters));
+  const minimum = Math.min(...values);
+  const maximum = Math.max(...values);
+  const columns = grid.longitudesDeg.map((longitudeDeg, sourceIndex) => ({
+    sourceIndex,
+    delta: ((longitudeDeg - selectedSite.longitudeDeg + 540) % 360) - 180,
+  })).sort((a, b) => a.delta - b.delta);
+  const width = 360;
+  const height = 128;
+  const cellWidth = width / columns.length;
+  const cellHeight = height / grid.latitudesDeg.length;
+  const selectedY = ((grid.latitudesDeg.at(-1)! - selectedSite.latitudeDeg) / (grid.latitudesDeg.at(-1)! - grid.latitudesDeg[0])) * height;
+  const selectedX = ((0 - columns[0].delta) / (columns.at(-1)!.delta - columns[0].delta)) * width;
+
+  return <div className="mt-3 overflow-hidden rounded border border-retro-blue/25 bg-[#090817] p-2">
+    <div className="mb-1 flex items-center justify-between gap-2"><span className="type-data truncate text-[0.55rem] uppercase tracking-[0.1em] text-retro-blue">{grid.landform ?? "Global relief"} · {grid.extentKm ? `~${grid.extentKm} km map` : "global context"}</span><span className="type-data shrink-0 text-[0.5rem] text-muted-foreground">N ↑</span></div>
+    <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${grid.name}, showing interpolated elevation around ${selectedSite.name}`} className="block w-full rounded-sm">
+      {grid.samples.map((row, rowIndex) => columns.map(({ sourceIndex }, columnIndex) => {
+        const value = row[sourceIndex].elevationMeters;
+        const fraction = maximum === minimum ? 0.5 : (value - minimum) / (maximum - minimum);
+        const colorIndex = Math.min(RELIEF_COLORS.length - 1, Math.floor(fraction * RELIEF_COLORS.length));
+        return <rect key={`${rowIndex}-${sourceIndex}`} x={columnIndex * cellWidth} y={(grid.latitudesDeg.length - 1 - rowIndex) * cellHeight} width={cellWidth + 0.5} height={cellHeight + 0.5} fill={RELIEF_COLORS[colorIndex]} stroke="#dbe7ff" strokeOpacity=".12" strokeWidth=".5"/>;
+      }))}
+      <circle cx={selectedX} cy={selectedY} r="4" fill="#ff5364" stroke="#fff0dd" strokeWidth="1.5"/>
+    </svg>
+    <div className="mt-1 flex items-center justify-between type-data text-[0.5rem] text-muted-foreground"><span>{Math.round(minimum).toLocaleString()} m</span><span className="text-retro-red">SITE</span><span>{Math.round(maximum).toLocaleString()} m</span></div>
+  </div>;
+}
 
 function LunarMap({ selectedSite, onSelect }: Pick<Props, "selectedSite" | "onSelect">) {
   const selectCoordinates = (latitudeDeg: number, longitudeDeg: number) => {
@@ -66,7 +97,8 @@ export function MoonLocationPicker({ selectedSite, onSelect, onNavigate, onConti
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
   const [formError, setFormError] = useState("");
-  const estimate = useMemo(() => interpolateTerrain(SCAFFOLD_MOON_GRID, selectedSite.latitudeDeg, selectedSite.longitudeDeg), [selectedSite.latitudeDeg, selectedSite.longitudeDeg]);
+  const selectedGrid = useMemo(() => terrainGridForSite(selectedSite), [selectedSite]);
+  const estimate = useMemo(() => interpolateTerrain(selectedGrid, selectedSite.latitudeDeg, selectedSite.longitudeDeg), [selectedGrid, selectedSite.latitudeDeg, selectedSite.longitudeDeg]);
 
   const selectRegion = (region: MoonRegion) => {
     if (mode === "hud") onNavigate?.(region.site);
@@ -95,16 +127,17 @@ export function MoonLocationPicker({ selectedSite, onSelect, onNavigate, onConti
   </div>;
 
   const sampleReadout = <>
+    <TerrainReliefMap grid={selectedGrid} selectedSite={selectedSite}/>
     <div className="mt-3 grid grid-cols-2 gap-2">
       <div className="hud-readout"><div className="hud-label">Interpolated elevation</div><div className="type-data mt-1 text-base text-bone">{Math.round(estimate.elevationMeters).toLocaleString()} <span className="text-xs text-muted-foreground">m</span></div></div>
       <div className="hud-readout"><div className="hud-label">Terrain slope</div><div className="type-data mt-1 text-base text-bone">{estimate.slopeDeg.toFixed(1)}<span className="text-xs text-muted-foreground">°</span></div></div>
     </div>
     <div className="mt-2 grid grid-cols-2 gap-1.5">
       {estimate.corners.map((point,index)=><button key={`${point.latitudeDeg}-${point.longitudeDeg}-${index}`} type="button" onClick={()=>selectNode(point.latitudeDeg,point.longitudeDeg,`Grid point ${String.fromCharCode(65+index)}`)} className="hud-readout text-left transition hover:border-retro-blue/60" title="Select this grid point">
-        <div className="type-data text-[0.56rem] text-retro-blue">NODE {String.fromCharCode(65+index)} · {point.latitudeDeg}° / {point.longitudeDeg}°E</div><div className="type-data mt-1 text-[0.66rem] text-bone">{point.elevationMeters.toLocaleString()} m <span className="text-muted-foreground">· {point.slopeDeg}°</span></div>
+        <div className="type-data text-[0.56rem] text-retro-blue">NODE {String.fromCharCode(65+index)} · {point.latitudeDeg.toFixed(3)}° / {point.longitudeDeg.toFixed(3)}°E</div><div className="type-data mt-1 text-[0.66rem] text-bone">{Math.round(point.elevationMeters).toLocaleString()} m <span className="text-muted-foreground">· {point.slopeDeg.toFixed(1)}°</span></div>
       </button>)}
     </div>
-    <p className="mt-2 text-[0.56rem] leading-relaxed text-muted-foreground">Synthetic 45° × 45° latitude/longitude grid scaffold (~1,360 km per longitude step at the equator); not measured LOLA terrain. At either pole, the scaffold elevation is constant across longitude.</p>
+    <p className="mt-2 text-[0.56rem] leading-relaxed text-muted-foreground">Separate local relief scaffold for this landform, bilinearly interpolated around the selected site. Illustrative only; not measured LOLA elevation data.</p>
   </>;
 
   const customForm = <details className="mt-3 border-t border-line/80 pt-2">

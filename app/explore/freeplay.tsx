@@ -5,10 +5,10 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Activity, ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Clock3, Crosshair, Globe2, Map, Pause, Play, RotateCcw, ZoomIn, ZoomOut, X } from "lucide-react";
-import type { CameraMode, MoveCommand } from "@/scenes/lunar/camera-rig";
+import type { CameraMode } from "@/scenes/lunar/camera-rig";
 import { mockScienceProvider } from "@/integrations/science/mock-provider";
 import type { CelestialState, LunarSite, MissionMetrics } from "@/integrations/science/types";
-import { interpolateTerrain, MOON_REGIONS, SCAFFOLD_MOON_GRID, type TerrainSample } from "@/integrations/terrain/moon-samples";
+import { interpolateTerrain, MOON_REGIONS, terrainGridForSite, type TerrainSample } from "@/integrations/terrain/moon-samples";
 import { MoonLocationPicker } from "./moon-location-picker";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
@@ -30,7 +30,7 @@ export function Freeplay() {
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(60);
   const [cameraMode, setCameraMode] = useState<CameraMode>("first-person");
-  const [moveCommand, setMoveCommand] = useState<MoveCommand>(null);
+  const [lookSensitivity, setLookSensitivity] = useState(1);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => new Date(Date.UTC(initialTime.getUTCFullYear(), initialTime.getUTCMonth(), 1)));
   const [zoom, setZoom] = useState(1);
@@ -46,7 +46,7 @@ export function Freeplay() {
   const metricsCache = useRef(new globalThis.Map<string, MissionMetrics>());
   const [deviceTier] = useState<"low" | "high">(() => typeof window !== "undefined" && window.innerWidth >= 768 && (navigator.hardwareConcurrency ?? 8) > 4 ? "high" : "low");
 
-  const activeTerrain = useMemo(() => interpolateTerrain(SCAFFOLD_MOON_GRID, activeSite.latitudeDeg, activeSite.longitudeDeg), [activeSite.latitudeDeg, activeSite.longitudeDeg]);
+  const activeTerrain = useMemo(() => interpolateTerrain(terrainGridForSite(activeSite), activeSite.latitudeDeg, activeSite.longitudeDeg), [activeSite]);
   const environmentSite = useMemo(() => phase === "choose" ? site : activeSite, [phase, site, activeSite]);
   const utcDay = timestamp.toISOString().slice(0, 10);
   const updateCelestial = useCallback(async (selectedSite: LunarSite, date: Date) => {
@@ -153,7 +153,7 @@ export function Freeplay() {
 
   return <main className="relative isolate h-dvh w-full overflow-hidden bg-void text-bone" aria-label="Shadowline lunar simulation">
     <div className="absolute inset-0 z-0">
-      <LunarScene variant="preview" active detail={deviceTier} still={reducedMotion} freeplay={phase !== "choose"} cameraMode={cameraMode} moveCommand={moveCommand} landingActive={phase === "descent"} zoom={zoom}
+      <LunarScene variant="preview" active detail={deviceTier} still={reducedMotion} freeplay={phase !== "choose"} cameraMode={cameraMode} lookSensitivity={lookSensitivity} landingActive={phase === "descent"} zoom={zoom}
         selectedSite={activeSite} dataPoints={activeTerrain.corners} onSelectDataPoint={selectDataPoint}
         sunAzimuthDeg={celestial?.sun.azimuthDeg} sunElevationDeg={celestial?.sun.elevationDeg}
         earthAzimuthDeg={celestial?.earth.azimuthDeg} earthElevationDeg={celestial?.earth.elevationDeg}/>
@@ -241,15 +241,12 @@ export function Freeplay() {
         <div className="type-data flex items-center gap-2 text-[0.62rem] text-muted-foreground sm:ml-auto"><Clock3 size={14} className="text-retro-red"/><span>{localTime(timestamp)}</span></div>
       </div>
       <div className="mt-2 flex items-center justify-between gap-3 border-t border-line/70 pt-2">
-        <div className="grid grid-cols-3 grid-rows-2 gap-1" aria-label="Movement controls">
-          <span />
-          <button type="button" aria-label="Move forward (W or up arrow)" onPointerDown={(event)=>{event.currentTarget.setPointerCapture(event.pointerId);setMoveCommand("forward");}} onPointerUp={()=>setMoveCommand(null)} onPointerCancel={()=>setMoveCommand(null)} onBlur={()=>setMoveCommand(null)} onKeyDown={(event)=>{if(event.key==="Enter"||event.key===" ")setMoveCommand("forward");}} onKeyUp={()=>setMoveCommand(null)} className="grid size-8 place-items-center rounded border border-line bg-void/60 text-bone hover:border-retro-purple/60">↑</button>
-          <span />
-          <button type="button" aria-label="Move left (A or left arrow)" onPointerDown={(event)=>{event.currentTarget.setPointerCapture(event.pointerId);setMoveCommand("left");}} onPointerUp={()=>setMoveCommand(null)} onPointerCancel={()=>setMoveCommand(null)} onBlur={()=>setMoveCommand(null)} onKeyDown={(event)=>{if(event.key==="Enter"||event.key===" ")setMoveCommand("left");}} onKeyUp={()=>setMoveCommand(null)} className="grid size-8 place-items-center rounded border border-line bg-void/60 text-bone hover:border-retro-purple/60">←</button>
-          <button type="button" aria-label="Move backward (S or down arrow)" onPointerDown={(event)=>{event.currentTarget.setPointerCapture(event.pointerId);setMoveCommand("back");}} onPointerUp={()=>setMoveCommand(null)} onPointerCancel={()=>setMoveCommand(null)} onBlur={()=>setMoveCommand(null)} onKeyDown={(event)=>{if(event.key==="Enter"||event.key===" ")setMoveCommand("back");}} onKeyUp={()=>setMoveCommand(null)} className="grid size-8 place-items-center rounded border border-line bg-void/60 text-bone hover:border-retro-purple/60">↓</button>
-          <button type="button" aria-label="Move right (D or right arrow)" onPointerDown={(event)=>{event.currentTarget.setPointerCapture(event.pointerId);setMoveCommand("right");}} onPointerUp={()=>setMoveCommand(null)} onPointerCancel={()=>setMoveCommand(null)} onBlur={()=>setMoveCommand(null)} onKeyDown={(event)=>{if(event.key==="Enter"||event.key===" ")setMoveCommand("right");}} onKeyUp={()=>setMoveCommand(null)} className="grid size-8 place-items-center rounded border border-line bg-void/60 text-bone hover:border-retro-purple/60">→</button>
-        </div>
-        <p className="type-data text-right text-[0.55rem] uppercase tracking-[0.1em] text-muted-foreground">Move in a 180-unit local area<br/>WASD / arrows · move cursor to look</p>
+        <label className="flex min-w-44 flex-1 items-center gap-2 type-data text-[0.55rem] uppercase tracking-[0.1em] text-muted-foreground sm:max-w-64">
+          <span className="shrink-0">Look sensitivity</span>
+          <input aria-label="Look sensitivity" type="range" min={0.25} max={2.5} step={0.05} value={lookSensitivity} onChange={(event)=>setLookSensitivity(Number(event.target.value))} className="h-1.5 min-w-0 flex-1 cursor-pointer accent-[#a986ff]" />
+          <span className="w-8 text-right text-retro-purple">{lookSensitivity.toFixed(2)}×</span>
+        </label>
+        <p className="type-data text-right text-[0.55rem] uppercase tracking-[0.1em] text-muted-foreground">WASD / arrows to move<br/>Move cursor to look</p>
       </div>
       <div className="mt-2.5 flex items-center gap-2 sm:gap-3">
         <button type="button" disabled={reducedMotion} onClick={()=>setPlaying((value)=>!value)} className="flex h-9 shrink-0 items-center gap-2 rounded-lg bg-retro-red px-3 text-[0.63rem] font-semibold uppercase tracking-[0.1em] text-void transition hover:bg-[#ff91a2] disabled:cursor-not-allowed disabled:opacity-50" aria-label={playing?"Pause simulation":"Play simulation"} title={reducedMotion ? "Autoplay is paused by your reduced-motion setting" : undefined}>{playing?<Pause size={14}/>:<Play size={14}/>}<span className="hidden sm:inline">{playing?"Pause":"Run time"}</span></button>
