@@ -25,7 +25,7 @@ export function FinalCTA() {
             Explore the lunar south pole. Discover the challenges. Find your landing site.
           </p>
           <Button asChild size="xl" className="mt-10">
-            <Link href={LAUNCH_HREF}>Launch Shadowline</Link>
+            <Link href={LAUNCH_HREF}>Launch Freeplay</Link>
           </Button>
         </Reveal>
       </PageContainer>
