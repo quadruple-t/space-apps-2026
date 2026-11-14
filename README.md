@@ -36,11 +36,11 @@ npm run lint       # ESLint (Next.js + React Compiler rules)
 
 | Route      | Purpose                                                   |
 | ---------- | --------------------------------------------------------- |
-| `/`        | Landing page                                              |
-| `/mission` | Guided Mission overview; interactive chapters are not implemented yet |
+| `/`        | Overview and how to use Shadowline                         |
+| `/mission` | Guided Mission: tutorial and simulation experience        |
+| `/mission-control` | Mission Control: learning topics, method and data    |
 | `/explore` | Freeplay: site and coordinate selection, time controls, first-person/orbit navigation, JPL Horizons Sun/Earth positions, horizon-aware 24-hour metrics where data is available |
 | `/compare` | Mission Comparison shell with an empty state; multi-site comparison is not implemented yet |
-| `/science` | Methodology, data sources and glossary                    |
 
 ## Project structure
 
