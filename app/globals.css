@@ -66,13 +66,13 @@
   --charcoal: #151327;
   --regolith: #a39ab8;
   --bone: #f0ebf7;
-  --sun: #ff5c78;
+  --sun: #ff5364;
   --sun-dim: #963752;
-  --earth: #57b8ff;
+  --earth: #4b9bff;
   --earth-dim: #365588;
   --retro-purple: #a986ff;
-  --retro-blue: #58c8ff;
-  --retro-red: #ff637d;
+  --retro-blue: #4b9bff;
+  --retro-red: #ff5364;
   --line: #302c4a;
 
   --background: var(--void);
@@ -89,7 +89,7 @@
   --muted-foreground: #b2abc4;
   --accent: #292341;
   --accent-foreground: var(--bone);
-  --destructive: #ff637d;
+  --destructive: #ff5364;
   --border: var(--line);
   --input: #45405f;
   --ring: var(--sun);

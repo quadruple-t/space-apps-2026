@@ -22,7 +22,7 @@ export function Astronaut({ position, scale = 1 }: { position: [number, number, 
     </mesh>
     <mesh position={[0.02, 2.08, 0.53]}>
       <boxGeometry args={[0.28, 0.25, 0.035]} />
-      <meshStandardMaterial color="#ff637d" emissive="#6e182e" emissiveIntensity={0.3} roughness={0.5} flatShading />
+      <meshStandardMaterial color="#ff5364" emissive="#6e182e" emissiveIntensity={0.3} roughness={0.5} flatShading />
     </mesh>
 
     {/* Helmet shell, angular visor and antenna */}
@@ -40,7 +40,7 @@ export function Astronaut({ position, scale = 1 }: { position: [number, number, 
     </mesh>
     <mesh position={[0.63, 4.3, -0.03]} castShadow>
       <cylinderGeometry args={[0.045, 0.07, 0.48, 5]} />
-      <meshStandardMaterial color="#ff637d" roughness={0.6} flatShading />
+      <meshStandardMaterial color="#ff5364" roughness={0.6} flatShading />
     </mesh>
     <mesh position={[0.63, 4.57, -0.03]}>
       <icosahedronGeometry args={[0.12, 0]} />
@@ -59,7 +59,7 @@ export function Astronaut({ position, scale = 1 }: { position: [number, number, 
       </mesh>
       <mesh position={[side * 0.06, -0.55, 0.3]}>
         <boxGeometry args={[0.5, 0.18, 0.05]} />
-        <meshStandardMaterial color={side < 0 ? "#ff637d" : "#5ac7ff"} roughness={0.5} flatShading />
+        <meshStandardMaterial color={side < 0 ? "#ff5364" : "#5ac7ff"} roughness={0.5} flatShading />
       </mesh>
     </group>)}
 

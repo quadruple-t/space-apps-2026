@@ -1,9 +1,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Activity, ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Clock3, Crosshair, Globe2, Map, Pause, Play, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
+import { Activity, ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Clock3, Crosshair, Globe2, Map, Pause, Play, RotateCcw, ZoomIn, ZoomOut, X } from "lucide-react";
 import type { CameraMode, MoveCommand } from "@/scenes/lunar/camera-rig";
 import { firestoreScienceProvider as scienceProvider } from "@/integrations/science/firestore-provider";
 import type { CelestialState, LunarSite, MissionMetrics } from "@/integrations/science/types";
@@ -91,7 +92,7 @@ export function Freeplay() {
 
   useEffect(() => {
     if (phase === "transfer") {
-      const timer = window.setTimeout(() => { setCameraMode("third-person"); setPhase("descent"); }, 1450);
+      const timer = window.setTimeout(() => { setCameraMode("first-person"); setPhase("descent"); }, 1450);
       return () => window.clearTimeout(timer);
     }
     if (phase === "descent") {
@@ -160,7 +161,7 @@ export function Freeplay() {
         <Link href="/" aria-label="Exit simulation to Shadowline home" className="grid size-9 shrink-0 place-items-center rounded-md bg-retro-purple/15 text-retro-purple transition hover:bg-retro-purple/25"><ArrowLeft size={17}/></Link>
         <div className="min-w-0 pr-2"><div className="type-data text-[0.6rem] uppercase tracking-[0.16em] text-retro-purple">Shadowline / Freeplay</div><div className="truncate text-xs font-medium text-bone">Lunar surface simulation</div></div>
         <span className="hidden h-8 w-px bg-line sm:block"/>
-        {phase === "explore" && <button type="button" onClick={()=>setMapOpen((open)=>!open)} aria-expanded={mapOpen} className="inline-flex items-center gap-2 rounded-md border border-line px-2.5 py-2 text-[0.65rem] uppercase tracking-[0.1em] text-muted-foreground hover:border-retro-purple/60 hover:text-bone sm:px-3"><Map size={14} className="text-retro-purple"/><span className="hidden sm:inline">{mapOpen?"Hide map":"Map & samples"}</span></button>}
+        {phase === "explore" && <button type="button" onClick={()=>setMapOpen((open)=>{if(!open){setMobileTelemetryOpen(false);setDatePickerOpen(false);}return !open;})} aria-expanded={mapOpen} className="inline-flex items-center gap-2 rounded-md border border-line px-2.5 py-2 text-[0.65rem] uppercase tracking-[0.1em] text-muted-foreground hover:border-retro-purple/60 hover:text-bone sm:px-3"><Map size={14} className="text-retro-purple"/><span className="hidden sm:inline">{mapOpen?"Hide map":"Map & samples"}</span></button>}
       </div>
       <div className="flex min-w-0 items-center gap-2 rounded-lg border border-line/80 bg-void/75 px-3 py-2 shadow-xl backdrop-blur-xl sm:px-4">
         <span className="relative flex size-2">{!reducedMotion && <span className="absolute inline-flex size-full animate-ping rounded-full bg-retro-red opacity-50"/>}<span className="relative inline-flex size-2 rounded-full bg-retro-red"/></span>
@@ -179,11 +180,13 @@ export function Freeplay() {
       </div>
     </div>}
 
-    {phase === "explore" && mapOpen && <div className="absolute bottom-[7.4rem] left-3 top-[5.2rem] z-10 w-[min(360px,calc(100vw-1.5rem))] sm:bottom-24 sm:left-5 sm:top-[5.5rem]">
-      <MoonLocationPicker mode="hud" selectedSite={site} onSelect={setSite} onContinue={beginDescent} sunAzimuthDeg={celestial?.sun.azimuthDeg} sunElevationDeg={celestial?.sun.elevationDeg}/>
+    {phase === "explore" && mapOpen && <div className="fixed inset-0 z-[45] grid place-items-center bg-void/65 px-3 py-8 backdrop-blur-sm" onMouseDown={(event)=>{if(event.target===event.currentTarget)setMapOpen(false);}}>
+      <div className="h-[min(86dvh,760px)] w-[min(820px,calc(100vw-1.5rem))]" onMouseDown={(event)=>event.stopPropagation()}>
+        <MoonLocationPicker mode="hud" selectedSite={site} onSelect={setSite} onClose={()=>setMapOpen(false)} onContinue={()=>{setMapOpen(false);beginDescent();}} sunAzimuthDeg={celestial?.sun.azimuthDeg} sunElevationDeg={celestial?.sun.elevationDeg}/>
+      </div>
     </div>}
 
-    {phase === "explore" && <aside className="absolute right-4 top-[5.5rem] z-10 hidden w-[276px] space-y-2.5 xl:block">
+    {phase === "explore" && !mapOpen && !datePickerOpen && <aside className="absolute right-4 top-[5.5rem] z-10 hidden w-[276px] space-y-2.5 xl:block">
       <section className="hud-panel p-3.5">
         <div className="flex items-center justify-between"><div><div className="type-data text-[0.58rem] uppercase tracking-[0.14em] text-retro-blue">Telemetry</div><h2 className="type-heading mt-1 text-sm text-bone">Local conditions</h2></div><Activity size={15} className="text-retro-blue"/></div>
         <div className="mt-3 grid grid-cols-2 gap-1.5">
@@ -207,21 +210,23 @@ export function Freeplay() {
       </section>
     </aside>}
 
-    {phase === "explore" && <button type="button" onClick={()=>setMobileTelemetryOpen((open)=>!open)} aria-expanded={mobileTelemetryOpen} className="absolute right-3 top-[4.9rem] z-20 grid size-10 place-items-center rounded-lg border border-line bg-void/75 text-retro-blue shadow-xl backdrop-blur-xl xl:hidden" aria-label="Toggle telemetry"><Activity size={17}/></button>}
-    {phase === "explore" && mobileTelemetryOpen && <aside className="hud-panel absolute right-3 top-[7.9rem] z-20 w-[min(290px,calc(100vw-1.5rem))] p-3 xl:hidden">
-      <div className="type-data text-[0.58rem] uppercase tracking-[0.14em] text-retro-blue">Local conditions</div>
-      <div className="mt-2 grid grid-cols-2 gap-1.5"><Readout label="Sun elevation" value={celestial?angle(celestial.sun.elevationDeg):"—"} tone="red"/><Readout label="Sun azimuth" value={celestial?`${celestial.sun.azimuthDeg.toFixed(1)}°`:"—"} tone="red"/><Readout label="Earth elevation" value={celestial?angle(celestial.earth.elevationDeg):"—"} tone="blue"/><Readout label="Elevation" value={`${Math.round(activeTerrain.elevationMeters).toLocaleString()} m`}/></div>
-    </aside>}
+    {phase === "explore" && <button type="button" onClick={()=>setMobileTelemetryOpen((open)=>{if(!open){setMapOpen(false);setDatePickerOpen(false);}return !open;})} aria-expanded={mobileTelemetryOpen} className="absolute right-3 top-[4.9rem] z-20 grid size-10 place-items-center rounded-lg border border-line bg-void/75 text-retro-blue shadow-xl backdrop-blur-xl xl:hidden" aria-label="Toggle telemetry"><Activity size={17}/></button>}
+    {phase === "explore" && mobileTelemetryOpen && <div className="fixed inset-0 z-[45] grid place-items-center bg-void/65 px-4 py-8 backdrop-blur-sm xl:hidden" onMouseDown={(event)=>{if(event.target===event.currentTarget)setMobileTelemetryOpen(false);}}>
+      <aside role="dialog" aria-label="Local lunar conditions" aria-modal="true" className="hud-panel w-[min(340px,calc(100vw-2rem))] space-y-3 p-4">
+        <div className="flex items-center justify-between"><div><div className="type-data text-[0.58rem] uppercase tracking-[0.14em] text-retro-blue">Telemetry</div><h2 className="type-heading mt-1 text-sm text-bone">Local conditions</h2></div><button type="button" aria-label="Close telemetry" onClick={()=>setMobileTelemetryOpen(false)} className="grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><X size={15}/></button></div>
+        <div className="grid grid-cols-2 gap-1.5"><Readout label="Sun elevation" value={celestial?angle(celestial.sun.elevationDeg):"—"} tone="red"/><Readout label="Sun azimuth" value={celestial?`${celestial.sun.azimuthDeg.toFixed(1)}°`:"—"} tone="red"/><Readout label="Earth elevation" value={celestial?angle(celestial.earth.elevationDeg):"—"} tone="blue"/><Readout label="Elevation" value={`${Math.round(activeTerrain.elevationMeters).toLocaleString()} m`}/></div>
+      </aside>
+    </div>}
 
     {phase === "explore" && <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 z-[2] hidden -translate-x-1/2 -translate-y-1/2 sm:block">
       <div className="relative size-7"><span className="absolute left-1/2 top-0 h-2 -translate-x-1/2 border-l border-retro-purple/70"/><span className="absolute bottom-0 left-1/2 h-2 -translate-x-1/2 border-l border-retro-purple/70"/><span className="absolute left-0 top-1/2 w-2 -translate-y-1/2 border-t border-retro-purple/70"/><span className="absolute right-0 top-1/2 w-2 -translate-y-1/2 border-t border-retro-purple/70"/><span className="absolute left-1/2 top-1/2 size-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-retro-red shadow-[0_0_12px_3px_rgba(255,99,125,0.5)]"/></div>
     </div>}
     {phase === "explore" && <div className="pointer-events-none absolute bottom-[6.9rem] right-5 z-[2] hidden items-center gap-2 rounded border border-line/70 bg-void/45 px-2.5 py-1.5 text-[0.58rem] uppercase tracking-[0.12em] text-muted-foreground backdrop-blur sm:flex"><Crosshair size={13} className="text-retro-purple"/>WASD / arrows to move · drag to look · click grid nodes</div>}
 
-    {phase === "explore" && <section aria-label="Simulation controls" className="absolute inset-x-3 bottom-3 z-20 rounded-xl border border-retro-purple/25 bg-void/88 px-3 py-2.5 shadow-[0_20px_90px_rgba(4,2,18,0.65)] backdrop-blur-2xl sm:inset-x-auto sm:left-1/2 sm:w-[min(790px,calc(100vw-400px))] sm:min-w-[560px] sm:-translate-x-1/2 sm:px-4 sm:py-3">
+    {phase === "explore" && <section aria-label="Simulation controls" className="absolute inset-x-3 bottom-3 z-20 rounded-xl border border-retro-purple/25 bg-void/88 px-3 py-2.5 shadow-[0_20px_90px_rgba(4,2,18,0.65)] backdrop-blur-2xl sm:inset-x-auto sm:left-1/2 sm:w-[min(680px,calc(100vw-400px))] sm:min-w-[560px] sm:-translate-x-1/2 sm:px-4 sm:py-3">
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
         <div className="flex items-center gap-1 rounded-lg border border-line/80 bg-void/60 p-1">
-          {([["first-person","First person"],["third-person","Third person"],["orbit","Orbit"],["overhead","Map"]] as const).map(([mode,label])=><button key={mode} type="button" onClick={()=>setCameraMode(mode)} aria-pressed={cameraMode===mode} className={`rounded-md px-3 py-1.5 text-[0.62rem] uppercase tracking-[0.08em] transition ${cameraMode===mode?"bg-retro-purple/20 text-retro-purple":"text-muted-foreground hover:text-bone"}`}>{label}</button>)}
+          {([["first-person","First person"],["orbit","Orbit"],["overhead","Map"]] as const).map(([mode,label])=><button key={mode} type="button" onClick={()=>setCameraMode(mode)} aria-pressed={cameraMode===mode} className={`rounded-md px-3 py-1.5 text-[0.62rem] uppercase tracking-[0.08em] transition ${cameraMode===mode?"bg-retro-purple/20 text-retro-purple":"text-muted-foreground hover:text-bone"}`}>{label}</button>)}
         </div>
         <div className="flex items-center gap-1 rounded-lg border border-line/80 bg-void/60 p-1">
           <button type="button" aria-label="Zoom out" onClick={()=>setZoom((value)=>Math.min(1.8,value+0.12))} className="rounded p-1.5 text-bone hover:bg-white/10"><ZoomOut size={15}/></button>
@@ -244,17 +249,17 @@ export function Freeplay() {
       <div className="mt-2.5 flex items-center gap-2 sm:gap-3">
         <button type="button" disabled={reducedMotion} onClick={()=>setPlaying((value)=>!value)} className="flex h-9 shrink-0 items-center gap-2 rounded-lg bg-retro-red px-3 text-[0.63rem] font-semibold uppercase tracking-[0.1em] text-void transition hover:bg-[#ff91a2] disabled:cursor-not-allowed disabled:opacity-50" aria-label={playing?"Pause simulation":"Play simulation"} title={reducedMotion ? "Autoplay is paused by your reduced-motion setting" : undefined}>{playing?<Pause size={14}/>:<Play size={14}/>}<span className="hidden sm:inline">{playing?"Pause":"Run time"}</span></button>
         <label className="sr-only" htmlFor="playback-speed">Playback speed</label><select id="playback-speed" value={speed} onChange={(event)=>setSpeed(Number(event.target.value))} className="h-9 rounded-lg border border-line bg-void px-2 text-[0.62rem] text-bone"><option value={15}>15×</option><option value={60}>60×</option><option value={240}>240×</option></select>
-        <input aria-label="Simulation time of day in UTC" type="range" min={0} max={1439} value={dayMinute} onChange={(event)=>setTimestamp((date)=>{const next=new Date(date);next.setUTCHours(0,Number(event.target.value),0,0);return next;})} className="h-1.5 min-w-0 flex-1 cursor-pointer accent-[#ff637d]"/>
+        <input aria-label="Simulation time of day in UTC" type="range" min={0} max={1439} value={dayMinute} onChange={(event)=>setTimestamp((date)=>{const next=new Date(date);next.setUTCHours(0,Number(event.target.value),0,0);return next;})} className="h-1.5 min-w-0 flex-1 cursor-pointer accent-[#ff5364]"/>
         <div className="relative">
-          <button type="button" id="simulation-date-trigger" aria-haspopup="dialog" aria-expanded={datePickerOpen} onClick={()=>{setCalendarMonth(new Date(Date.UTC(timestamp.getUTCFullYear(),timestamp.getUTCMonth(),1)));setDatePickerOpen((open)=>!open);}} className="inline-flex h-9 items-center gap-2 rounded-lg border border-line bg-void px-2.5 text-[0.58rem] text-bone transition hover:border-retro-purple/60 hover:bg-retro-purple/10"><CalendarDays size={14} className="text-retro-purple"/><span>{chosenDateLabel}</span></button>
-          {datePickerOpen && <div role="dialog" data-no-flight-controls aria-label="Choose simulation date and UTC time" aria-modal="false" className="absolute bottom-[calc(100%+0.65rem)] right-0 z-50 w-[min(320px,calc(100vw-2rem))] rounded-xl border border-retro-purple/35 bg-[#100e20]/95 p-3.5 shadow-[0_18px_70px_rgba(4,2,18,0.85)] backdrop-blur-2xl">
+          <button type="button" id="simulation-date-trigger" aria-haspopup="dialog" aria-expanded={datePickerOpen} onClick={()=>{if(!datePickerOpen){setMapOpen(false);setMobileTelemetryOpen(false);setCalendarMonth(new Date(Date.UTC(timestamp.getUTCFullYear(),timestamp.getUTCMonth(),1)));}setDatePickerOpen((open)=>!open);}} className="inline-flex h-9 items-center gap-2 rounded-lg border border-line bg-void px-2.5 text-[0.58rem] text-bone transition hover:border-retro-purple/60 hover:bg-retro-purple/10"><CalendarDays size={14} className="text-retro-purple"/><span>{chosenDateLabel}</span></button>
+          {datePickerOpen && createPortal(<div className="fixed inset-0 z-[60] grid place-items-center bg-void/70 p-4 backdrop-blur-sm" onMouseDown={(event)=>{if(event.target===event.currentTarget)setDatePickerOpen(false);}}><div role="dialog" data-no-flight-controls aria-label="Choose simulation date and UTC time" aria-modal="true" className="w-[min(380px,calc(100vw-2rem))] rounded-xl border border-retro-purple/40 bg-[#100e20]/[.98] p-4 shadow-[0_18px_70px_rgba(4,2,18,0.9)] backdrop-blur-2xl">
             <div className="flex items-center justify-between"><button type="button" aria-label="Previous month" onClick={()=>setCalendarMonth((month)=>new Date(Date.UTC(month.getUTCFullYear(),month.getUTCMonth()-1,1)))} className="grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><ChevronLeft size={15}/></button><div className="type-heading text-sm text-bone">{calendarLabel}</div><button type="button" aria-label="Next month" onClick={()=>setCalendarMonth((month)=>new Date(Date.UTC(month.getUTCFullYear(),month.getUTCMonth()+1,1)))} className="grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><ChevronRight size={15}/></button></div>
             <div className="mt-3 grid grid-cols-7 gap-1 text-center">{["S","M","T","W","T","F","S"].map((day,index)=><span key={`${day}-${index}`} className="type-data py-1 text-[0.55rem] text-muted-foreground">{day}</span>)}
               {calendarDays.map((day,index)=>day===null?<span key={`empty-${index}`}/>:<button key={day} type="button" aria-pressed={timestamp.getUTCFullYear()===calendarMonth.getUTCFullYear()&&timestamp.getUTCMonth()===calendarMonth.getUTCMonth()&&timestamp.getUTCDate()===day} onClick={()=>chooseUtcDay(day)} className={`grid aspect-square place-items-center rounded-md type-data text-xs transition ${timestamp.getUTCFullYear()===calendarMonth.getUTCFullYear()&&timestamp.getUTCMonth()===calendarMonth.getUTCMonth()&&timestamp.getUTCDate()===day?"bg-retro-purple text-void":"text-bone hover:bg-retro-blue/15 hover:text-retro-blue"}`}>{day}</button>)}
             </div>
             <div className="mt-3 flex items-center justify-between border-t border-line/80 pt-3"><label htmlFor="simulation-utc-hour" className="type-data text-[0.56rem] uppercase tracking-[0.1em] text-muted-foreground">UTC time</label><div className="flex items-center gap-1.5"><select id="simulation-utc-hour" aria-label="UTC hour" value={timestamp.getUTCHours()} onChange={(event)=>setTimestamp((date)=>{const next=new Date(date);next.setUTCHours(Number(event.target.value));return next;})} className="h-8 rounded border border-line bg-void px-2 type-data text-xs text-bone">{Array.from({length:24},(_,hour)=><option key={hour} value={hour}>{String(hour).padStart(2,"0")}</option>)}</select><span className="text-muted-foreground">:</span><select aria-label="UTC minute" value={timestamp.getUTCMinutes()} onChange={(event)=>setTimestamp((date)=>{const next=new Date(date);next.setUTCMinutes(Number(event.target.value));return next;})} className="h-8 rounded border border-line bg-void px-2 type-data text-xs text-bone">{Array.from({length:60},(_,minute)=><option key={minute} value={minute}>{String(minute).padStart(2,"0")}</option>)}</select><span className="type-data text-[0.55rem] text-retro-blue">Z</span></div></div>
             <button type="button" onClick={()=>setDatePickerOpen(false)} className="mt-3 w-full rounded border border-retro-purple/45 bg-retro-purple/10 px-3 py-2 type-data text-[0.58rem] uppercase tracking-[0.12em] text-retro-purple hover:bg-retro-purple/20">Done</button>
-          </div>}
+          </div></div>, document.body)}
         </div>
       </div>
       <div className="mt-2 flex items-center justify-between gap-2 border-t border-line/70 pt-2 text-[0.55rem] uppercase tracking-[0.12em] text-muted-foreground"><span className="inline-flex items-center gap-1.5"><Globe2 size={12} className="text-retro-blue"/>Procedural terrain · ephemeris from JPL Horizons</span><span className="hidden sm:inline">{loading?"Updating environment":dataError?"DATA UNAVAILABLE":"Computed"}</span></div>
