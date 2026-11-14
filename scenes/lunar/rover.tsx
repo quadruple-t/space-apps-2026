@@ -18,7 +18,7 @@ export function LunarRover({ position = [0, 0, 0], scale = 1 }: { position?: [nu
       </mesh>
       <mesh>
         <cylinderGeometry args={[0.39, 0.39, 0.44, 6]} />
-        <meshStandardMaterial color="#ff637d" metalness={0.3} roughness={0.55} flatShading />
+        <meshStandardMaterial color="#ff5364" metalness={0.3} roughness={0.55} flatShading />
       </mesh>
     </group>))}
     {/* Blue solar wings */}
@@ -29,8 +29,8 @@ export function LunarRover({ position = [0, 0, 0], scale = 1 }: { position?: [nu
     </group>)}
     {/* Camera mast and antenna */}
     <mesh position={[0, 2.35, -0.25]} castShadow><boxGeometry args={[0.18, 1.2, 0.18]} /><meshStandardMaterial color="#dcd7eb" metalness={0.25} flatShading /></mesh>
-    <mesh position={[0, 3.02, -0.25]} castShadow><icosahedronGeometry args={[0.48, 1]} /><meshStandardMaterial color="#ff637d" emissive="#6e182e" emissiveIntensity={0.25} flatShading /></mesh>
+    <mesh position={[0, 3.02, -0.25]} castShadow><icosahedronGeometry args={[0.48, 1]} /><meshStandardMaterial color="#ff5364" emissive="#6e182e" emissiveIntensity={0.25} flatShading /></mesh>
     <mesh position={[0.72, 2.05, 0.58]} rotation={[Math.PI / 2.6, 0, 0]}><coneGeometry args={[0.32, 0.46, 6]} /><meshStandardMaterial color="#a986ff" metalness={0.2} flatShading /></mesh>
-    <mesh position={[0.72, 1.82, 0.6]}><sphereGeometry args={[0.2, 6, 4]} /><meshBasicMaterial color="#58c8ff" /></mesh>
+    <mesh position={[0.72, 1.82, 0.6]}><sphereGeometry args={[0.2, 6, 4]} /><meshBasicMaterial color="#4b9bff" /></mesh>
   </group>;
 }
