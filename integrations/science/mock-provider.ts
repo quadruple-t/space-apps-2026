@@ -6,26 +6,31 @@ import type { CelestialState, LunarSite, ScienceProvider } from "./types";
  */
 export const mockScienceProvider: ScienceProvider = {
   provenance: "illustrative",
-  async getCelestialState(_site: LunarSite, timestamp: string): Promise<CelestialState> {
+  async getCelestialState(site: LunarSite, timestamp: string): Promise<CelestialState> {
     const hour = new Date(timestamp).getUTCHours() + new Date(timestamp).getUTCMinutes() / 60;
-    const phase = (hour / 24) * Math.PI * 2;
+    const localPhase = ((hour + site.longitudeDeg / 15) / 24) * Math.PI * 2;
+    const earthLongitudeOffset = Math.abs(((site.longitudeDeg + 180) % 360) - 180);
+    const earthElevation = 12 * Math.cos((earthLongitudeOffset * Math.PI) / 180) * Math.cos((site.latitudeDeg * Math.PI) / 180);
     return {
       timestamp,
-      sun: { azimuthDeg: ((hour * 15 + 210) % 360), elevationDeg: 7 + 8 * Math.sin(phase - 1.2) },
-      earth: { azimuthDeg: 28 + 3 * Math.sin(phase * 0.25), elevationDeg: 9 + 2 * Math.cos(phase * 0.25) },
+      sun: { azimuthDeg: (hour * 15 + site.longitudeDeg + 210) % 360, elevationDeg: 8 + 12 * Math.sin(localPhase - 1.2) * Math.cos(site.latitudeDeg * Math.PI / 180) },
+      earth: { azimuthDeg: (28 + site.longitudeDeg * 0.35 + 3 * Math.sin(localPhase * 0.25) + 360) % 360, elevationDeg: earthElevation },
       provenance: "illustrative",
     };
   },
   async getHorizon() {
     return null;
   },
-  async getMissionMetrics() {
+  async getMissionMetrics(site: LunarSite) {
+    const earthOffset = Math.abs(((site.longitudeDeg + 180) % 360) - 180);
+    const earthVisibilityPercent = Math.round(Math.max(0, Math.cos(earthOffset * Math.PI / 180) * Math.cos(site.latitudeDeg * Math.PI / 180)) * 100);
+    const sunlightPercent = Math.round(54 + 28 * Math.abs(Math.sin(site.latitudeDeg * Math.PI / 180)) + 8 * Math.cos(site.longitudeDeg * Math.PI / 90));
     return {
-      sunlightPercent: 68,
-      sunlightHours: 16.3,
-      longestDarknessHours: 5.8,
-      earthVisibilityPercent: 92,
-      longestBlackoutHours: 1.4,
+      sunlightPercent,
+      sunlightHours: Number((24 * sunlightPercent / 100).toFixed(1)),
+      longestDarknessHours: Number((24 * (1 - sunlightPercent / 100) * 0.65).toFixed(1)),
+      earthVisibilityPercent,
+      longestBlackoutHours: Number((24 * (1 - earthVisibilityPercent / 100) * 0.4).toFixed(1)),
       provenance: "illustrative",
     };
   },

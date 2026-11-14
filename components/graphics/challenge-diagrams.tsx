@@ -37,13 +37,13 @@ export function LightingDiagram() {
 export function CommsDiagram() {
   return (
     <svg viewBox="0 0 320 170" className={frame} role="img" aria-label="Diagram: a site behind a ridge has no line of sight to Earth, a site on the ridge does">
-      <circle cx="292" cy="34" r="12" fill="#7fa6cf" fillOpacity="0.18" />
-      <circle cx="292" cy="34" r="7" fill="#7fa6cf" />
+      <circle cx="292" cy="34" r="12" fill="#58c8ff" fillOpacity="0.18" />
+      <circle cx="292" cy="34" r="7" fill="#58c8ff" />
       <text x="232" y="20" {...label}>Earth</text>
       {/* Clear line from ridge-top site */}
-      <line x1="196" y1="78" x2="286" y2="38" stroke="#7fa6cf" strokeWidth="1.6" />
+      <line x1="196" y1="78" x2="286" y2="38" stroke="#58c8ff" strokeWidth="1.6" />
       {/* Blocked line from valley site */}
-      <line x1="70" y1="134" x2="182" y2="88" stroke="#7fa6cf" strokeOpacity="0.4" strokeWidth="1.4" strokeDasharray="3 4" />
+      <line x1="70" y1="134" x2="182" y2="88" stroke="#58c8ff" strokeOpacity="0.4" strokeWidth="1.4" strokeDasharray="3 4" />
       <path d="M176 84 l10 10 M186 84 l-10 10" stroke="#e5674f" strokeWidth="1.6" />
       <path d="M0 150 L30 144 L70 138 L110 130 L150 104 L196 80 L226 100 L262 124 L320 132 L320 170 L0 170 Z" fill="#26262a" stroke="#ece9e2" strokeOpacity="0.55" />
       {/* Sites */}

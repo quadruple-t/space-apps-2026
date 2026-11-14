@@ -60,13 +60,13 @@ export function LunarHorizonIllustration({ className }: { className?: string }) 
     >
       <defs>
         <radialGradient id={`${id}-sun`} cx={SUN.x / W} cy={SUN.y / H} r="0.5">
-          <stop offset="0" stopColor="#ffe3b0" stopOpacity="0.95" />
+          <stop offset="0" stopColor="#ffb2c1" stopOpacity="0.95" />
           <stop offset="0.04" stopColor="#ff637d" stopOpacity="0.5" />
           <stop offset="0.3" stopColor="#ff637d" stopOpacity="0.07" />
           <stop offset="1" stopColor="#ff637d" stopOpacity="0" />
         </radialGradient>
         <radialGradient id={`${id}-streak`}>
-          <stop offset="0" stopColor="#ffd89a" stopOpacity="0.7" />
+          <stop offset="0" stopColor="#ff8297" stopOpacity="0.7" />
           <stop offset="1" stopColor="#ff637d" stopOpacity="0" />
         </radialGradient>
         <linearGradient id={`${id}-far`} x1="0" x2="1" y1="0" y2="0">
@@ -95,8 +95,8 @@ export function LunarHorizonIllustration({ className }: { className?: string }) 
       ))}
 
       <circle cx={x} cy={y} r={r} fill="#0b1520" />
-      <path d={crescent} fill="#7fa6cf" />
-      <circle cx={x} cy={y} r={r + 1.5} fill="none" stroke="#7fa6cf" strokeOpacity="0.25" />
+      <path d={crescent} fill="#58c8ff" />
+      <circle cx={x} cy={y} r={r + 1.5} fill="none" stroke="#58c8ff" strokeOpacity="0.25" />
 
       <rect width={W} height={H} fill={`url(#${id}-sun)`} />
       <ellipse cx={SUN.x} cy={SUN.y} rx="300" ry="2.5" fill={`url(#${id}-streak)`} />

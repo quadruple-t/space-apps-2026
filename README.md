@@ -5,9 +5,7 @@ shapes sunlight and direct-to-Earth line of sight at candidate landing sites.
 
 Built for the NASA Space Apps Challenge 2026.
 
-> **Status: Phase 1 (website foundation).** The landing page, design system and route structure are
-> complete. The simulator is not built yet. All terrain is **procedurally generated** and every value
-> shown is **illustrative**. No LOLA terrain or JPL Horizons ephemerides are integrated yet.
+> The landing page and immersive Freeplay simulator are implemented. Terrain and science values are illustrative; no LOLA terrain or JPL Horizons ephemerides are integrated yet.
 
 ## Getting started
 
@@ -29,7 +27,7 @@ npm run lint       # ESLint (Next.js + React Compiler rules)
 ## Stack
 
 - **Next.js 16** (App Router, Turbopack, Cache Components) with **React 19** and **TypeScript**
-- **Tailwind CSS v4** with design tokens in `app/globals.css`
+- **Tailwind CSS v4** through `@tailwindcss/postcss`, with design tokens in `app/globals.css`
 - **shadcn/ui** (Radix) for `Button`, `Sheet` (mobile nav) and `Separator`
 - **three.js** + **@react-three/fiber** for the lunar scene
 - Fonts via `next/font`: Archivo (expanded display), IBM Plex Sans (body), IBM Plex Mono (data)
@@ -64,14 +62,13 @@ hooks/                   useReducedMotion, useInView
 
 ## Design system
 
-Colour is semantic. **Amber (`--sun`) always means sunlight** and **blue (`--earth`) always means Earth or
-communications**. Everything else uses the regolith greyscale on a near-black void. Tokens are defined
-in `app/globals.css` and exposed as Tailwind colours (`bg-void`, `text-bone`, `text-sun`, `text-earth`,
+Colour uses a retro lunar palette: **purple** marks navigation and interface accents, **electric blue** marks Earth and communications, and **coral red** marks sunlight and active controls. Everything else uses regolith greys on a near-black void. Tokens are defined
+in `app/globals.css` and exposed as Tailwind colours (`bg-void`, `text-bone`, `text-retro-red`, `text-retro-blue`,
 `border-line`, …). Typography helpers: `.type-display`, `.type-heading` and `.type-data`.
 
-## Building the simulator (next phases)
+## Simulation architecture
 
-The landing page doesn't depend on simulation code. These are the seams designed for it:
+The landing page and Freeplay share the code-driven Three.js scene. Freeplay provides region selection, coordinate sampling, camera and time controls. Terrain and science remain behind replaceable data boundaries:
 
 - **Terrain:** `scenes/lunar/terrain.ts`. Replace `heightAt(x, z)` with a sampler over a LOLA DEM. The
   frustum-shaped mesh builder and the scene stay unchanged.
@@ -87,11 +84,11 @@ The landing page doesn't depend on simulation code. These are the seams designed
 
 - The 3D scene loads client-side via `next/dynamic`. A static SVG horizon renders first and remains as
   the fallback when WebGL is unavailable or the scene errors.
-- The cinematic scenes render static shadows; Freeplay updates shadows as its illustrative Sun position changes.
+- The cinematic scenes render static shadows; Freeplay refreshes the shadow map only when its illustrative Sun position changes.
   Low-end and small devices get a lighter mesh and a lower DPR cap.
 - `prefers-reduced-motion` freezes the camera, disables reveals and the hero entrance, and switches the
   canvas to on-demand rendering.
-- Skip link, keyboard-accessible navigation, visible focus rings (amber), and an accessible mobile menu
+- Skip link, keyboard-accessible navigation and lunar map, visible focus rings, and an accessible mobile menu
   (Radix Dialog).
 
 ## Data sources (planned)

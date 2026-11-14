@@ -17,7 +17,7 @@ export type TerrainGrid = {
   name: string;
   coordinateReference: "Planetocentric latitude, east-positive longitude";
   elevationUnits: "m";
-  resolutionMeters: number;
+  latitudeLongitudeSpacingDeg: { latitude: number; longitude: number };
   provenance: "scaffold" | "LOLA";
   latitudesDeg: number[];
   longitudesDeg: number[];
@@ -34,18 +34,18 @@ export const SCAFFOLD_MOON_GRID: TerrainGrid = {
   name: "Global terrain scaffold",
   coordinateReference: "Planetocentric latitude, east-positive longitude",
   elevationUnits: "m",
-  resolutionMeters: 50_000,
+  latitudeLongitudeSpacingDeg: { latitude: 45, longitude: 45 },
   provenance: "scaffold",
   latitudesDeg,
   longitudesDeg,
   samples: latitudesDeg.map((latitudeDeg, row) => longitudesDeg.map((longitudeDeg, column) => ({
     latitudeDeg,
     longitudeDeg,
-    elevationMeters: Math.round(
-      -1900 + Math.sin((latitudeDeg * Math.PI) / 180) * 420 +
-      Math.cos((longitudeDeg * Math.PI) / 90) * 310 + ((row * 17 + column * 29) % 7) * 34,
-    ),
-    slopeDeg: Math.round(2 + Math.abs(Math.sin((latitudeDeg + longitudeDeg) * Math.PI / 180)) * 17 + ((row + column) % 4)),
+    elevationMeters: Math.round(Math.abs(latitudeDeg) === 90
+      ? -1900 + Math.sign(latitudeDeg) * 420 + 310
+      : -1900 + Math.sin((latitudeDeg * Math.PI) / 180) * 420 +
+        Math.cos((longitudeDeg * Math.PI) / 90) * 310 + ((row * 17 + column * 29) % 7) * 34),
+    slopeDeg: Math.round(Math.abs(latitudeDeg) === 90 ? 5 : 2 + Math.abs(Math.sin((latitudeDeg + longitudeDeg) * Math.PI / 180)) * 17 + ((row + column) % 4)),
   }))),
 };
 

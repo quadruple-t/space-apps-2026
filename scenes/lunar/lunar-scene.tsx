@@ -65,14 +65,14 @@ function shotFor(variant: LunarSceneVariant): CameraShot {
 }
 
 /** Shadows are static (fixed Sun, fixed terrain): render the shadow map once. */
-function StaticShadows() {
+function StaticShadows({ refreshKey }: { refreshKey?: THREE.Vector3 }) {
   const get = useThree((s) => s.get);
   useEffect(() => {
     const { gl, invalidate } = get();
     gl.shadowMap.autoUpdate = false;
     gl.shadowMap.needsUpdate = true;
     invalidate();
-  }, [get]);
+  }, [get, refreshKey]);
   return null;
 }
 
@@ -89,9 +89,14 @@ function Terrain({ detail }: { detail: TerrainDetail }) {
 const DATA_POINT_POSITIONS: Array<[number, number]> = [[-38, -68], [38, -68], [-38, -142], [38, -142]];
 const DATA_POINT_COLORS = ["#a986ff", "#58c8ff", "#ff637d", "#a986ff"];
 
-function TerrainDataMarkers({ points, onSelect }: { points: TerrainSample[]; onSelect?: (point: TerrainSample) => void }) {
+function TerrainDataMarkers({ points, onSelect, site }: { points: TerrainSample[]; onSelect?: (point: TerrainSample) => void; site: THREE.Vector3 & { latitudeDeg: number; longitudeDeg: number } }) {
   return <group>{points.map((point, index) => {
-    const [x, z] = DATA_POINT_POSITIONS[index % DATA_POINT_POSITIONS.length];
+    const [offsetX, offsetZ] = DATA_POINT_POSITIONS[index % DATA_POINT_POSITIONS.length];
+    const longitudeDelta = ((point.longitudeDeg - site.longitudeDeg + 540) % 360) - 180;
+    const localX = THREE.MathUtils.clamp(offsetX + longitudeDelta * Math.cos(site.latitudeDeg * Math.PI / 180) * 0.6, -70, 70);
+    const localZ = THREE.MathUtils.clamp(offsetZ - (point.latitudeDeg - site.latitudeDeg) * 0.9, -70, 20);
+    const x = site.x + localX;
+    const z = THREE.MathUtils.clamp(site.z + localZ, -650, 0);
     const y = heightAt(x, z);
     const color = DATA_POINT_COLORS[index % DATA_POINT_COLORS.length];
     return <group key={`${point.latitudeDeg}-${point.longitudeDeg}-${index}`} position={[x, y, z]} onClick={(event) => { event.stopPropagation(); onSelect?.(point); }}>
@@ -158,7 +163,7 @@ function SceneContents({ variant, still, detail, freeplay, cameraMode, zoom, sun
       <SunLight direction={lightDir} />
       <Terrain detail={detail} />
       {variant === "preview" && <Astronaut position={[astronautPosition.x, astronautPosition.y, astronautPosition.z]} scale={freeplay ? 1 : 1.8} />}
-      {freeplay && dataPoints && <TerrainDataMarkers points={dataPoints} onSelect={onSelectDataPoint} />}
+      {freeplay && dataPoints && <TerrainDataMarkers points={dataPoints} onSelect={onSelectDataPoint} site={Object.assign(site.clone(), { latitudeDeg: selectedSite?.latitudeDeg ?? 0, longitudeDeg: selectedSite?.longitudeDeg ?? 0 })} />}
       <Starfield count={detail === "high" ? 1400 : 800} />
       <Sun direction={sunDir} />
       <Earth direction={earthDir} sunDirection={sunDir} />
@@ -166,7 +171,7 @@ function SceneContents({ variant, still, detail, freeplay, cameraMode, zoom, sun
         <LandingSite position={site} sunDirection={sunDir} earthDirection={earthDir} still={still} />
       )}
       <CameraRig shot={shot} still={still} mode={cameraMode} interactive={freeplay} zoom={zoom} orbitTarget={site} />
-      {!freeplay && <StaticShadows />}
+      <StaticShadows refreshKey={lightDir} />
     </>
   );
 }
@@ -199,7 +204,7 @@ export default function LunarScene({
       frameloop={active && !still ? "always" : "demand"}
       gl={{ antialias: true, powerPreference: "high-performance", alpha: false }}
       camera={{ fov: 38, near: 0.5, far: 3000, position: [0, 10, 12] }}
-      onCreated={() => onReady?.()}
+      onCreated={({ gl }) => { gl.domElement.style.touchAction = "none"; onReady?.(); }}
       aria-hidden
       tabIndex={-1}
     >

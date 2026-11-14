@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent, type KeyboardEvent } from "react";
 import { ArrowRight, MapPin } from "lucide-react";
 import type { LunarSite } from "@/integrations/science/types";
 import { interpolateTerrain, MOON_REGIONS, SCAFFOLD_MOON_GRID, type MoonRegion } from "@/integrations/terrain/moon-samples";
@@ -18,17 +18,28 @@ const mapX = (longitudeDeg: number) => (longitudeDeg / 360) * 720;
 const mapY = (latitudeDeg: number) => ((90 - latitudeDeg) / 180) * 360;
 
 function LunarMap({ selectedSite, onSelect }: Pick<Props, "selectedSite" | "onSelect">) {
+  const selectCoordinates = (latitudeDeg: number, longitudeDeg: number) => {
+    const lat = Number(Math.max(-90, Math.min(90, latitudeDeg)).toFixed(2));
+    const lon = Number((((longitudeDeg % 360) + 360) % 360).toFixed(2));
+    onSelect({ id: `map-${lat}-${lon}`, name: "Selected map point", latitudeDeg: lat, longitudeDeg: lon, coordinateReference: "Planetocentric latitude, east-positive longitude", provenance: "user" });
+  };
   const selectMapPoint = (event: React.MouseEvent<SVGSVGElement>) => {
     const bounds = event.currentTarget.getBoundingClientRect();
     const x = Math.max(0, Math.min(1, (event.clientX - bounds.left) / bounds.width));
     const y = Math.max(0, Math.min(1, (event.clientY - bounds.top) / bounds.height));
-    const longitudeDeg = Number((x * 360).toFixed(2)) % 360;
-    const latitudeDeg = Number((90 - y * 180).toFixed(2));
-    onSelect({ id: `map-${latitudeDeg}-${longitudeDeg}`, name: "Selected map point", latitudeDeg, longitudeDeg, coordinateReference: "Planetocentric latitude, east-positive longitude", provenance: "user" });
+    selectCoordinates(90 - y * 180, x * 360);
+  };
+  const moveMapPoint = (event: KeyboardEvent<SVGSVGElement>) => {
+    const step = event.shiftKey ? 15 : 5;
+    const moves: Record<string, [number, number]> = { ArrowUp: [step, 0], ArrowDown: [-step, 0], ArrowLeft: [0, -step], ArrowRight: [0, step] };
+    const move = moves[event.key];
+    if (!move) return;
+    event.preventDefault();
+    selectCoordinates(selectedSite.latitudeDeg + move[0], selectedSite.longitudeDeg + move[1]);
   };
 
   return <div className="mt-3 overflow-hidden rounded border border-retro-purple/25 bg-[#090817] p-1.5">
-    <svg viewBox="0 0 720 360" role="img" aria-label="Clickable lunar map. Click to select coordinates." onClick={selectMapPoint} className="block w-full cursor-crosshair touch-manipulation">
+    <svg viewBox="0 0 720 360" role="group" aria-label={`Lunar coordinate map. Selected ${selectedSite.latitudeDeg.toFixed(2)} degrees latitude, ${selectedSite.longitudeDeg.toFixed(2)} degrees east longitude. Use arrow keys to adjust by 5 degrees, or Shift plus an arrow for 15 degrees.`} tabIndex={0} onKeyDown={moveMapPoint} onClick={selectMapPoint} className="block w-full cursor-crosshair touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-retro-purple">
       <defs>
         <linearGradient id="moonHudBase" x1="0" x2="1" y1="0" y2="1"><stop stopColor="#504b79"/><stop offset=".5" stopColor="#918ba8"/><stop offset="1" stopColor="#393759"/></linearGradient>
         <pattern id="moonHudGrain" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="6" cy="8" r="1" fill="#dbefff" opacity=".14"/><circle cx="21" cy="19" r=".8" fill="#17162d" opacity=".25"/></pattern>
@@ -48,19 +59,15 @@ function LunarMap({ selectedSite, onSelect }: Pick<Props, "selectedSite" | "onSe
 }
 
 export function MoonLocationPicker({ selectedSite, onSelect, onContinue, sunAzimuthDeg, sunElevationDeg, mode = "setup" }: Props) {
-  const [selectedRegion, setSelectedRegion] = useState<string | null>("south-pole");
+  const selectedRegion = MOON_REGIONS.find((region) => region.site.id === selectedSite.id)?.id ?? null;
   const [name, setName] = useState("");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
   const [formError, setFormError] = useState("");
   const estimate = useMemo(() => interpolateTerrain(SCAFFOLD_MOON_GRID, selectedSite.latitudeDeg, selectedSite.longitudeDeg), [selectedSite.latitudeDeg, selectedSite.longitudeDeg]);
 
-  const selectRegion = (region: MoonRegion) => {
-    setSelectedRegion(region.id);
-    onSelect(region.site);
-  };
+  const selectRegion = (region: MoonRegion) => onSelect(region.site);
   const selectNode = (latitudeDeg: number, longitudeDeg: number, label: string) => {
-    setSelectedRegion(null);
     onSelect({ id: `grid-${latitudeDeg}-${longitudeDeg}`, name: label, latitudeDeg, longitudeDeg, coordinateReference: "Planetocentric latitude, east-positive longitude", provenance: "illustrative" });
   };
   const submitCoordinates = (event: FormEvent<HTMLFormElement>) => {
@@ -71,7 +78,6 @@ export function MoonLocationPicker({ selectedSite, onSelect, onContinue, sunAzim
     if (lat < -90 || lat > 90) { setFormError("Latitude must be between −90° and +90°."); return; }
     if (lon < 0 || lon >= 360) { setFormError("East longitude must be from 0° to less than 360°."); return; }
     setFormError("");
-    setSelectedRegion(null);
     onSelect({ id: `custom-${lat}-${lon}`, name: name.trim() || "Custom site", latitudeDeg: lat, longitudeDeg: lon, coordinateReference: "Planetocentric latitude, east-positive longitude", provenance: "user" });
   };
 
@@ -91,7 +97,7 @@ export function MoonLocationPicker({ selectedSite, onSelect, onContinue, sunAzim
         <div className="type-data text-[0.56rem] text-retro-blue">NODE {String.fromCharCode(65+index)} · {point.latitudeDeg}° / {point.longitudeDeg}°E</div><div className="type-data mt-1 text-[0.66rem] text-bone">{point.elevationMeters.toLocaleString()} m <span className="text-muted-foreground">· {point.slopeDeg}°</span></div>
       </button>)}
     </div>
-    <p className="mt-2 text-[0.56rem] leading-relaxed text-muted-foreground">Synthetic 50 km grid scaffold, not measured LOLA terrain.</p>
+    <p className="mt-2 text-[0.56rem] leading-relaxed text-muted-foreground">Synthetic 45° × 45° latitude/longitude grid scaffold (~1,360 km per longitude step at the equator); not measured LOLA terrain. At either pole, the scaffold elevation is constant across longitude.</p>
   </>;
 
   const customForm = <details className="mt-3 border-t border-line/80 pt-2">
@@ -107,7 +113,7 @@ export function MoonLocationPicker({ selectedSite, onSelect, onContinue, sunAzim
 
   if (mode === "hud") return <section className="hud-panel h-full overflow-y-auto p-3 sm:p-4" aria-label="Lunar map and terrain samples">
     <div><div className="type-data text-[0.58rem] uppercase tracking-[0.16em] text-retro-purple">Navigation map</div><h2 className="type-heading mt-1 text-sm text-bone">Lunar surface</h2></div>
-    <LunarMap selectedSite={selectedSite} onSelect={(site)=>{setSelectedRegion(null);onSelect(site);}}/>
+    <LunarMap selectedSite={selectedSite} onSelect={(site)=>{onSelect(site);}}/>
     <div className="mt-2 grid grid-cols-3 gap-1.5">{MOON_REGIONS.map((region)=><button key={region.id} type="button" onClick={()=>selectRegion(region)} aria-pressed={selectedRegion===region.id} className={`rounded border px-2 py-1.5 text-left text-[0.63rem] transition ${selectedRegion===region.id?"border-retro-purple/70 bg-retro-purple/10 text-retro-purple":"border-line/80 text-muted-foreground hover:border-retro-blue/60 hover:text-bone"}`}>{region.label}</button>)}</div>
     <div className="mt-3 flex items-center gap-2 border-t border-line/80 pt-3"><MapPin size={14} className="shrink-0 text-retro-red"/><div className="min-w-0 flex-1"><div className="truncate text-xs text-bone">{selectedSite.name}</div><div className="type-data mt-0.5 text-[0.6rem] text-muted-foreground">{selectedSite.latitudeDeg.toFixed(2)}° / {selectedSite.longitudeDeg.toFixed(2)}° E</div></div></div>
     {sampleReadout}{customForm}
@@ -125,7 +131,7 @@ export function MoonLocationPicker({ selectedSite, onSelect, onContinue, sunAzim
           <div className="type-data text-[0.6rem] uppercase tracking-[0.14em] text-retro-blue">01 · Select approach region</div>
           <div className="mt-3">{sideCards}</div>
           <div className="mt-4 flex items-center justify-between gap-3"><div><div className="type-data text-[0.58rem] uppercase tracking-[0.13em] text-muted-foreground">Refine on the Moon dial</div><div className="mt-1 text-[0.62rem] text-muted-foreground">Tap anywhere to choose exact coordinates</div></div><div className="type-data text-right text-[0.62rem] text-bone">{selectedSite.latitudeDeg.toFixed(2)}°<br/>{selectedSite.longitudeDeg.toFixed(2)}° E</div></div>
-          <LunarMap selectedSite={selectedSite} onSelect={(site)=>{setSelectedRegion(null);onSelect(site);}}/>
+          <LunarMap selectedSite={selectedSite} onSelect={(site)=>{onSelect(site);}}/>
           {customForm}
         </section>
         <div className="flex flex-col gap-3">

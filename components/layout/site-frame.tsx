@@ -11,9 +11,9 @@ export function SiteFrame({ children }: { children: React.ReactNode }) {
   return <>
     <a href="#main" className="sr-only z-50 rounded-sm bg-bone px-4 py-2 text-sm font-medium text-void focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Skip to content</a>
     {!immersive && <Navbar />}
-    <div id="main" tabIndex={-1} className={immersive ? "fixed inset-0 z-40 h-dvh overflow-hidden outline-none" : "flex-1 outline-none"}>
-      {children}
-    </div>
+    {immersive
+      ? <div id="main" tabIndex={-1} className="fixed inset-0 z-40 h-dvh overflow-hidden outline-none">{children}</div>
+      : <main id="main" tabIndex={-1} className="flex-1 outline-none">{children}</main>}
     {!immersive && <Footer />}
   </>;
 }

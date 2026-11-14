@@ -27,7 +27,7 @@ interface ScienceProvider {
 
 The current `scenes/lunar/terrain.ts` produces deterministic procedural geometry for development only. It is not LOLA data. The scene currently consumes local Three.js geometry and has no authoritative DEM loader or geographic bounds. The science/terrain owner should provide either:
 
-- a height grid with rows/columns, elevation units, geographic bounds, coordinate frame, axis orientation, no-data marker, and sampling resolution; or
+- a height grid with rows/columns, elevation units, geographic bounds, coordinate frame, axis orientation, no-data marker, and angular or spatial sampling resolution; or
 - a Three.js `BufferGeometry` with the same bounds/frame/provenance metadata.
 
 Once supplied, add a `TerrainDataset` type and loader at this boundary. Confirm whether the dataset is planetocentric or planetographic, longitude direction/range, and north/south row order before mapping it into Three.js. Keep the current procedural mesh as a labeled fallback. For a horizon/occlusion discrepancy, retain science-provider visibility as authoritative and report the visual mismatch during development.
@@ -40,7 +40,7 @@ Once supplied, add a `TerrainDataset` type and loader at this boundary. Confirm 
 
 `integrations/science/mock-provider.ts` is intentionally illustrative: its Sun/Earth movement is a simple clock-driven visual demo and the daily metrics are static placeholders. It does not model lunar ephemerides, topographic visibility, or LOLA elevations. The default demo coordinate (89.5° N, 222.7° E) was inherited from the existing concept scene and is explicitly unverified; it must not be treated as a reference site. No verified reference-site list is present.
 
-`/explore` currently validates custom coordinates, controls the UTC clock and playback, moves the displayed bodies and directional sunlight, and supports first-person, orbit, and overhead views. The same illustrative local terrain is shown for any entered coordinate until a geographic DEM provider is connected. There is no regional map or analytical horizon profile yet. Data provenance must remain visible while the mock provider is in use.
+`/explore` currently validates custom coordinates, controls the UTC clock and playback, moves the displayed bodies and directional sunlight, and supports first-person, orbit, and overhead views. The renderer currently uses procedural terrain while the map and HUD interpolate scaffold data at the selected coordinate. Both remain illustrative until a geographic DEM provider is connected. The `/explore` map supports coordinate selection and scaffold interpolation; no analytical horizon profile is connected yet. Data provenance must remain visible while the mock provider is in use.
 
 ## Integration steps
 

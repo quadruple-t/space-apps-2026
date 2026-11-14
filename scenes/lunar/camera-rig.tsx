@@ -29,6 +29,9 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
   const pointer = useRef(new THREE.Vector2());
   const eased = useRef(new THREE.Vector2());
   const tmp = useRef(new THREE.Vector3());
+  const focusFallback = useRef(new THREE.Vector3(0, 0, -95));
+  const desired = useRef(new THREE.Vector3());
+  const aim = useRef(new THREE.Vector3());
   const yaw = useRef(0);
   const pitch = useRef(0.04);
   const distance = useRef(250);
@@ -67,6 +70,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
       dragging.current = true;
       last.current = { x: event.clientX, y: event.clientY };
       el.setPointerCapture(event.pointerId);
+      get().invalidate();
     };
     const move = (event: PointerEvent) => {
       if (!dragging.current) return;
@@ -75,11 +79,13 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
       last.current = { x: event.clientX, y: event.clientY };
       yaw.current -= dx * 0.004;
       pitch.current = THREE.MathUtils.clamp(pitch.current + dy * 0.003, -1.1, 1.1);
+      get().invalidate();
     };
     const up = () => { dragging.current = false; };
     const wheel = (event: WheelEvent) => {
       event.preventDefault();
       distance.current = THREE.MathUtils.clamp(distance.current + event.deltaY * 0.18, 85, 520);
+      get().invalidate();
     };
     el.addEventListener("pointerdown", down);
     el.addEventListener("pointermove", move);
@@ -93,7 +99,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
       el.removeEventListener("pointercancel", up);
       el.removeEventListener("wheel", wheel);
     };
-  }, [gl, interactive]);
+  }, [get, gl, interactive]);
 
   // Track the pointer over the whole window so overlays don't block parallax.
   useEffect(() => {
@@ -110,7 +116,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
     elapsed.current += delta;
     if (interactive) {
       const camera = state.camera as THREE.PerspectiveCamera;
-      const focus = orbitTarget ?? new THREE.Vector3(0, 0, -95);
+      const focus = orbitTarget ?? focusFallback.current;
       if (mode === "first-person") {
         const nextFov = THREE.MathUtils.clamp(55 * zoom, 28, 88);
         if (camera.fov !== nextFov) {
@@ -123,16 +129,20 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
       }
       const desiredDistance = mode === "first-person" ? 0 : mode === "overhead" ? Math.min(distance.current, 400) : distance.current;
       const effectiveDistance = desiredDistance * zoom;
-      const desired = mode === "first-person"
-        ? shot.position.clone().add(new THREE.Vector3(Math.sin(yaw.current) * 3, 0, Math.cos(yaw.current) * 3))
-        : new THREE.Vector3(
-            focus.x + Math.sin(yaw.current) * Math.cos(pitch.current) * effectiveDistance,
-            focus.y + (mode === "overhead" ? effectiveDistance : Math.sin(pitch.current) * effectiveDistance),
-            focus.z + Math.cos(yaw.current) * Math.cos(pitch.current) * effectiveDistance,
-          );
-      camera.position.lerp(desired, 1 - Math.exp(-delta * 3));
+      const nextPosition = desired.current;
+      if (mode === "first-person") {
+        nextPosition.copy(shot.position).add(tmp.current.set(Math.sin(yaw.current) * 3, 0, Math.cos(yaw.current) * 3));
+      } else {
+        nextPosition.set(
+          focus.x + Math.sin(yaw.current) * Math.cos(pitch.current) * effectiveDistance,
+          focus.y + (mode === "overhead" ? effectiveDistance : Math.sin(pitch.current) * effectiveDistance),
+          focus.z + Math.cos(yaw.current) * Math.cos(pitch.current) * effectiveDistance,
+        );
+      }
+      if (still) camera.position.copy(nextPosition);
+      else camera.position.lerp(nextPosition, 1 - Math.exp(-delta * 3));
       if (mode === "overhead") camera.up.set(0, 0, -1); else camera.up.set(0, 1, 0);
-      const firstPersonAim = camera.position.clone().add(new THREE.Vector3(
+      const firstPersonAim = aim.current.copy(camera.position).add(tmp.current.set(
         Math.sin(yaw.current) * Math.cos(pitch.current),
         Math.sin(pitch.current),
         -Math.cos(yaw.current) * Math.cos(pitch.current),

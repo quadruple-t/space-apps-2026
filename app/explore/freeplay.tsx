@@ -2,13 +2,14 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Activity, ArrowLeft, Clock3, Crosshair, Globe2, Map, Pause, Play, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
 import type { CameraMode } from "@/scenes/lunar/camera-rig";
 import { mockScienceProvider } from "@/integrations/science/mock-provider";
 import type { CelestialState, LunarSite, MissionMetrics } from "@/integrations/science/types";
 import { interpolateTerrain, MOON_REGIONS, SCAFFOLD_MOON_GRID, type TerrainSample } from "@/integrations/terrain/moon-samples";
 import { MoonLocationPicker } from "./moon-location-picker";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
 const LunarScene = dynamic(() => import("@/scenes/lunar/lunar-scene"), { ssr: false });
 const initialTime = new Date("2026-11-14T12:00:00.000Z");
@@ -36,39 +37,55 @@ export function Freeplay() {
   const [dataError, setDataError] = useState(false);
   const [mapOpen, setMapOpen] = useState(false);
   const [mobileTelemetryOpen, setMobileTelemetryOpen] = useState(false);
+  const reducedMotion = useReducedMotion();
+  const celestialRequest = useRef(0);
+  const metricRequest = useRef(0);
+  const metricsCache = useRef(new globalThis.Map<string, MissionMetrics>());
+  const [deviceTier] = useState<"low" | "high">(() => typeof window !== "undefined" && window.innerWidth >= 768 && (navigator.hardwareConcurrency ?? 8) > 4 ? "high" : "low");
 
   const activeTerrain = useMemo(() => interpolateTerrain(SCAFFOLD_MOON_GRID, activeSite.latitudeDeg, activeSite.longitudeDeg), [activeSite.latitudeDeg, activeSite.longitudeDeg]);
-  const updateEnvironment = useCallback(async (selectedSite: LunarSite, date: Date) => {
+  const environmentSite = useMemo(() => phase === "choose" ? site : activeSite, [phase, site, activeSite]);
+  const utcDay = timestamp.toISOString().slice(0, 10);
+  const updateCelestial = useCallback(async (selectedSite: LunarSite, date: Date) => {
+    const request = ++celestialRequest.current;
+    try {
+      const result = await mockScienceProvider.getCelestialState(selectedSite, date.toISOString());
+      if (request === celestialRequest.current) setCelestial(result);
+    } catch {
+      if (request === celestialRequest.current) { setCelestial(null); setDataError(true); }
+    }
+  }, []);
+  const updateMetrics = useCallback(async (selectedSite: LunarSite, day: string) => {
+    const request = ++metricRequest.current;
+    const cacheKey = `${selectedSite.id}:${day}`;
+    const cached = metricsCache.current.get(cacheKey);
+    if (cached) { setMetrics(cached); setLoading(false); setDataError(false); return; }
     setLoading(true);
     setDataError(false);
-    const currentIso = date.toISOString();
-    const startIso = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())).toISOString();
+    const startIso = `${day}T00:00:00.000Z`;
     try {
-      const [state, mission] = await Promise.all([
-        mockScienceProvider.getCelestialState(selectedSite, currentIso),
-        mockScienceProvider.getMissionMetrics(selectedSite, startIso, 24),
-      ]);
-      setCelestial(state);
-      setMetrics(mission);
+      const result = await mockScienceProvider.getMissionMetrics(selectedSite, startIso, 24);
+      if (result) metricsCache.current.set(cacheKey, result);
+      if (request === metricRequest.current) setMetrics(result);
     } catch {
-      setCelestial(null);
-      setMetrics(null);
-      setDataError(true);
+      if (request === metricRequest.current) { setMetrics(null); setDataError(true); }
     } finally {
-      setLoading(false);
+      if (request === metricRequest.current) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    const environmentSite = phase === "choose" ? site : activeSite;
-    const timer = window.setTimeout(() => { void updateEnvironment(environmentSite, timestamp); }, 0);
-    return () => window.clearTimeout(timer);
-  }, [phase, site, activeSite, timestamp, updateEnvironment]);
+    const timer = window.setTimeout(() => { void updateCelestial(environmentSite, timestamp); }, 0);
+    return () => { window.clearTimeout(timer); celestialRequest.current += 1; };
+  }, [environmentSite, timestamp, updateCelestial]);
   useEffect(() => {
-    if (!playing) return;
+    void updateMetrics(environmentSite, utcDay);
+  }, [environmentSite, utcDay, updateMetrics]);
+  useEffect(() => {
+    if (!playing || reducedMotion) return;
     const timer = window.setInterval(() => setTimestamp((time) => new Date(time.getTime() + speed * 60_000)), 250);
     return () => window.clearInterval(timer);
-  }, [playing, speed]);
+  }, [playing, speed, reducedMotion]);
 
   useEffect(() => {
     if (phase === "transfer") {
@@ -93,21 +110,21 @@ export function Freeplay() {
     setPlaying(false);
     setSite(target);
     setActiveSite(target);
-    setCameraMode("orbit");
-    setPhase("transfer");
-  }, []);
+    setCameraMode(reducedMotion ? "first-person" : "orbit");
+    setPhase(reducedMotion ? "explore" : "transfer");
+  }, [reducedMotion]);
   const beginDescent = () => {
     setPlaying(false);
     setActiveSite(site);
-    setCameraMode("orbit");
-    setPhase("transfer");
+    setCameraMode(reducedMotion ? "first-person" : "orbit");
+    setPhase(reducedMotion ? "explore" : "transfer");
   };
   const dayMinute = timestamp.getUTCHours() * 60 + timestamp.getUTCMinutes();
   const timeInput = useMemo(() => isoMinute(timestamp), [timestamp]);
 
   return <main className="relative isolate h-dvh w-full overflow-hidden bg-void text-bone" aria-label="Shadowline lunar simulation">
     <div className="absolute inset-0 z-0">
-      <LunarScene variant="preview" active detail="high" freeplay={phase !== "choose"} cameraMode={cameraMode} zoom={zoom}
+      <LunarScene variant="preview" active detail={deviceTier} still={reducedMotion} freeplay={phase !== "choose"} cameraMode={cameraMode} zoom={zoom}
         selectedSite={activeSite} dataPoints={activeTerrain.corners} onSelectDataPoint={selectDataPoint}
         sunAzimuthDeg={celestial?.sun.azimuthDeg} sunElevationDeg={celestial?.sun.elevationDeg}
         earthAzimuthDeg={celestial?.earth.azimuthDeg} earthElevationDeg={celestial?.earth.elevationDeg}/>
@@ -123,8 +140,8 @@ export function Freeplay() {
         {phase === "explore" && <button type="button" onClick={()=>setMapOpen((open)=>!open)} aria-expanded={mapOpen} className="inline-flex items-center gap-2 rounded-md border border-line px-2.5 py-2 text-[0.65rem] uppercase tracking-[0.1em] text-muted-foreground hover:border-retro-purple/60 hover:text-bone sm:px-3"><Map size={14} className="text-retro-purple"/><span className="hidden sm:inline">{mapOpen?"Hide map":"Map & samples"}</span></button>}
       </div>
       <div className="flex min-w-0 items-center gap-2 rounded-lg border border-line/80 bg-void/75 px-3 py-2 shadow-xl backdrop-blur-xl sm:px-4">
-        <span className="relative flex size-2"><span className="absolute inline-flex size-full animate-ping rounded-full bg-retro-red opacity-50"/><span className="relative inline-flex size-2 rounded-full bg-retro-red"/></span>
-        <div className="min-w-0"><div className="type-data text-[0.56rem] uppercase tracking-[0.12em] text-retro-red">{phase === "transfer" ? "Transferring" : phase === "descent" ? "Descending" : loading ? "Syncing" : "Live demo"}</div><div className="type-data truncate text-[0.62rem] text-bone sm:text-xs">{activeSite.latitudeDeg.toFixed(2)}° / {activeSite.longitudeDeg.toFixed(2)}° E</div></div>
+        <span className="relative flex size-2">{!reducedMotion && <span className="absolute inline-flex size-full animate-ping rounded-full bg-retro-red opacity-50"/>}<span className="relative inline-flex size-2 rounded-full bg-retro-red"/></span>
+        <div className="min-w-0"><div className="type-data text-[0.56rem] uppercase tracking-[0.12em] text-retro-red">{phase === "transfer" ? "Transferring" : phase === "descent" ? "Descending" : loading ? "Syncing" : "Demo data"}</div><div className="type-data truncate text-[0.62rem] text-bone sm:text-xs">{activeSite.latitudeDeg.toFixed(2)}° / {activeSite.longitudeDeg.toFixed(2)}° E</div></div>
       </div>
     </header>
 
@@ -157,7 +174,7 @@ export function Freeplay() {
         <div className="mt-3 border-t border-line/80 pt-2 text-[0.58rem] text-muted-foreground">{dataError?"Science provider unavailable":"Illustrative science provider · no LOLA terrain connected"}</div>
       </section>
       <section className="hud-panel p-3.5">
-        <div className="type-data text-[0.58rem] uppercase tracking-[0.14em] text-retro-purple">Mission window · 24 h</div>
+        <div className="flex items-center justify-between"><div className="type-data text-[0.58rem] uppercase tracking-[0.14em] text-retro-purple">Mission window · 24 h</div><span className="type-data rounded border border-retro-red/35 px-1.5 py-0.5 text-[0.5rem] uppercase text-retro-red">Illustrative</span></div>
         <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2">
           <Readout label="Sunlit duration" value={metrics?`${metrics.sunlightHours} h`:"—"} tone="red"/>
           <Readout label="Sunlit share" value={metrics?`${metrics.sunlightPercent}%`:"—"} tone="red"/>
@@ -191,12 +208,12 @@ export function Freeplay() {
         <div className="type-data flex items-center gap-2 text-[0.62rem] text-muted-foreground sm:ml-auto"><Clock3 size={14} className="text-retro-red"/><span>{localTime(timestamp)}</span></div>
       </div>
       <div className="mt-2.5 flex items-center gap-2 sm:gap-3">
-        <button type="button" onClick={()=>setPlaying((value)=>!value)} className="flex h-9 shrink-0 items-center gap-2 rounded-lg bg-retro-red px-3 text-[0.63rem] font-semibold uppercase tracking-[0.1em] text-void transition hover:bg-[#ff91a2]" aria-label={playing?"Pause simulation":"Play simulation"}>{playing?<Pause size={14}/>:<Play size={14}/>}<span className="hidden sm:inline">{playing?"Pause":"Run time"}</span></button>
+        <button type="button" disabled={reducedMotion} onClick={()=>setPlaying((value)=>!value)} className="flex h-9 shrink-0 items-center gap-2 rounded-lg bg-retro-red px-3 text-[0.63rem] font-semibold uppercase tracking-[0.1em] text-void transition hover:bg-[#ff91a2] disabled:cursor-not-allowed disabled:opacity-50" aria-label={playing?"Pause simulation":"Play simulation"} title={reducedMotion ? "Autoplay is paused by your reduced-motion setting" : undefined}>{playing?<Pause size={14}/>:<Play size={14}/>}<span className="hidden sm:inline">{playing?"Pause":"Run time"}</span></button>
         <label className="sr-only" htmlFor="playback-speed">Playback speed</label><select id="playback-speed" value={speed} onChange={(event)=>setSpeed(Number(event.target.value))} className="h-9 rounded-lg border border-line bg-void px-2 text-[0.62rem] text-bone"><option value={15}>15×</option><option value={60}>60×</option><option value={240}>240×</option></select>
         <input aria-label="Simulation time of day in UTC" type="range" min={0} max={1439} value={dayMinute} onChange={(event)=>setTimestamp((date)=>{const next=new Date(date);next.setUTCHours(0,Number(event.target.value),0,0);return next;})} className="h-1.5 min-w-0 flex-1 cursor-pointer accent-[#ff637d]"/>
         <label className="sr-only" htmlFor="simulation-date">Simulation date and time in UTC</label><input id="simulation-date" type="datetime-local" value={timeInput} onChange={(event)=>{const value=new Date(`${event.target.value}:00Z`);if(!Number.isNaN(value.getTime()))setTimestamp(value);}} className="h-9 w-[9.2rem] rounded-lg border border-line bg-void px-2 text-[0.6rem] text-bone [color-scheme:dark]"/>
       </div>
-      <div className="mt-2 flex items-center justify-between gap-2 border-t border-line/70 pt-2 text-[0.55rem] uppercase tracking-[0.12em] text-muted-foreground"><span className="inline-flex items-center gap-1.5"><Globe2 size={12} className="text-retro-blue"/>Procedural terrain · illustrative demo data</span><span className="hidden sm:inline">{loading?"Updating environment":dataError?"Provider unavailable":"System nominal"}</span></div>
+      <div className="mt-2 flex items-center justify-between gap-2 border-t border-line/70 pt-2 text-[0.55rem] uppercase tracking-[0.12em] text-muted-foreground"><span className="inline-flex items-center gap-1.5"><Globe2 size={12} className="text-retro-blue"/>Procedural terrain · illustrative demo data</span><span className="hidden sm:inline">{loading?"Updating environment":dataError?"Provider unavailable":"Demo data"}</span></div>
     </section>}
   </main>;
 }

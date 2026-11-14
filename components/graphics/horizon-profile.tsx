@@ -85,8 +85,8 @@ export function HorizonProfile({
         <polyline points={sunLine} fill="none" stroke="#ff637d" strokeWidth="2.25" clipPath={`url(#${id}-sky)`} />
 
         <g transform={`translate(${x(model.earth.azimuth)} ${y(model.earth.elevation)})`}>
-          <circle r="11" fill="#7fa6cf" fillOpacity="0.12" />
-          <circle r="5" fill="#7fa6cf" />
+          <circle r="11" fill="#58c8ff" fillOpacity="0.12" />
+          <circle r="5" fill="#58c8ff" />
         </g>
 
         <line x1={PAD.left} x2={W - PAD.right} y1={baseY} y2={baseY} stroke="#8b8a85" strokeOpacity="0.5" />
