@@ -6,9 +6,9 @@
  * Shadowline design tokens
  * ------------------------------------------------------------------
  * Dark-only palette. Colour is semantic, not decorative:
- *   sun   (amber) — anything to do with sunlight / illumination
- *   earth (blue)  — anything to do with Earth / communications
- * Everything else lives on the regolith greyscale.
+ *   sun   (coral red) — sunlight and active controls
+ *   earth (electric blue) — Earth and communications
+ *   purple — the interface's retro lunar-night accent
  */
 
 @custom-variant dark (&:is(.dark *));
@@ -29,6 +29,9 @@
   --color-sun-dim: var(--sun-dim);
   --color-earth: var(--earth);
   --color-earth-dim: var(--earth-dim);
+  --color-retro-purple: var(--retro-purple);
+  --color-retro-blue: var(--retro-blue);
+  --color-retro-red: var(--retro-red);
   --color-line: var(--line);
 
   --color-ring: var(--ring);
@@ -59,34 +62,36 @@
 :root {
   color-scheme: dark;
 
-  --void: #050506;
-  --charcoal: #141516;
-  --regolith: #8b8a85;
-  --bone: #ece9e2;
-  --sun: #e3ae4f;
-  --sun-dim: #8a6a33;
-  --earth: #7fa6cf;
-  --earth-dim: #3e5670;
-  --line: #2a2b2c;
+  --void: #080712;
+  --charcoal: #151327;
+  --regolith: #a39ab8;
+  --bone: #f0ebf7;
+  --sun: #ff5c78;
+  --sun-dim: #963752;
+  --earth: #57b8ff;
+  --earth-dim: #365588;
+  --retro-purple: #a986ff;
+  --retro-blue: #58c8ff;
+  --retro-red: #ff637d;
+  --line: #302c4a;
 
   --background: var(--void);
   --foreground: var(--bone);
   --card: var(--charcoal);
   --card-foreground: var(--bone);
-  --popover: #0d0e0f;
+  --popover: #100e20;
   --popover-foreground: var(--bone);
   --primary: var(--bone);
-  --primary-foreground: #0a0a0a;
-  --secondary: #1d1e20;
+  --primary-foreground: #100d20;
+  --secondary: #211d37;
   --secondary-foreground: var(--bone);
-  --muted: #1a1b1c;
-  /* #a3a29c on #050506 ≈ 7.9:1 — body-safe */
-  --muted-foreground: #a3a29c;
-  --accent: #1d1e20;
+  --muted: #211d37;
+  --muted-foreground: #b2abc4;
+  --accent: #292341;
   --accent-foreground: var(--bone);
-  --destructive: #e5674f;
+  --destructive: #ff637d;
   --border: var(--line);
-  --input: #343537;
+  --input: #45405f;
   --ring: var(--sun);
   --radius: 0.375rem;
 
@@ -152,6 +157,39 @@
     font-family: var(--font-plex-mono);
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.02em;
+  }
+
+  .hud-panel {
+    border: 1px solid color-mix(in oklab, var(--retro-purple) 24%, var(--line));
+    border-radius: 0.6rem;
+    background: color-mix(in oklab, var(--void) 82%, transparent);
+    box-shadow: 0 18px 70px rgb(3 2 14 / 34%), inset 0 1px rgb(255 255 255 / 4%);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+  }
+  .hud-label {
+    color: var(--muted-foreground);
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    line-height: 1.25;
+    text-transform: uppercase;
+  }
+  .hud-readout {
+    min-width: 0;
+    border: 1px solid color-mix(in oklab, var(--line) 82%, transparent);
+    border-radius: 0.35rem;
+    background: color-mix(in oklab, var(--void) 62%, transparent);
+    padding: 0.55rem 0.65rem;
+  }
+  .hud-input {
+    display: block;
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 0.25rem;
+    background: color-mix(in oklab, var(--void) 90%, transparent);
+    padding: 0.45rem 0.55rem;
+    color: var(--bone);
+    font-size: 0.68rem;
   }
 
   /* Scroll reveal — toggled by <Reveal>. Content stays visible without JS. */

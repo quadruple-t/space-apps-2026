@@ -225,9 +225,11 @@ async function dataFlow(): Promise<void> {
 
 async function main(): Promise<void> {
   console.log(`Shadowline emulator smoke test (project ${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID})`);
-  const [fs, au] = await Promise.all([reachable("http://127.0.0.1:8080/"), reachable("http://127.0.0.1:9099/")]);
+  const fsPort = Number(process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_PORT) || 8080;
+  const authPort = Number(process.env.NEXT_PUBLIC_AUTH_EMULATOR_PORT) || 9099;
+  const [fs, au] = await Promise.all([reachable(`http://127.0.0.1:${fsPort}/`), reachable(`http://127.0.0.1:${authPort}/`)]);
   if (!fs || !au) {
-    console.error(`Emulators not reachable (firestore 8080: ${fs}, auth 9099: ${au}). Start them with: npm run emulators`);
+    console.error(`Emulators not reachable (firestore ${fsPort}: ${fs}, auth ${authPort}: ${au}). Start them with: npm run emulators`);
     process.exit(1);
   }
   await userFlow();

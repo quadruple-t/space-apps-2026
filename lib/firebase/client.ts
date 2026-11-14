@@ -20,8 +20,9 @@ import {
 } from "firebase/firestore";
 
 const EMULATOR_HOST = "127.0.0.1";
-const AUTH_EMULATOR_PORT = 9099;
-const FIRESTORE_EMULATOR_PORT = 8080;
+/** Defaults match firebase.json; override only if those ports are taken locally. */
+const AUTH_EMULATOR_PORT = Number(process.env.NEXT_PUBLIC_AUTH_EMULATOR_PORT) || 9099;
+const FIRESTORE_EMULATOR_PORT = Number(process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_PORT) || 8080;
 
 /** Survives Next.js fast refresh so emulators are connected exactly once per page. */
 interface ShadowlineFirebaseGlobal {

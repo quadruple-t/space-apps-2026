@@ -140,12 +140,12 @@
   },
   "LDEM_80S_20MPP_ADJ": {
    "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_20MPP_ADJ.TIF",
-   "note": "COG; ~\u00b18 km near-field windows for polar sites outside 5 m boxes",
+   "note": "COG window read via GDAL /vsicurl/",
    "firstReadAt": "2026-11-14T17:23:53Z"
   },
   "LDEM_80S_20MPP_ADJ_ERR": {
    "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_20MPP_ADJ_ERR.TIF",
-   "note": "COG; height error at polar sites",
+   "note": "COG window read via GDAL /vsicurl/",
    "firstReadAt": "2026-11-14T17:23:53Z"
   },
   "LDRM_80S_50MPP_ADJ_ROUGH_100M": {

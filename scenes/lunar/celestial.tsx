@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { seededRandom } from "@/lib/noise";
 
@@ -21,7 +21,7 @@ function radialTexture(stops: Array<[number, string]>, size = 256) {
 
 /** Low Sun: hard core, warm bloom and a faint anamorphic streak. */
 export function Sun({ direction }: { direction: THREE.Vector3 }) {
-  const { position, core, glow, streak } = useMemo(() => {
+  const { core, glow, streak } = useMemo(() => {
     const spriteMat = (map: THREE.Texture, opacity = 1) =>
       new THREE.SpriteMaterial({
         map,
@@ -32,34 +32,40 @@ export function Sun({ direction }: { direction: THREE.Vector3 }) {
         toneMapped: false,
       });
     return {
-      position: direction.clone().multiplyScalar(SKY_DISTANCE),
       core: spriteMat(
         radialTexture([
           [0, "rgba(255,255,250,1)"],
           [0.35, "rgba(255,246,225,1)"],
-          [0.6, "rgba(255,214,140,0.5)"],
-          [1, "rgba(255,190,90,0)"],
+          [0.6, "rgba(255,120,154,0.5)"],
+          [1, "rgba(255,92,120,0)"],
         ]),
       ),
       glow: spriteMat(
         radialTexture([
-          [0, "rgba(255,226,170,0.85)"],
-          [0.08, "rgba(240,180,90,0.45)"],
-          [0.3, "rgba(227,174,79,0.12)"],
-          [1, "rgba(227,174,79,0)"],
+          [0, "rgba(255,206,225,0.85)"],
+          [0.08, "rgba(255,130,166,0.45)"],
+          [0.3, "rgba(255,92,120,0.12)"],
+          [1, "rgba(255,92,120,0)"],
         ]),
         0.9,
       ),
       streak: spriteMat(
         radialTexture([
-          [0, "rgba(255,220,160,0.6)"],
-          [0.4, "rgba(227,174,79,0.12)"],
-          [1, "rgba(227,174,79,0)"],
+          [0, "rgba(255,210,227,0.6)"],
+          [0.4, "rgba(255,92,120,0.12)"],
+          [1, "rgba(255,92,120,0)"],
         ]),
         0.45,
       ),
     };
-  }, [direction]);
+  }, []);
+  const position = useMemo(() => direction.clone().multiplyScalar(SKY_DISTANCE), [direction]);
+  useEffect(() => () => {
+    for (const material of [core, glow, streak]) {
+      material.map?.dispose();
+      material.dispose();
+    }
+  }, [core, glow, streak]);
 
   return (
     <group position={position}>

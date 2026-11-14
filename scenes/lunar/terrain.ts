@@ -118,9 +118,9 @@ export function createTerrainGeometry(detail: TerrainDetail = "high") {
 
   const positions = new Float32Array((cols + 1) * (rows + 1) * 3);
   const colors = new Float32Array((cols + 1) * (rows + 1) * 3);
-  const base = new THREE.Color("#9a978f");
-  const dark = new THREE.Color("#5f5d58");
-  const bright = new THREE.Color("#b9b5ab");
+  const base = new THREE.Color("#918ba8");
+  const dark = new THREE.Color("#514c68");
+  const bright = new THREE.Color("#c1badc");
   const tmp = new THREE.Color();
 
   let p = 0;
