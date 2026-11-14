@@ -149,7 +149,7 @@ export function ApproachPlanner() {
     <div className="mx-auto max-w-[1240px]">
       <header className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <Link href="/explore" className="type-data inline-flex items-center gap-1.5 text-[0.62rem] uppercase tracking-[0.14em] text-muted-foreground hover:text-bone"><ArrowLeft size={13} /> Freeplay</Link>
+          <Link href="/freeplay/drive" className="type-data inline-flex items-center gap-1.5 text-[0.62rem] uppercase tracking-[0.14em] text-muted-foreground hover:text-bone"><ArrowLeft size={13} /> Surface drive</Link>
           <h1 className="type-heading mt-2 text-2xl text-bone sm:text-4xl">Approach geometry</h1>
           <p className="mt-2 max-w-2xl text-xs leading-relaxed text-muted-foreground sm:text-sm">Pick a site, a landing date and a mission length. Sun and Earth positions come from the team&apos;s stored JPL Horizons ephemeris (2026–2030), hour by hour, and catalog sites use their LOLA terrain horizon. Play it back at any speed to see how much sunlight the site gets, and how strong it is.</p>
         </div>

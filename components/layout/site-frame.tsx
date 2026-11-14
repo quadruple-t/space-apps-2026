@@ -6,7 +6,7 @@ import { Navbar } from "@/components/layout/navbar";
 
 export function SiteFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const immersive = pathname === "/explore";
+  const immersive = pathname === "/freeplay/drive";
   const fullHeightApp = pathname === "/freeplay";
 
   return <>

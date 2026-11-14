@@ -1,8 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useEffect } from "react";
-import { Globe2, Orbit } from "lucide-react";
+import { Car, Globe2, Orbit } from "lucide-react";
 import { usePlaybackClock } from "@/components/freeplay/time-controls";
 import { useFreeplay, type FreeplayView } from "@/lib/freeplay-store";
 
@@ -35,6 +36,9 @@ export function FreeplayApp() {
             <Icon size={13} />{label}
           </button>)}
         </div>
+        <Link href="/freeplay/drive" className="type-data flex items-center gap-1.5 rounded border border-line px-3 py-1.5 text-[0.62rem] uppercase tracking-[0.1em] text-muted-foreground hover:border-retro-purple/50 hover:text-bone">
+          <Car size={13} />Surface drive
+        </Link>
       </div>
       <div className="type-data min-w-0 truncate text-[0.62rem] text-muted-foreground">
         {site
