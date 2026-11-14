@@ -66,6 +66,8 @@ Colour uses a retro lunar palette: **purple** marks navigation and interface acc
 in `app/globals.css` and exposed as Tailwind colours (`bg-void`, `text-bone`, `text-retro-red`, `text-retro-blue`,
 `border-line`, …). Typography helpers: `.type-display`, `.type-heading` and `.type-data`.
 
+For marketing and partner material, use [`docs/brand/BRAND_GUIDE.md`](docs/brand/BRAND_GUIDE.md) (rules and voice), the visual [`brand-guide.html`](docs/brand/brand-guide.html), and the drop-in [`shadowline-tokens.css`](docs/brand/shadowline-tokens.css).
+
 ## Simulation architecture
 
 The landing page and Freeplay share the code-driven Three.js scene. Freeplay provides region selection, coordinate sampling, camera and time controls. Terrain and science remain behind replaceable data boundaries:

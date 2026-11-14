@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Activity, ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Clock3, Crosshair, Globe2, Map, Pause, Play, RotateCcw, ZoomIn, ZoomOut, X } from "lucide-react";
 import type { CameraMode, MoveCommand } from "@/scenes/lunar/camera-rig";
-import { firestoreScienceProvider as scienceProvider } from "@/integrations/science/firestore-provider";
+import { apiScienceProvider as scienceProvider } from "@/integrations/science/api-provider";
 import type { CelestialState, LunarSite, MissionMetrics } from "@/integrations/science/types";
 import { interpolateTerrain, MOON_REGIONS, SCAFFOLD_MOON_GRID, type TerrainSample } from "@/integrations/terrain/moon-samples";
 import { MoonLocationPicker } from "./moon-location-picker";

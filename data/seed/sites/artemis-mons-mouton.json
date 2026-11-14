@@ -87,7 +87,13 @@
    "tier": "A"
   }
  ],
- "terrainSummary": null,
+ "terrainSummary": {
+  "hasMask": true,
+  "slope100mDeg": 7.82,
+  "nearestPsrKm": 0.545,
+  "nearestColdTrapKm": 6.48,
+  "insidePsr": false
+ },
  "notes": [
   "NASA has never published coordinates or boundaries for the candidate regions. Label every point 'approximate region reference'."
  ],

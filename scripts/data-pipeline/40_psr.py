@@ -18,6 +18,7 @@ taking the temp_max of the nearest Diviner triangle centre). Smaller PSRs use th
 representative point. Never call a PSR "ice-bearing".
 """
 import sys
+import csv
 
 import numpy as np
 import shapefile
@@ -61,6 +62,11 @@ def read_polys(rel_shp):
         g = geoms[0] if len(geoms) == 1 else MultiPolygon(geoms)
         if not g.is_valid:
             g = shapely.make_valid(g)
+        if g.geom_type == "GeometryCollection":
+            polygon_parts = [part for part in shapely.get_parts(g) if part.geom_type == "Polygon" and not part.is_empty]
+            if not polygon_parts:
+                continue
+            g = polygon_parts[0] if len(polygon_parts) == 1 else MultiPolygon(polygon_parts)
         polys.append(g)
         recs.append(dict(zip(fields, sr.record)))
     return polys, recs
@@ -73,14 +79,17 @@ def load_diviner():
         return z["x"], z["y"], z["tmax"]
     path = cached("diviner/dlre_prp_south.tab")
     lons, lats, tmax = [], [], []
-    with open(path) as f:
-        for line in f:
-            p = line.split()
+    with open(path, newline="") as f:
+        for p in csv.reader(f, skipinitialspace=True):
             if len(p) < 15:
                 continue
-            la = float(p[10])
+            try:
+                lo, la, maximum = float(p[9]), float(p[10]), float(p[13])
+            except ValueError:
+                # The PDS table begins with a comma-delimited column-name row.
+                continue
             if la < -80.0:
-                lons.append(float(p[9])); lats.append(la); tmax.append(float(p[13]))
+                lons.append(lo); lats.append(la); tmax.append(maximum)
     x, y = ll_to_xy(np.array(lats), np.array(lons))
     tmax = np.array(tmax, dtype=np.float32)
     np.savez_compressed(cp, x=x.astype(np.float32), y=y.astype(np.float32), tmax=tmax)

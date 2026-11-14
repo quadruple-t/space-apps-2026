@@ -197,6 +197,8 @@ def _multirange_get(url: str, ranges: list[tuple[int, int]]) -> list[bytes]:
     for attempt in range(6):
         try:
             r = requests.get(url, headers=hdr, timeout=300)
+            if r.status_code == 404:
+                raise FileNotFoundError(f"DEM range source not found: {url}")
             if r.status_code != 206:
                 raise RuntimeError(f"HTTP {r.status_code}")
             ctype = r.headers.get("Content-Type", "")
@@ -213,6 +215,8 @@ def _multirange_get(url: str, ranges: list[tuple[int, int]]) -> list[bytes]:
                 a, b = int(mm.group(1)), int(mm.group(2))
                 parts[a] = body[: b - a + 1]
             return [parts[a] for a, _ in ranges]
+        except FileNotFoundError:
+            raise
         except Exception as e:
             if attempt == 5:
                 raise

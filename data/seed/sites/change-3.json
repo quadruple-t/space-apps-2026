@@ -43,7 +43,13 @@
    "tier": "A"
   }
  ],
- "terrainSummary": null,
+ "terrainSummary": {
+  "hasMask": true,
+  "slope100mDeg": 4.39,
+  "nearestPsrKm": null,
+  "nearestColdTrapKm": null,
+  "insidePsr": null
+ },
  "notes": [
   "Elevation = shapefile RADIUS (NAC DTM) minus 1,737,400 m.",
   "Xinhua: powered descent began 'about 21:00' Beijing time and touchdown came 'about 12 minutes later' (about 13:11-13:12 UTC)."

@@ -58,7 +58,13 @@
    "tier": "A"
   }
  ],
- "terrainSummary": null,
+ "terrainSummary": {
+  "hasMask": true,
+  "slope100mDeg": 0.83,
+  "nearestPsrKm": null,
+  "nearestColdTrapKm": null,
+  "insidePsr": null
+ },
  "notes": [
   "Elevation = shapefile RADIUS (NAC DTM + Laser Ranging) minus 1,737,400 m.",
   "Contact Light 20:17:40 UTC (GET 102:45:40); Mission Report touchdown GET 102:45:39.9, given by SP-4029 as 20:17:39 GMT."

@@ -97,11 +97,18 @@ def build_bands(lat, lon, g):
         products = ["PGDA-90 LDEM_60S_60MPP_ADJ (60 m, COG window)", "PGDA-90 LDEM_60S_240MPP_ADJ (240 m)", "LOLA LDEM_64 (fallback beyond the 240 m map)"]
         regime = "60-80S"
     elif abs(lat) <= 59.8:
-        sw = sldem_window(lat, lon, 21.0)
-        bands = [Band(0, 20, 0.06, [sw] + ld, [3.5, 20.0], "SLDEM2015"),
-                 Band(20, RAY_KM, 0.24, ld, [20.0], "LDEM_64")]
-        products = ["SLDEM2015 512 ppd (59 m, range-read window)", "LOLA LDEM_64 (64 ppd, ~474 m, range-read window)"]
-        notes.append("Far field (20-310 km) uses LOLA LDEM_64 (~474 m pixels), which smooths distant peaks; its height error is an assumed 20 m (far-field error barely affects the mask).")
+        try:
+            sw = sldem_window(lat, lon, 21.0)
+            bands = [Band(0, 20, 0.06, [sw] + ld, [3.5, 20.0], "SLDEM2015"),
+                     Band(20, RAY_KM, 0.24, ld, [20.0], "LDEM_64")]
+            products = ["SLDEM2015 512 ppd (59 m, range-read window)", "LOLA LDEM_64 (64 ppd, ~474 m, range-read window)"]
+            notes.append("Far field (20-310 km) uses LOLA LDEM_64 (~474 m pixels), which smooths distant peaks; its height error is an assumed 20 m (far-field error barely affects the mask).")
+        except Exception as e:
+            if not ld:
+                raise
+            bands = [Band(0, RAY_KM, 0.24, ld, [20.0], "LDEM_64 fallback")]
+            products = ["LOLA LDEM_64 (64 ppd, ~474 m; SLDEM2015 range read unavailable)"]
+            notes.append(f"SLDEM2015 near-field tiles were unavailable ({type(e).__name__}); the horizon uses LOLA LDEM_64 (~474 m pixels) for the full 0-310 km ray. Distant peaks and near-field terrain are smoothed at this resolution; 20 m height error is assumed.")
         regime = "equatorial"
     else:
         nw = ldem512_north_window(lat, lon, 21.0)
@@ -143,8 +150,9 @@ def slope_and_roughness(lat, lon, regime, bands):
             A = np.column_stack([xx.ravel() * dx * np.cos(np.radians(lat)), -yy.ravel() * dx, np.ones(9)])
             (a, b, _), *_ = np.linalg.lstsq(A, win.ravel().astype(float), rcond=None)
             s = float(np.degrees(np.arctan(np.hypot(a, b))))
-            return round(s, 2), None, None, "Slope: least-squares plane over 3x3 SLDEM2015 pixels (~178 m baseline, not 100 m)."
-        return None, None, None, "Slope unavailable (SLDEM2015 window incomplete)."
+            source_name = "SLDEM2015" if "SLDEM2015" in src.name else "LOLA LDEM_64"
+            return round(s, 2), None, None, f"Slope: least-squares plane over 3x3 {source_name} pixels (~{2 * dx:.0f} m baseline, not 100 m)."
+        return None, None, None, "Slope unavailable (cylindrical DEM window incomplete)."
     return None, None, None, "Slope not computed north of 60°N (no fine DEM)."
 
 

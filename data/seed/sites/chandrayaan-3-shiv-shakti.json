@@ -82,7 +82,13 @@
    "tier": "A"
   }
  ],
- "terrainSummary": null,
+ "terrainSummary": {
+  "hasMask": true,
+  "slope100mDeg": 1.4,
+  "nearestPsrKm": null,
+  "nearestColdTrapKm": null,
+  "insidePsr": null
+ },
  "notes": [
   "Coordinates taken from the LROC anthropogenic shapefile (2026-08-14), which gives more decimals; previous value -69.3741, 32.32 moved 14 m.",
   "Elevation = shapefile RADIUS (NAC DTM) minus 1,737,400 m.",

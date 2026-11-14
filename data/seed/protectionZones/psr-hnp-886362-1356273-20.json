@@ -1,0 +1,487 @@
+{
+ "kind": "psr-ice",
+ "ruleId": "psr-buffer-by-analogy",
+ "name": "\"HNP_886362_1356273\" PSR",
+ "siteId": null,
+ "geometry": {
+  "type": "Polygon",
+  "rings": [
+   {
+    "points": [
+     {
+      "latDeg": -80.562685,
+      "lonDeg": 137.590055
+     },
+     {
+      "latDeg": -80.564609,
+      "lonDeg": 137.316246
+     },
+     {
+      "latDeg": -80.521792,
+      "lonDeg": 136.703415
+     },
+     {
+      "latDeg": -80.524939,
+      "lonDeg": 136.295847
+     },
+     {
+      "latDeg": -80.50898,
+      "lonDeg": 136.085746
+     },
+     {
+      "latDeg": -80.507708,
+      "lonDeg": 135.88054
+     },
+     {
+      "latDeg": -80.517643,
+      "lonDeg": 135.794298
+     },
+     {
+      "latDeg": -80.517435,
+      "lonDeg": 135.673375
+     },
+     {
+      "latDeg": -80.543457,
+      "lonDeg": 135.630125
+     },
+     {
+      "latDeg": -80.558448,
+      "lonDeg": 135.529469
+     },
+     {
+      "latDeg": -80.541166,
+      "lonDeg": 135.238173
+     },
+     {
+      "latDeg": -80.546778,
+      "lonDeg": 135.139605
+     },
+     {
+      "latDeg": -80.56484,
+      "lonDeg": 135.14835
+     },
+     {
+      "latDeg": -80.573657,
+      "lonDeg": 135.103236
+     },
+     {
+      "latDeg": -80.575948,
+      "lonDeg": 135.168329
+     },
+     {
+      "latDeg": -80.587991,
+      "lonDeg": 135.171378
+     },
+     {
+      "latDeg": -80.593107,
+      "lonDeg": 135.12329
+     },
+     {
+      "latDeg": -80.613033,
+      "lonDeg": 135.103671
+     },
+     {
+      "latDeg": -80.617679,
+      "lonDeg": 135.03268
+     },
+     {
+      "latDeg": -80.604235,
+      "lonDeg": 134.910615
+     },
+     {
+      "latDeg": -80.593283,
+      "lonDeg": 134.26448
+     },
+     {
+      "latDeg": -80.564849,
+      "lonDeg": 134.006711
+     },
+     {
+      "latDeg": -80.531547,
+      "lonDeg": 133.503268
+     },
+     {
+      "latDeg": -80.502892,
+      "lonDeg": 133.316842
+     },
+     {
+      "latDeg": -80.461715,
+      "lonDeg": 133.329737
+     },
+     {
+      "latDeg": -80.419967,
+      "lonDeg": 133.417784
+     },
+     {
+      "latDeg": -80.378086,
+      "lonDeg": 133.704626
+     },
+     {
+      "latDeg": -80.347321,
+      "lonDeg": 133.777835
+     },
+     {
+      "latDeg": -80.314336,
+      "lonDeg": 134.035275
+     },
+     {
+      "latDeg": -80.322344,
+      "lonDeg": 134.084062
+     },
+     {
+      "latDeg": -80.328154,
+      "lonDeg": 134.00908
+     },
+     {
+      "latDeg": -80.331065,
+      "lonDeg": 134.055657
+     },
+     {
+      "latDeg": -80.346658,
+      "lonDeg": 134.001647
+     },
+     {
+      "latDeg": -80.341661,
+      "lonDeg": 134.035293
+     },
+     {
+      "latDeg": -80.376818,
+      "lonDeg": 134.020669
+     },
+     {
+      "latDeg": -80.374304,
+      "lonDeg": 134.117872
+     },
+     {
+      "latDeg": -80.356518,
+      "lonDeg": 134.232858
+     },
+     {
+      "latDeg": -80.35945,
+      "lonDeg": 134.304526
+     },
+     {
+      "latDeg": -80.354276,
+      "lonDeg": 134.266205
+     },
+     {
+      "latDeg": -80.352493,
+      "lonDeg": 134.299503
+     },
+     {
+      "latDeg": -80.360978,
+      "lonDeg": 134.376327
+     },
+     {
+      "latDeg": -80.369665,
+      "lonDeg": 134.317627
+     },
+     {
+      "latDeg": -80.375888,
+      "lonDeg": 134.427989
+     },
+     {
+      "latDeg": -80.367716,
+      "lonDeg": 134.536418
+     },
+     {
+      "latDeg": -80.384477,
+      "lonDeg": 134.607693
+     },
+     {
+      "latDeg": -80.381355,
+      "lonDeg": 134.732543
+     },
+     {
+      "latDeg": -80.39156,
+      "lonDeg": 134.754454
+     },
+     {
+      "latDeg": -80.388389,
+      "lonDeg": 134.893216
+     },
+     {
+      "latDeg": -80.378674,
+      "lonDeg": 134.934886
+     },
+     {
+      "latDeg": -80.387477,
+      "lonDeg": 134.957013
+     },
+     {
+      "latDeg": -80.383311,
+      "lonDeg": 134.987525
+     },
+     {
+      "latDeg": -80.414802,
+      "lonDeg": 134.970797
+     },
+     {
+      "latDeg": -80.418508,
+      "lonDeg": 135.006956
+     },
+     {
+      "latDeg": -80.405072,
+      "lonDeg": 135.062515
+     },
+     {
+      "latDeg": -80.427301,
+      "lonDeg": 135.065446
+     },
+     {
+      "latDeg": -80.426381,
+      "lonDeg": 135.009746
+     },
+     {
+      "latDeg": -80.43518,
+      "lonDeg": 135.018117
+     },
+     {
+      "latDeg": -80.428219,
+      "lonDeg": 134.89834
+     },
+     {
+      "latDeg": -80.461056,
+      "lonDeg": 134.79458
+     },
+     {
+      "latDeg": -80.467551,
+      "lonDeg": 134.814016
+     },
+     {
+      "latDeg": -80.465264,
+      "lonDeg": 134.878371
+     },
+     {
+      "latDeg": -80.469853,
+      "lonDeg": 134.788794
+     },
+     {
+      "latDeg": -80.489815,
+      "lonDeg": 134.889269
+     },
+     {
+      "latDeg": -80.436063,
+      "lonDeg": 135.174219
+     },
+     {
+      "latDeg": -80.3994,
+      "lonDeg": 135.2874
+     },
+     {
+      "latDeg": -80.371868,
+      "lonDeg": 135.474858
+     },
+     {
+      "latDeg": -80.364051,
+      "lonDeg": 135.432971
+     },
+     {
+      "latDeg": -80.3546,
+      "lonDeg": 134.99309
+     },
+     {
+      "latDeg": -80.343466,
+      "lonDeg": 134.882673
+     },
+     {
+      "latDeg": -80.331883,
+      "lonDeg": 134.86627
+     },
+     {
+      "latDeg": -80.278195,
+      "lonDeg": 135.017823
+     },
+     {
+      "latDeg": -80.240159,
+      "lonDeg": 134.782863
+     },
+     {
+      "latDeg": -80.207786,
+      "lonDeg": 134.85164
+     },
+     {
+      "latDeg": -80.194392,
+      "lonDeg": 134.979611
+     },
+     {
+      "latDeg": -80.182817,
+      "lonDeg": 134.97149
+     },
+     {
+      "latDeg": -80.203641,
+      "lonDeg": 135.085713
+     },
+     {
+      "latDeg": -80.189259,
+      "lonDeg": 135.167098
+     },
+     {
+      "latDeg": -80.185937,
+      "lonDeg": 135.286551
+     },
+     {
+      "latDeg": -80.233195,
+      "lonDeg": 135.244275
+     },
+     {
+      "latDeg": -80.262235,
+      "lonDeg": 135.384622
+     },
+     {
+      "latDeg": -80.288611,
+      "lonDeg": 135.399396
+     },
+     {
+      "latDeg": -80.288553,
+      "lonDeg": 135.446059
+     },
+     {
+      "latDeg": -80.279691,
+      "lonDeg": 135.492274
+     },
+     {
+      "latDeg": -80.274166,
+      "lonDeg": 135.470065
+     },
+     {
+      "latDeg": -80.270377,
+      "lonDeg": 135.527419
+     },
+     {
+      "latDeg": -80.312836,
+      "lonDeg": 135.612302
+     },
+     {
+      "latDeg": -80.32147,
+      "lonDeg": 135.698241
+     },
+     {
+      "latDeg": -80.31582,
+      "lonDeg": 135.741879
+     },
+     {
+      "latDeg": -80.32654,
+      "lonDeg": 135.709633
+     },
+     {
+      "latDeg": -80.304844,
+      "lonDeg": 135.878528
+     },
+     {
+      "latDeg": -80.277756,
+      "lonDeg": 135.782834
+     },
+     {
+      "latDeg": -80.230313,
+      "lonDeg": 135.869064
+     },
+     {
+      "latDeg": -80.208137,
+      "lonDeg": 136.016833
+     },
+     {
+      "latDeg": -80.200236,
+      "lonDeg": 136.168362
+     },
+     {
+      "latDeg": -80.1877,
+      "lonDeg": 136.177731
+     },
+     {
+      "latDeg": -80.200072,
+      "lonDeg": 136.214594
+     },
+     {
+      "latDeg": -80.200735,
+      "lonDeg": 136.285419
+     },
+     {
+      "latDeg": -80.221999,
+      "lonDeg": 136.410941
+     },
+     {
+      "latDeg": -80.25286,
+      "lonDeg": 136.450995
+     },
+     {
+      "latDeg": -80.259792,
+      "lonDeg": 136.558805
+     },
+     {
+      "latDeg": -80.250585,
+      "lonDeg": 136.546385
+     },
+     {
+      "latDeg": -80.248094,
+      "lonDeg": 136.584271
+     },
+     {
+      "latDeg": -80.259998,
+      "lonDeg": 136.613597
+     },
+     {
+      "latDeg": -80.279365,
+      "lonDeg": 136.814366
+     },
+     {
+      "latDeg": -80.311956,
+      "lonDeg": 136.95265
+     },
+     {
+      "latDeg": -80.393167,
+      "lonDeg": 137.163617
+     },
+     {
+      "latDeg": -80.470973,
+      "lonDeg": 137.514587
+     },
+     {
+      "latDeg": -80.544828,
+      "lonDeg": 137.621832
+     },
+     {
+      "latDeg": -80.562685,
+      "lonDeg": 137.590055
+     }
+    ]
+   }
+  ]
+ },
+ "rationale": "Permanently shadowed region (PGDA product 90). No published distance supports a PSR buffer; NASA OTPS (2022) says no distance can eliminate ejecta impacts entirely. The stand-off is a user parameter defaulting to 2.0 km, the NASA 2011 heritage landing stand-off applied by analogy, with the 1.5 km Apollo rock-ejecta range as a secondary ring. Neither is a PSR-protection standard. Cold-trap fraction: Diviner annual maximum below 110 K; a cold trap is not detected ice.",
+ "sources": [
+  {
+   "label": "PGDA product 90, A New View of the Lunar South Pole from LOLA (Barker et al. 2023, PSJ 4:183, doi:10.3847/PSJ/acf3e1; data doi:10.60903/gsfcpgda-lola-spole)",
+   "url": "https://pgda.gsfc.nasa.gov/products/90",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "Diviner Polar Resource Product, south (Paige et al. 2010, Science, doi:10.1126/science.1187726; LRO-L-DLRE-5-PRP-V2.0)",
+   "url": "https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_prp/dlre_prp_south.tab",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "NASA (2011, Rev A 28 Oct 2011), Recommendations to Space-Faring Entities: How to Protect and Preserve the Historic and Scientific Value of U.S. Government Lunar Artifacts",
+   "url": "https://www.nasa.gov/pdf/617743main_NASA-USG_LUNAR_HISTORIC_SITES_RevA-508.pdf",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  },
+  {
+   "label": "NASA OTPS, Lunar Landing and Operations Policy Analysis (30 Sep 2022)",
+   "url": "https://www.nasa.gov/wp-content/uploads/2022/10/lunar_landing_and_operations_policy_analysis_final_report_24oct2022_tagged_0.pdf",
+   "retrievedAt": "2026-11-14",
+   "tier": "A"
+  }
+ ],
+ "needsData": false,
+ "buffer": {
+  "defaultKm": 2.0,
+  "secondaryRingKm": 1.5,
+  "label": "NASA 2011 heritage landing stand-off, applied by analogy (not a PSR-protection standard)"
+ },
+ "areaKm2": 150.122,
+ "coldTrapFraction": 0.719,
+ "geometryNote": "Largest part of the PSR outline, simplified to 150 m. Full outlines are in psrLayer."
+}
