@@ -21,6 +21,9 @@
 # production
 /build
 
+# Cesium runtime bundle, copied from node_modules by scripts/copy-cesium.mjs
+/public/cesium/
+
 # misc
 .DS_Store
 *.pem
