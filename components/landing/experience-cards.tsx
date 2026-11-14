@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { ChapterTrail } from "./chapter-trail";
 import { EXPERIENCES } from "@/data/site";
 
 export function ExperienceCards() {
   return (
     <section id="explore" aria-labelledby="explore-title" className="relative border-t border-line py-24 sm:py-32">
       <PageContainer>
+        <ChapterTrail active="explore" />
         <Reveal>
           <SectionHeading id="explore-title" title="Three ways to explore.">
             <p>
@@ -25,7 +27,7 @@ export function ExperienceCards() {
               as="li"
               key={exp.id}
               delay={i * 90}
-              className="group relative flex flex-col rounded-lg border border-line bg-charcoal/40 transition-[border-color,background-color] duration-300 hover:border-bone/30 hover:bg-charcoal/70"
+              className="mission-panel group relative flex flex-col border border-line bg-charcoal/40 transition-[border-color,background-color] duration-300 hover:border-bone/30 hover:bg-charcoal/70"
             >
               <div className="flex items-center justify-between px-6 pt-6">
                 <span className="type-data text-xs text-bone/55">{exp.index}</span>

@@ -1,9 +1,4 @@
-import type { Metadata } from "next";
-import { DevelopmentNotice, PageIntro } from "@/components/experience/page-intro";
-import { HorizonProfile } from "@/components/graphics/horizon-profile";
-import { PageContainer } from "@/components/layout/page-container";
-import { DATA_SOURCES } from "@/data/site";
-import { METHOD_STEPS } from "@/data/science";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "The science",

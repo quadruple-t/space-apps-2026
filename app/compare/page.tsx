@@ -38,7 +38,7 @@ export default function ComparePage() {
               Comparison metrics use cached JPL Horizons ephemerides and available LOLA horizon masks. Any smooth-horizon fallback is labelled in the result provenance.
             </DevelopmentNotice>
             <Button asChild size="lg" variant="outline">
-              <Link href="/science">How the metrics will be computed</Link>
+              <Link href="/mission-control">How the metrics will be computed</Link>
             </Button>
           </div>
         </PageContainer>
