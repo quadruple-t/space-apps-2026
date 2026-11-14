@@ -36,13 +36,13 @@ npm run lint       # ESLint (Next.js + React Compiler rules)
 
 | Route      | Purpose                                                   |
 | ---------- | --------------------------------------------------------- |
-| `/`        | Landing page                                              |
-| `/mission` | Guided Mission overview; interactive chapters are not implemented yet |
+| `/`        | Overview and how to use Shadowline                         |
+| `/mission` | Guided Mission: tutorial and simulation experience        |
+| `/mission-control` | Mission Control: learning topics, method and data    |
 | `/freeplay` | Freeplay mission planner: Cesium Moon globe (Moon Trek imagery, LROC overlays, catalog sites, user-named presets) and an orbit + graphs view driven by the stored ephemeris and LOLA horizon masks |
-| `/explore` | 3D surface explorer: site and coordinate selection, time controls, first-person/orbit navigation, JPL Horizons Sun/Earth positions, horizon-aware 24-hour metrics where data is available |
+| `/freeplay/drive` | Freeplay surface drive: site and coordinate selection, time controls, first-person/orbit navigation, JPL Horizons Sun/Earth positions, horizon-aware 24-hour metrics where data is available (`/explore` redirects here) |
 | `/explore/approach` | Sunlight hours, intensity and Earth contact over a mission of up to a year at one site |
 | `/compare` | Mission Comparison shell with an empty state; multi-site comparison is not implemented yet |
-| `/science` | Methodology, data sources and glossary                    |
 
 ## Project structure
 
@@ -83,7 +83,7 @@ The landing page preview and Freeplay share the code-driven Three.js scene. Free
 - **Scene configuration:** `data/hero-scene.ts` holds the Sun and Earth angles shared by the 3D scene and
   the conceptual hero HUD.
 - **Freeplay (`/freeplay`, `/explore/approach`):** loads the monthly `ephemeris` chunks and `science/horizon` masks from `/api/v1` and evaluates hourly Sun/Earth positions in the browser with `lib/ephemeris` (`lib/lunar-data.ts`). Globe imagery and overlays come from NASA Moon Trek and LROC Lunaserv (see `docs/SOURCES.md` §7).
-- **3D explorer:** `/explore` calls the versioned science API. The API uses public Firestore reads for catalog and science data; user-owned endpoints use authenticated Firebase tokens and Admin SDK access.
+- **Surface drive:** `/freeplay/drive` calls the versioned science API. The API uses public Firestore reads for catalog and science data; user-owned endpoints use authenticated Firebase tokens and Admin SDK access.
 
 ## Performance and accessibility
 
