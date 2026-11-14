@@ -2,6 +2,7 @@
 
 import { create } from "zustand"
 import { DEFAULT_SITE_ID, PRESET_SITES, type FreeplaySite } from "@/data/sites"
+import { DEMO_START_ISO } from "@/lib/prefetch"
 
 export type FreeplayView = "globe" | "orbit"
 export type LayerId = "slope" | "illumination" | "psr" | "elevation"
@@ -19,8 +20,6 @@ export const DURATION_PRESETS = [
   { label: "1 year", hours: 365 * 24 },
 ] as const
 
-/** Prefetched demo window (scripts/prefetch-horizons.mjs) starts here. */
-export const DEMO_START_ISO = "2026-12-01T00:00:00.000Z"
 
 const STORAGE_KEY = "shadowline-freeplay-v1"
 

@@ -16,7 +16,7 @@ export interface ObserverEntry {
 
 export interface VectorEntry {
   time: string
-  /** X, Y, Z position in AU, ecliptic frame */
+  /** Geocentric position in km, ecliptic J2000 frame */
   x: number; y: number; z: number
 }
 
@@ -44,22 +44,20 @@ export function parseHorizonsObserver(raw: string): ObserverEntry[] {
   return entries
 }
 
-// ─── VECTORS parser (VEC_TABLE=1) ─────────────────────────────────────────────
+// ─── VECTORS parser (VEC_TABLE=1, CSV_FORMAT=YES) ────────────────────────────
+// 2461375.500000000, A.D. 2026-Dec-01 00:00:00.0000, -3.4167E+05,  1.5794E+05, -6.7622E+03,
 export function parseHorizonsVectors(raw: string): VectorEntry[] {
   const soe = raw.indexOf("$$SOE")
   const eoe = raw.indexOf("$$EOE")
   if (soe === -1 || eoe === -1) return []
 
   const entries: VectorEntry[] = []
-  const lines = raw.slice(soe + 5, eoe).trim().split("\n").map(l => l.trim()).filter(Boolean)
-  for (let i = 0; i < lines.length; i++) {
-    const dm = lines[i].match(/^(\d{4}-\w{3}-\d{2}\s+\d{2}:\d{2})/)
-    if (!dm) continue
-    const block = [lines[i], lines[i + 1] ?? ""].join(" ")
-    const xm = block.match(/X\s*=\s*([\d.E+\-]+)/)
-    const ym = block.match(/Y\s*=\s*([\d.E+\-]+)/)
-    const zm = block.match(/Z\s*=\s*([\d.E+\-]+)/)
-    if (xm && ym && zm) { entries.push({ time: horizonsDateToISO(dm[1]), x: +xm[1], y: +ym[1], z: +zm[1] }); i++ }
+  for (const line of raw.slice(soe + 5, eoe).trim().split("\n")) {
+    const cols = line.split(",").map((c) => c.trim())
+    const date = cols[1]?.match(/(\d{4}-\w{3}-\d{2}\s+\d{2}:\d{2}(?::\d{2})?)/)
+    if (!date || cols.length < 5) continue
+    const [x, y, z] = cols.slice(2, 5).map(Number)
+    if ([x, y, z].every(Number.isFinite)) entries.push({ time: horizonsDateToISO(date[1]), x, y, z })
   }
   return entries
 }
@@ -115,5 +113,23 @@ export function buildObserverUrl(opts: {
     QUANTITIES: `'${opts.quantities ?? "4"}'`,
     ANG_FORMAT: "DEG",
     SKIP_DAYLT: "NO",
+  })}`
+}
+
+/** Geocentric ecliptic position of a body (km). "301" Moon, "10" Sun. */
+export function buildVectorsUrl(opts: { command: string; start: string; stop: string; step?: string }): string {
+  return `${BASE}?${new URLSearchParams({
+    format: "text", MAKE_EPHEM: "YES",
+    COMMAND:    `'${opts.command}'`,
+    EPHEM_TYPE: "VECTORS",
+    CENTER:     "'500@399'",
+    START_TIME: `'${opts.start}'`,
+    STOP_TIME:  `'${opts.stop}'`,
+    STEP_SIZE:  `'${opts.step ?? "1h"}'`,
+    VEC_TABLE:  "1",
+    REF_PLANE:  "ECLIPTIC",
+    OUT_UNITS:  "KM-S",
+    CSV_FORMAT: "YES",
+    VEC_LABELS: "NO",
   })}`
 }
