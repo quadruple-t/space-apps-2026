@@ -41,6 +41,22 @@
    "etag": "\"a67a32ab0c4c505f2b4919300a93627e\"",
    "retrievedAt": "2026-11-14T17:25:05Z"
   },
+  "pgda78/Haworth_final_adj_5mpp_surf.tif": {
+   "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Haworth/Haworth_final_adj_5mpp_surf.tif",
+   "bytes": 142123767,
+   "sha256": "387fd6e99bca266f4982f7256c4c185921105313882b4c2eee5b5ff1ef75016b",
+   "lastModified": "Wed, 25 Nov 2020 00:39:20 GMT",
+   "etag": "W/\"878a2f7-175fcd726c0\"",
+   "retrievedAt": "2026-11-14T18:14:15Z"
+  },
+  "pgda78/Haworth_final_adj_5mpp_toterr.tif": {
+   "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Haworth/Haworth_final_adj_5mpp_toterr.tif",
+   "bytes": 142123773,
+   "sha256": "f4231e1605d27b90c21fe5183db4e37de7532fed6b8fcfda860ec2eca8c61963",
+   "lastModified": "Wed, 25 Nov 2020 00:40:04 GMT",
+   "etag": "W/\"878a2fd-175fcd7d2a0\"",
+   "retrievedAt": "2026-11-14T18:17:14Z"
+  },
   "pgda90/LDEM_60S_240MPP_ADJ.TIF": {
    "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_60S_240MPP_ADJ.TIF",
    "bytes": 218961039,
@@ -56,6 +72,14 @@
    "lastModified": "Thu, 08 Jun 2023 16:35:09 GMT",
    "etag": "W/\"fea2cf7-1889bdca648\"",
    "retrievedAt": "2026-11-14T17:33:12Z"
+  },
+  "pgda90/LDEM_80S_40MPP_ADJ.TIF": {
+   "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_40MPP_ADJ.TIF",
+   "bytes": 716299920,
+   "sha256": "b7f3567bfa405dbcb42f867f6cd3c9932ca9752b4363ce1eef835f9115c1dd76",
+   "lastModified": "Fri, 07 Jul 2023 21:43:26 GMT",
+   "etag": "W/\"2ab1de90-189324f5030\"",
+   "retrievedAt": "2026-11-14T18:03:33Z"
   },
   "pgda90/LDEM_80S_80MPP_ADJ.TIF": {
    "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_80MPP_ADJ.TIF",
@@ -88,6 +112,38 @@
    "lastModified": "Wed, 07 Jun 2023 20:48:23 GMT",
    "etag": "W/\"176761-188979e21d8\"",
    "retrievedAt": "2026-11-14T17:23:56Z"
+  },
+  "pgda90/LPSR_80S_20MPP_ADJ.DBF": {
+   "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LPSR_80S_20MPP_ADJ.DBF",
+   "bytes": 122030239,
+   "sha256": "e0a2304ab2f02b63fbd9c6019643b93ddc9c2826619d1518521a104d47a7aa00",
+   "lastModified": "Mon, 21 Nov 2022 21:43:19 GMT",
+   "etag": "W/\"746089f-1849c2544d8\"",
+   "retrievedAt": "2026-11-14T18:11:18Z"
+  },
+  "pgda90/LPSR_80S_20MPP_ADJ.PRJ": {
+   "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LPSR_80S_20MPP_ADJ.PRJ",
+   "bytes": 368,
+   "sha256": "793b80952f23fbff90f48f9e13868b6b7fc5dc07ba0b1633b124c3db52462854",
+   "lastModified": "Mon, 21 Nov 2022 21:42:54 GMT",
+   "etag": "W/\"170-1849c24e330\"",
+   "retrievedAt": "2026-11-14T18:11:20Z"
+  },
+  "pgda90/LPSR_80S_20MPP_ADJ.SHP": {
+   "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LPSR_80S_20MPP_ADJ.SHP",
+   "bytes": 161396036,
+   "sha256": "fe11dbc98b4054ff2f72510955b33f775f6f5b8e0a6f5ac4a03dfd8de5625606",
+   "lastModified": "Mon, 21 Nov 2022 21:43:19 GMT",
+   "etag": "W/\"99eb544-1849c2544d8\"",
+   "retrievedAt": "2026-11-14T18:08:20Z"
+  },
+  "pgda90/LPSR_80S_20MPP_ADJ.SHX": {
+   "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LPSR_80S_20MPP_ADJ.SHX",
+   "bytes": 4050892,
+   "sha256": "dc9e84bb280793c69ed5e4fca7422f798111efb3d629a2430804e2559aba73af",
+   "lastModified": "Mon, 21 Nov 2022 21:43:19 GMT",
+   "etag": "W/\"3dcfcc-1849c2544d8\"",
+   "retrievedAt": "2026-11-14T18:08:32Z"
   },
   "pgda90/LPSR_80S_20MPP_ADJ_1km2.DBF": {
    "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LPSR_80S_20MPP_ADJ_1km2.DBF",
@@ -128,6 +184,11 @@
    "note": "JPL Horizons API; sequential, disk-cached queries",
    "firstReadAt": "2026-11-14T17:23:53Z"
   },
+  "LDEM_512_45N_90N": {
+   "url": "https://imbrium.mit.edu/DATA/LOLA_GDR/CYLINDRICAL/IMG/",
+   "note": "LDEM_512: row-wise HTTP multi-range reads",
+   "firstReadAt": "2026-11-14T18:08:21Z"
+  },
   "LDEM_60S_60MPP_ADJ": {
    "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_60S_60MPP_ADJ.TIF",
    "note": "COG; near/mid-field windows for 60-80\u00b0S sites",
@@ -137,6 +198,11 @@
    "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_60S_60MPP_ADJ_ERR.TIF",
    "note": "COG; height error for 60-80\u00b0S sites",
    "firstReadAt": "2026-11-14T17:23:53Z"
+  },
+  "LDEM_64": {
+   "url": "https://imbrium.mit.edu/DATA/LOLA_GDR/CYLINDRICAL/IMG/",
+   "note": "LDEM_64: row-wise HTTP multi-range reads",
+   "firstReadAt": "2026-11-14T18:04:29Z"
   },
   "LDEM_80S_20MPP_ADJ": {
    "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_20MPP_ADJ.TIF",
@@ -165,7 +231,7 @@
   },
   "SLDEM2015_512_TILES": {
    "url": "https://imbrium.mit.edu/DATA/SLDEM2015/TILES/FLOAT_IMG/",
-   "note": "raw float32 tiles (km, offset 1737.4); row-block range reads for \u00b160\u00b0 sites",
+   "note": "SLDEM2015_512: row-wise HTTP multi-range reads",
    "firstReadAt": "2026-11-14T17:23:53Z"
   }
  }

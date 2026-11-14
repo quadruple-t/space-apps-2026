@@ -37,8 +37,6 @@ WHOLE_FILES += [
     (f"{LROC_PDS}/DATA/BDR/WAC_POLE/WAC_POLE_ILL_PCT_SOUTH/WAC_POLE_ILL_PCT_SOUTH_README.TXT", "lroc/WAC_POLE_ILL_PCT_SOUTH_README.TXT"),
     (f"{DIVINER_PRP}/dlre_prp_south.xml", "diviner/dlre_prp_south.xml"),
     (f"{DIVINER_PRP}/dlre_prp_south.tab", "diviner/dlre_prp_south.tab"),
-    (f"{LOLA_CYL}/LDEM_32.LBL", "lola/LDEM_32.LBL"),
-    (f"{LOLA_CYL}/LDEM_32.IMG", "lola/LDEM_32.IMG"),
 ]
 
 # Read by HTTP range (COG windows via GDAL /vsicurl/, or raw-tile byte ranges). Not downloaded whole.
@@ -51,6 +49,8 @@ RANGE_READ = {
     "LDEM_60S_60MPP_ADJ": (f"{PGDA90}/LDEM_60S_60MPP_ADJ.TIF", "COG; near/mid-field windows for 60-80°S sites"),
     "LDEM_60S_60MPP_ADJ_ERR": (f"{PGDA90}/LDEM_60S_60MPP_ADJ_ERR.TIF", "COG; height error for 60-80°S sites"),
     "SLDEM2015_512_TILES": (f"{SLDEM_TILES}/", "raw float32 tiles (km, offset 1737.4); row-block range reads for ±60° sites"),
+    "LDEM_64": (f"{LOLA_CYL}/LDEM_64.IMG", "LOLA GDR 64 ppd int16 global image; row-wise multi-range reads for the non-polar far field"),
+    "LDEM_512_45N_90N": (f"{LOLA_CYL}/", "LOLA GDR 512 ppd 45-90N tiles; near field north of 60N"),
     "HORIZONS": (HORIZONS_API, "JPL Horizons API; sequential, disk-cached queries"),
 }
 

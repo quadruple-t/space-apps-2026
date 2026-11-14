@@ -2,7 +2,7 @@
 
 Two raster kinds, both sampled bilinearly with NaN outside coverage / at nodata:
   StereoRaster - south polar stereographic GeoTIFFs (PGDA products 78 and 90), sampled at x, y (m)
-  CylRaster    - simple-cylindrical PDS images (SLDEM2015 tiles, LOLA LDEM_32), sampled at lat, lon
+  CylRaster    - simple-cylindrical PDS images (SLDEM2015 tiles, LOLA LDEM_64 / LDEM_512), sampled at lat, lon
 
 Heights are metres above the 1737.4 km sphere. Remote windows (COG via GDAL /vsicurl/, SLDEM2015
 via HTTP multi-range requests computed from the PDS label) are cached under .cache/windows/ so
@@ -176,21 +176,6 @@ def parse_label(text: str) -> dict:
     return out
 
 
-def load_ldem32() -> CylRaster:
-    """LOLA LDEM_32 (global, 32 ppd, int16 x 0.5 m above 1737.4 km)."""
-    lbl = parse_label(cached("lola/LDEM_32.LBL").read_text(errors="ignore"))
-    lines, samples = int(lbl["LINES"]), int(lbl["LINE_SAMPLES"])
-    raw = np.fromfile(cached("lola/LDEM_32.IMG"), dtype="<i2", count=lines * samples).reshape(lines, samples)
-    arr = raw.astype(np.float32) * float(lbl.get("SCALING_FACTOR", 0.5))
-    ppd = float(lbl["MAP_RESOLUTION"])
-    lat_top = float(lbl.get("MAXIMUM_LATITUDE", 90.0))
-    lon_left = float(lbl.get("WESTERNMOST_LONGITUDE", 0.0))
-    # Sanity-check against the projection offsets (pixel-centre convention).
-    if "LINE_PROJECTION_OFFSET" in lbl:
-        assert abs((lat_top * ppd - 0.5) - lbl["LINE_PROJECTION_OFFSET"]) < 1.0, "unexpected LDEM line offset"
-    return CylRaster(arr, lat_top, lon_left, ppd, "LDEM_32", global_lon=True, sigma_const=20.0)
-
-
 # ---------------------------------------------------------------------------
 # SLDEM2015 512 ppd tiles: row-wise multi-range reads
 # ---------------------------------------------------------------------------
@@ -237,63 +222,102 @@ def _multirange_get(url: str, ranges: list[tuple[int, int]]) -> list[bytes]:
     raise RuntimeError("unreachable")
 
 
-def sldem_window(lat: float, lon: float, radius_km: float) -> CylRaster:
-    """SLDEM2015 window centred on (lat, lon), +-radius_km. Heights in m above 1737.4 km."""
-    from .sources import SLDEM_TILES
+from dataclasses import dataclass
 
+
+@dataclass
+class CylTile:
+    url: str
+    lat_lo: float
+    lat_hi: float
+    lon_lo: float
+    lon_hi: float
+    ppd: int
+    dtype: str      # numpy dtype of the raw samples
+    scale_m: float  # multiply DN by this to get metres above 1737.4 km
+
+
+def _sldem_tiles():
+    from .sources import SLDEM_TILES
+    return [CylTile(f"{SLDEM_TILES}/{_sldem_tile_name(lo, hi, tl)}.IMG", lo, hi, tl, tl + 45, SLDEM_PPD, "<f4", 1000.0)
+            for lo, hi in SLDEM_LAT_BANDS for tl in range(0, 360, 45)]
+
+
+def _ldem64_tiles():
+    # LDEM_64.LBL: LINES 11520, LINE_SAMPLES 23040, LSB_INTEGER 16-bit, SCALING_FACTOR 0.5, 64 ppd, 90S-90N, 0-360E
+    from .sources import LOLA_CYL
+    return [CylTile(f"{LOLA_CYL}/LDEM_64.IMG", -90, 90, 0, 360, 64, "<i2", 0.5)]
+
+
+def _ldem512_north_tiles():
+    # LDEM_512_45N_90N_*.LBL: LINES 23040, LINE_SAMPLES 46080, LSB_INTEGER 16-bit, SCALING_FACTOR 0.5, 512 ppd
+    from .sources import LOLA_CYL
+    return [CylTile(f"{LOLA_CYL}/LDEM_512_45N_90N_{a:03d}_{a + 90:03d}.IMG", 45, 90, a, a + 90, 512, "<i2", 0.5) for a in range(0, 360, 90)]
+
+
+def cyl_window(tiles: list[CylTile], lat: float, lon: float, radius_km: float, name: str, range_key: str) -> CylRaster:
+    """Window of a tiled simple-cylindrical PDS product centred on (lat, lon), +-radius_km, read with
+    HTTP multi-range requests (one byte range per image row). Cached under .cache/windows/."""
+    ppd = tiles[0].ppd
     dlat = radius_km / (1737.4 * np.pi / 180.0)
-    dlon = dlat / max(np.cos(np.radians(lat)), 0.2)
-    lat_hi = min(lat + dlat, 60.0)
-    lat_lo = max(lat - dlat, -60.0)
+    dlon = min(dlat / max(np.cos(np.radians(min(abs(lat) + dlat, 89.0))), 0.05), 180.0)
+    lat_hi = min(lat + dlat, max(t.lat_hi for t in tiles))
+    lat_lo = max(lat - dlat, min(t.lat_lo for t in tiles))
     lon_c = lon % 360.0
-    lon_lo, lon_hi = lon_c - dlon, lon_c + dlon
-    key = hashlib.sha1(f"sldem|{lat:.5f}|{lon:.5f}|{radius_km}".encode()).hexdigest()[:16]
-    cp = WIN_CACHE / f"SLDEM2015-{key}.npz"
+    key = hashlib.sha1(f"{name}|{lat:.5f}|{lon:.5f}|{radius_km}".encode()).hexdigest()[:16]
+    cp = WIN_CACHE / f"{name}-{key}.npz"
     if cp.exists():
         z = np.load(cp)
-        return CylRaster(z["arr"], float(z["lat_top"]), float(z["lon_left"]), SLDEM_PPD, "SLDEM2015_512", sigma_const=SLDEM_SIGMA_M)
-
-    # Output grid aligned to the 512 ppd pixel lattice.
-    top = np.ceil(lat_hi * SLDEM_PPD) / SLDEM_PPD
-    bot = np.floor(lat_lo * SLDEM_PPD) / SLDEM_PPD
-    left = np.floor(lon_lo * SLDEM_PPD) / SLDEM_PPD
-    right = np.ceil(lon_hi * SLDEM_PPD) / SLDEM_PPD
-    nrow = int(round((top - bot) * SLDEM_PPD))
-    ncol = int(round((right - left) * SLDEM_PPD))
+        return CylRaster(z["arr"], float(z["lat_top"]), float(z["lon_left"]), ppd, name)
+    top = np.ceil(lat_hi * ppd) / ppd
+    bot = np.floor(lat_lo * ppd) / ppd
+    left = np.floor((lon_c - dlon) * ppd) / ppd
+    right = np.ceil((lon_c + dlon) * ppd) / ppd
+    nrow = int(round((top - bot) * ppd))
+    ncol = int(round((right - left) * ppd))
     out = np.full((nrow, ncol), np.nan, dtype=np.float32)
-    record_range_source("SLDEM2015_512_TILES", SLDEM_TILES + "/", "raw float32 tiles; row-block multi-range reads")
-
-    for blo, bhi in SLDEM_LAT_BANDS:
-        if bhi <= bot or blo >= top:
+    record_range_source(range_key, tiles[0].url.rsplit("/", 1)[0] + "/", f"{name}: row-wise HTTP multi-range reads")
+    for t in tiles:
+        if t.lat_hi <= bot or t.lat_lo >= top:
             continue
-        for tlon in range(0, 360, 45):
-            for shift in (-360.0, 0.0, 360.0):
-                t_left, t_right = tlon + shift, tlon + 45 + shift
-                il, ir = max(left, t_left), min(right, t_right)
-                it, ib = min(top, bhi), max(bot, blo)
-                if il >= ir or ib >= it:
-                    continue
-                name = _sldem_tile_name(blo, bhi, tlon)
-                samples = 45 * SLDEM_PPD
-                r0 = int(round((bhi - it) * SLDEM_PPD))
-                r1 = int(round((bhi - ib) * SLDEM_PPD))
-                c0 = int(round((il - t_left) * SLDEM_PPD))
-                c1 = int(round((ir - t_left) * SLDEM_PPD))
-                url = f"{SLDEM_TILES}/{name}.IMG"
-                rows = list(range(r0, r1))
-                data = []
-                for k in range(0, len(rows), 200):
-                    batch = rows[k:k + 200]
-                    rngs = [((r * samples + c0) * 4, (r * samples + c1) * 4 - 1) for r in batch]
-                    data += _multirange_get(url, rngs)
-                block = np.frombuffer(b"".join(data), dtype="<f4").reshape(len(rows), c1 - c0) * 1000.0  # km -> m
-                orow = int(round((top - it) * SLDEM_PPD))
-                ocol = int(round((il - left) * SLDEM_PPD))
-                out[orow:orow + block.shape[0], ocol:ocol + block.shape[1]] = block
-                log(f"    SLDEM {name}: rows {r0}-{r1}, cols {c0}-{c1}")
+        samples = int(round((t.lon_hi - t.lon_lo) * ppd))
+        item = np.dtype(t.dtype).itemsize
+        for shift in (-360.0, 0.0, 360.0):
+            t_left, t_right = t.lon_lo + shift, t.lon_hi + shift
+            il, ir = max(left, t_left), min(right, t_right)
+            it, ib = min(top, t.lat_hi), max(bot, t.lat_lo)
+            if il >= ir or ib >= it:
+                continue
+            r0 = int(round((t.lat_hi - it) * ppd)); r1 = int(round((t.lat_hi - ib) * ppd))
+            c0 = int(round((il - t_left) * ppd)); c1 = int(round((ir - t_left) * ppd))
+            rows = list(range(r0, r1))
+            data = []
+            for k in range(0, len(rows), 200):
+                batch = rows[k:k + 200]
+                rngs = [((r * samples + c0) * item, (r * samples + c1) * item - 1) for r in batch]
+                data += _multirange_get(t.url, rngs)
+            block = np.frombuffer(b"".join(data), dtype=t.dtype).reshape(len(rows), c1 - c0).astype(np.float32) * t.scale_m
+            orow = int(round((top - it) * ppd)); ocol = int(round((il - left) * ppd))
+            out[orow:orow + block.shape[0], ocol:ocol + block.shape[1]] = block
+            log(f"    {name} {t.url.rsplit('/', 1)[1]}: rows {r0}-{r1}, cols {c0}-{c1}")
     out[out < -20000] = np.nan
     np.savez_compressed(cp, arr=out, lat_top=top, lon_left=left)
-    return CylRaster(out, top, left, SLDEM_PPD, "SLDEM2015_512", sigma_const=SLDEM_SIGMA_M)
+    return CylRaster(out, top, left, ppd, name)
+
+
+def sldem_window(lat: float, lon: float, radius_km: float) -> CylRaster:
+    """SLDEM2015 512 ppd window (+-60° latitude)."""
+    return cyl_window(_sldem_tiles(), lat, lon, radius_km, "SLDEM2015_512", "SLDEM2015_512_TILES")
+
+
+def ldem64_window(lat: float, lon: float, radius_km: float = 315.0) -> CylRaster:
+    """LOLA LDEM_64 (64 ppd, ~474 m at the equator) window for the far field of non-polar sites."""
+    return cyl_window(_ldem64_tiles(), lat, lon, radius_km, "LDEM_64", "LDEM_64")
+
+
+def ldem512_north_window(lat: float, lon: float, radius_km: float) -> CylRaster:
+    """LOLA LDEM_512 (45-90°N tiles) window: near field north of SLDEM2015's 60°N limit."""
+    return cyl_window(_ldem512_north_tiles(), lat, lon, radius_km, "LDEM_512", "LDEM_512_45N_90N")
 
 
 def stereo_bbox(lat: float, lon: float, half_m: float):

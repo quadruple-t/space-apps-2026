@@ -91,6 +91,36 @@ The landing page and Freeplay share the code-driven Three.js scene. Freeplay pro
 - Skip link, keyboard-accessible navigation and lunar map, visible focus rings, and an accessible mobile menu
   (Radix Dialog).
 
+## Firestore
+
+All displayed data is read from Firestore at runtime (project `shadowline-2t12`). Static collections are
+public-read and seeded with the Admin SDK; user data (`users/{uid}/…`) is owner-only. Client code lives in
+`lib/firebase/client.ts`, `lib/firestore/*` (typed converters and cached services) and `lib/auth/`.
+
+**Env:** copy `.env.example` to `.env.local` and fill in the web-app config from the Firebase console. Set
+`NEXT_PUBLIC_USE_FIRESTORE_EMULATOR=true` to use the local emulators (auth 9099, Firestore 8080, UI 4000).
+
+```bash
+npm run emulators       # start auth + Firestore emulators (needs Java 21)
+npm run seed:emulator   # validate data/seed/ and write it to the emulator
+npm run smoke           # client-SDK smoke test against the running emulators
+npm test                # unit tests (vitest)
+npm run test:rules      # security-rules tests (starts its own Firestore emulator; port 8080 must be free)
+```
+
+`scripts/seed-firestore.ts` validates everything before writing and aborts on any error. Useful flags:
+`--dry-run` (validate and print sizes only) and `--only sites,catalog`.
+
+**Deploy rules and indexes:**
+
+```bash
+npx -y firebase-tools@15.36.0 deploy --only firestore:rules,firestore:indexes \
+  --project shadowline-2t12 --account taran.duba3@gmail.com
+```
+
+**Seed production:** first run `gcloud auth application-default login` as taran.duba3@gmail.com, then
+`npm run seed:prod -- --yes`. The project id comes from `.firebaserc`.
+
 ## Data sources (planned)
 
 - [Lunar Orbiter Laser Altimeter (LOLA), PDS Geosciences Node](https://pds-geosciences.wustl.edu/missions/lro/lola.htm)

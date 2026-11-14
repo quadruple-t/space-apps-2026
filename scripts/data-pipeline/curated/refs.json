@@ -101,5 +101,5 @@
   "horizonsManual": {"label": "JPL Horizons manual", "url": "https://ssd.jpl.nasa.gov/horizons/manual.html", "tier": "A"},
   "wacIll": {"label": "LROC WAC south polar illumination maps, 100 m (Speyerer & Robinson 2013, Icarus 222:122-136)", "url": "https://data.lroc.im-ldi.com/lroc/view_rdr/WAC_POLE_ILL_PCT_SOUTH", "tier": "A"},
   "sldem2015": {"label": "SLDEM2015 (Barker et al. 2016, Icarus 273:346-355)", "url": "https://pgda.gsfc.nasa.gov/products/54", "tier": "A"},
-  "lolaGdr": {"label": "LOLA GDR cylindrical LDEM_32 (LRO-L-LOLA-4-GDR-V1.0)", "url": "https://imbrium.mit.edu/DATA/LOLA_GDR/CYLINDRICAL/IMG/", "tier": "A"}
+  "lolaGdr": {"label": "LOLA GDR cylindrical LDEM_64 / LDEM_512 (LRO-L-LOLA-4-GDR-V1.0)", "url": "https://imbrium.mit.edu/DATA/LOLA_GDR/CYLINDRICAL/IMG/", "tier": "A"}
 }
