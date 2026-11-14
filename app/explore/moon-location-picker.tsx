@@ -9,6 +9,7 @@ import { MoonSunDiagram } from "@/components/graphics/moon-sun-diagram";
 type Props = {
   selectedSite: LunarSite;
   onSelect: (site: LunarSite) => void;
+  onNavigate?: (site: LunarSite) => void;
   onContinue: () => void;
   sunAzimuthDeg?: number;
   sunElevationDeg?: number;
@@ -59,7 +60,7 @@ function LunarMap({ selectedSite, onSelect }: Pick<Props, "selectedSite" | "onSe
   </div>;
 }
 
-export function MoonLocationPicker({ selectedSite, onSelect, onContinue, sunAzimuthDeg, sunElevationDeg, mode = "setup", onClose }: Props) {
+export function MoonLocationPicker({ selectedSite, onSelect, onNavigate, onContinue, sunAzimuthDeg, sunElevationDeg, mode = "setup", onClose }: Props) {
   const selectedRegion = MOON_REGIONS.find((region) => region.site.id === selectedSite.id)?.id ?? null;
   const [name, setName] = useState("");
   const [latitude, setLatitude] = useState("");
@@ -67,9 +68,14 @@ export function MoonLocationPicker({ selectedSite, onSelect, onContinue, sunAzim
   const [formError, setFormError] = useState("");
   const estimate = useMemo(() => interpolateTerrain(SCAFFOLD_MOON_GRID, selectedSite.latitudeDeg, selectedSite.longitudeDeg), [selectedSite.latitudeDeg, selectedSite.longitudeDeg]);
 
-  const selectRegion = (region: MoonRegion) => onSelect(region.site);
+  const selectRegion = (region: MoonRegion) => {
+    if (mode === "hud") onNavigate?.(region.site);
+    else onSelect(region.site);
+  };
   const selectNode = (latitudeDeg: number, longitudeDeg: number, label: string) => {
-    onSelect({ id: `grid-${latitudeDeg}-${longitudeDeg}`, name: label, latitudeDeg, longitudeDeg, coordinateReference: "Planetocentric latitude, east-positive longitude", provenance: "illustrative" });
+    const target = { id: `grid-${latitudeDeg}-${longitudeDeg}`, name: label, latitudeDeg, longitudeDeg, coordinateReference: "Planetocentric latitude, east-positive longitude" as const, provenance: "illustrative" as const };
+    if (mode === "hud") onNavigate?.(target);
+    else onSelect(target);
   };
   const submitCoordinates = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -114,7 +120,7 @@ export function MoonLocationPicker({ selectedSite, onSelect, onContinue, sunAzim
 
   if (mode === "hud") return <section className="hud-panel h-full overflow-y-auto p-3 sm:p-4" aria-label="Lunar map and terrain samples">
     <div className="flex items-start justify-between"><div><div className="type-data text-[0.58rem] uppercase tracking-[0.16em] text-retro-purple">Navigation map</div><h2 className="type-heading mt-1 text-sm text-bone">Lunar surface</h2></div>{onClose && <button type="button" aria-label="Close lunar map" onClick={onClose} className="grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><X size={15}/></button>}</div>
-    <LunarMap selectedSite={selectedSite} onSelect={(site)=>{onSelect(site);}}/>
+    <LunarMap selectedSite={selectedSite} onSelect={(site)=>{if(onNavigate)onNavigate(site);else onSelect(site);}}/>
     <div className="mt-2 grid grid-cols-3 gap-1.5">{MOON_REGIONS.map((region)=><button key={region.id} type="button" onClick={()=>selectRegion(region)} aria-pressed={selectedRegion===region.id} className={`rounded border px-2 py-1.5 text-left text-[0.63rem] transition ${selectedRegion===region.id?"border-retro-purple/70 bg-retro-purple/10 text-retro-purple":"border-line/80 text-muted-foreground hover:border-retro-blue/60 hover:text-bone"}`}>{region.label}</button>)}</div>
     <div className="mt-3 flex items-center gap-2 border-t border-line/80 pt-3"><MapPin size={14} className="shrink-0 text-retro-red"/><div className="min-w-0 flex-1"><div className="truncate text-xs text-bone">{selectedSite.name}</div><div className="type-data mt-0.5 text-[0.6rem] text-muted-foreground">{selectedSite.latitudeDeg.toFixed(2)}° / {selectedSite.longitudeDeg.toFixed(2)}° E</div></div></div>
     {sampleReadout}{customForm}

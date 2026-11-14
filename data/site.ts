@@ -13,12 +13,12 @@ export const SITE = {
 
 export type NavLink = { label: string; href: string; sectionId?: string };
 
-/** Primary nav — anchors resolve against the landing page from any route. */
+/** Primary nav — section anchors resolve against the landing page from any route. */
 export const NAV_LINKS: NavLink[] = [
   { label: "Overview", href: "/#overview", sectionId: "overview" },
   { label: "The Mission", href: "/#mission", sectionId: "mission" },
   { label: "How It Works", href: "/#how-it-works", sectionId: "how-it-works" },
-  { label: "Explore", href: "/#explore", sectionId: "explore" },
+  { label: "Freeplay", href: "/explore" },
 ];
 
 export const LAUNCH_HREF = "/explore";

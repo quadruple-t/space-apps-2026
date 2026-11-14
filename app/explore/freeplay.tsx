@@ -101,6 +101,16 @@ export function Freeplay() {
     }
   }, [phase]);
 
+  const navigateToSite = useCallback((target: LunarSite) => {
+    setPlaying(false);
+    setSite(target);
+    setActiveSite(target);
+    // Changing the active site rebuilds the scene's first-person spawn at
+    // the selected coordinates, so map and world nodes navigate identically.
+    setCameraMode("first-person");
+    setPhase("explore");
+    setMapOpen(false);
+  }, []);
   const selectDataPoint = useCallback((point: TerrainSample) => {
     const target: LunarSite = {
       id: `grid-${point.latitudeDeg}-${point.longitudeDeg}`,
@@ -110,12 +120,8 @@ export function Freeplay() {
       coordinateReference: "Planetocentric latitude, east-positive longitude",
       provenance: "illustrative",
     };
-    setPlaying(false);
-    setSite(target);
-    setActiveSite(target);
-    setCameraMode(reducedMotion ? "first-person" : "orbit");
-    setPhase(reducedMotion ? "explore" : "transfer");
-  }, [reducedMotion]);
+    navigateToSite(target);
+  }, [navigateToSite]);
   const beginDescent = () => {
     setPlaying(false);
     setActiveSite(site);
@@ -133,7 +139,6 @@ export function Freeplay() {
       return day < 1 || day > daysInMonth ? null : day;
     });
   }, [calendarMonth]);
-  const calendarLabel = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "UTC" }).format(calendarMonth);
   const chosenDateLabel = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(timestamp);
   const chooseUtcDay = (day: number) => {
     setTimestamp((current) => new Date(Date.UTC(calendarMonth.getUTCFullYear(), calendarMonth.getUTCMonth(), day, current.getUTCHours(), current.getUTCMinutes())));
@@ -182,7 +187,7 @@ export function Freeplay() {
 
     {phase === "explore" && mapOpen && <div className="fixed inset-0 z-[45] grid place-items-center bg-void/65 px-3 py-8 backdrop-blur-sm" onMouseDown={(event)=>{if(event.target===event.currentTarget)setMapOpen(false);}}>
       <div className="h-[min(86dvh,760px)] w-[min(820px,calc(100vw-1.5rem))]" onMouseDown={(event)=>event.stopPropagation()}>
-        <MoonLocationPicker mode="hud" selectedSite={site} onSelect={setSite} onClose={()=>setMapOpen(false)} onContinue={()=>{setMapOpen(false);beginDescent();}} sunAzimuthDeg={celestial?.sun.azimuthDeg} sunElevationDeg={celestial?.sun.elevationDeg}/>
+        <MoonLocationPicker mode="hud" selectedSite={site} onSelect={setSite} onNavigate={navigateToSite} onClose={()=>setMapOpen(false)} onContinue={()=>{setMapOpen(false);beginDescent();}} sunAzimuthDeg={celestial?.sun.azimuthDeg} sunElevationDeg={celestial?.sun.elevationDeg}/>
       </div>
     </div>}
 
@@ -253,7 +258,7 @@ export function Freeplay() {
         <div className="relative">
           <button type="button" id="simulation-date-trigger" aria-haspopup="dialog" aria-expanded={datePickerOpen} onClick={()=>{if(!datePickerOpen){setMapOpen(false);setMobileTelemetryOpen(false);setCalendarMonth(new Date(Date.UTC(timestamp.getUTCFullYear(),timestamp.getUTCMonth(),1)));}setDatePickerOpen((open)=>!open);}} className="inline-flex h-9 items-center gap-2 rounded-lg border border-line bg-void px-2.5 text-[0.58rem] text-bone transition hover:border-retro-purple/60 hover:bg-retro-purple/10"><CalendarDays size={14} className="text-retro-purple"/><span>{chosenDateLabel}</span></button>
           {datePickerOpen && createPortal(<div className="fixed inset-0 z-[60] grid place-items-center bg-void/70 p-4 backdrop-blur-sm" onMouseDown={(event)=>{if(event.target===event.currentTarget)setDatePickerOpen(false);}}><div role="dialog" data-no-flight-controls aria-label="Choose simulation date and UTC time" aria-modal="true" className="w-[min(380px,calc(100vw-2rem))] rounded-xl border border-retro-purple/40 bg-[#100e20]/[.98] p-4 shadow-[0_18px_70px_rgba(4,2,18,0.9)] backdrop-blur-2xl">
-            <div className="flex items-center justify-between"><button type="button" aria-label="Previous month" onClick={()=>setCalendarMonth((month)=>new Date(Date.UTC(month.getUTCFullYear(),month.getUTCMonth()-1,1)))} className="grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><ChevronLeft size={15}/></button><div className="type-heading text-sm text-bone">{calendarLabel}</div><button type="button" aria-label="Next month" onClick={()=>setCalendarMonth((month)=>new Date(Date.UTC(month.getUTCFullYear(),month.getUTCMonth()+1,1)))} className="grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><ChevronRight size={15}/></button></div>
+            <div className="flex items-center justify-between"><button type="button" aria-label="Previous month" onClick={()=>setCalendarMonth((month)=>new Date(Date.UTC(month.getUTCFullYear(),month.getUTCMonth()-1,1)))} className="grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><ChevronLeft size={15}/></button><div className="flex items-center gap-2"><select aria-label="Calendar month" value={calendarMonth.getUTCMonth()} onChange={(event)=>setCalendarMonth((month)=>new Date(Date.UTC(month.getUTCFullYear(),Number(event.target.value),1)))} className="h-8 rounded border border-line bg-void px-2 type-data text-xs text-bone">{Array.from({length:12},(_,month)=><option key={month} value={month}>{new Intl.DateTimeFormat("en-US",{month:"long",timeZone:"UTC"}).format(new Date(Date.UTC(2020,month,1)))}</option>)}</select><select aria-label="Calendar year" value={calendarMonth.getUTCFullYear()} onChange={(event)=>setCalendarMonth((month)=>new Date(Date.UTC(Number(event.target.value),month.getUTCMonth(),1)))} className="h-8 rounded border border-line bg-void px-2 type-data text-xs text-bone">{Array.from({length:142},(_,index)=>1959+index).map((year)=><option key={year} value={year}>{year}</option>)}</select></div><button type="button" aria-label="Next month" onClick={()=>setCalendarMonth((month)=>new Date(Date.UTC(month.getUTCFullYear(),month.getUTCMonth()+1,1)))} className="grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><ChevronRight size={15}/></button></div>
             <div className="mt-3 grid grid-cols-7 gap-1 text-center">{["S","M","T","W","T","F","S"].map((day,index)=><span key={`${day}-${index}`} className="type-data py-1 text-[0.55rem] text-muted-foreground">{day}</span>)}
               {calendarDays.map((day,index)=>day===null?<span key={`empty-${index}`}/>:<button key={day} type="button" aria-pressed={timestamp.getUTCFullYear()===calendarMonth.getUTCFullYear()&&timestamp.getUTCMonth()===calendarMonth.getUTCMonth()&&timestamp.getUTCDate()===day} onClick={()=>chooseUtcDay(day)} className={`grid aspect-square place-items-center rounded-md type-data text-xs transition ${timestamp.getUTCFullYear()===calendarMonth.getUTCFullYear()&&timestamp.getUTCMonth()===calendarMonth.getUTCMonth()&&timestamp.getUTCDate()===day?"bg-retro-purple text-void":"text-bone hover:bg-retro-blue/15 hover:text-retro-blue"}`}>{day}</button>)}
             </div>

@@ -7,7 +7,7 @@ import { Menu } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { LAUNCH_HREF, NAV_LINKS } from "@/data/site";
+import { NAV_LINKS } from "@/data/site";
 import { cn } from "@/lib/utils";
 
 /** Highlights the landing-page section currently under the nav. */
@@ -90,10 +90,6 @@ export function Navbar() {
         </ul>
 
         <div className="flex items-center gap-2">
-          <Button asChild size="lg" className="hidden sm:inline-flex">
-            <Link href={LAUNCH_HREF}>Launch Freeplay</Link>
-          </Button>
-
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon-lg" className="md:hidden" aria-label="Open navigation menu">
@@ -120,13 +116,6 @@ export function Navbar() {
                   </li>
                 ))}
               </ul>
-              <div className="mt-auto border-t border-line p-6">
-                <SheetClose asChild>
-                  <Button asChild size="xl" className="w-full">
-                    <Link href={LAUNCH_HREF}>Launch Freeplay</Link>
-                  </Button>
-                </SheetClose>
-              </div>
             </SheetContent>
           </Sheet>
         </div>
