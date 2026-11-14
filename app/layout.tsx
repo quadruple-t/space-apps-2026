@@ -26,7 +26,7 @@ const plexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Lunaris360 — Lunar south pole mission planning",
+    default: "Lunaris360",
     template: "%s · Lunaris360",
   },
   description: SITE.description,
