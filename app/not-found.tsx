@@ -12,7 +12,7 @@ export default function NotFound() {
           This page is out of line of sight. Check the address, or head back to the surface.
         </p>
         <Button asChild size="xl" className="mt-10">
-          <Link href="/">Back to Shadowline</Link>
+          <Link href="/">Back to Lunaris360</Link>
         </Button>
       </PageContainer>
     </section>
