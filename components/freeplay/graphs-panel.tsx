@@ -84,7 +84,20 @@ export function DailyGraphs({ samples, siteId, startMs, tMs }: { samples: Sample
       xs[i] = s.t; sun[i] = s.sunEl; earth[i] = s.earthEl; power[i] = solarPowerW(s.sunEl, area, eff);
       lit.push(s.sunEl > 0); seen.push(s.earthEl > 0); energyWh += power[i];
     }
-    return { xs, sun, earth, power, lit, seen, energyKWh: energyWh / 1000, litPct: (lit.filter(Boolean).length / n) * 100, seenPct: (seen.filter(Boolean).length / n) * 100 };
+    let peak = 1;
+    for (let i = 0; i < n; i++) peak = Math.max(peak, power[i]);
+    return {
+      xs, power, energyKWh: energyWh / 1000,
+      litPct: (lit.filter(Boolean).length / n) * 100, seenPct: (seen.filter(Boolean).length / n) * 100,
+      // Stable array identities so the charts' cached paths survive playback re-renders.
+      elevation: [
+        { id: "sun", label: "Sun elevation", color: SUN, values: sun, unit: "°", digits: 2 },
+        { id: "earth", label: "Earth elevation", color: EARTH, values: earth, unit: "°", digits: 2 },
+      ],
+      bands: [{ label: "DAY", color: SUN, on: lit }, { label: "EARTH", color: EARTH, on: seen }],
+      powerSeries: [{ id: "power", label: "Power", color: SUN, values: power, unit: " W", digits: 1, area: true }],
+      powerDomain: [0, niceCeil(peak)] as [number, number],
+    };
   }, [samples, area, eff]);
   const seek = (x: number) => setElapsed((x - startMs) / 3_600_000);
   const fmtTick = samples.length > 72 ? fmtDay : (ms: number) => new Date(ms).toISOString().slice(11, 16);
@@ -103,17 +116,12 @@ export function DailyGraphs({ samples, siteId, startMs, tMs }: { samples: Sample
     <div>
       <h3 className="type-heading text-xs text-bone">Sun and Earth elevation at the site</h3>
       <TimeSeriesChart title="Sun and Earth elevation" xs={d.xs} yUnit="°" zeroLine cursorX={tMs} onSeek={seek} formatX={fmtTime} formatTick={fmtTick}
-        series={[
-          { id: "sun", label: "Sun elevation", color: SUN, values: d.sun, unit: "°", digits: 2 },
-          { id: "earth", label: "Earth elevation", color: EARTH, values: d.earth, unit: "°", digits: 2 },
-        ]}
-        bands={[{ label: "DAY", color: SUN, on: d.lit }, { label: "EARTH", color: EARTH, on: d.seen }]} />
+        series={d.elevation} bands={d.bands} />
     </div>
     <div>
       <h3 className="type-heading text-xs text-bone">Estimated solar power (W), flat {area} m² panel at {Math.round(eff * 100)}%</h3>
       <TimeSeriesChart title="Estimated solar power" xs={d.xs} yUnit="W" cursorX={tMs} onSeek={seek} formatX={fmtTime} formatTick={fmtTick} height={150}
-        yDomain={[0, niceCeil(Math.max(1, ...d.power))]}
-        series={[{ id: "power", label: "Power", color: SUN, values: d.power, unit: " W", digits: 1, area: true }]} />
+        yDomain={d.powerDomain} series={d.powerSeries} />
     </div>
   </div>;
 }
@@ -122,18 +130,27 @@ export function DailyGraphs({ samples, siteId, startMs, tMs }: { samples: Sample
 export function YearlyGraphs({ samples, siteId, startMs, tMs, missionEndMs }: { samples: Sample[]; siteId: string; startMs: number; tMs: number; missionEndMs: number }) {
   const setElapsed = useFreeplay((s) => s.setElapsed);
   const days = useMemo(() => summarizeByLunarDay(samples).filter((d) => d.complete), [samples]);
-  const xs = useMemo(() => Float64Array.from(days, (d) => d.startMs), [days]);
+  const c = useMemo(() => {
+    const sunlight = Float64Array.from(days, (d) => d.sunlightHours);
+    const maxEl = Float64Array.from(days, (d) => d.maxSunEl);
+    const earthPct = Float64Array.from(days, (d) => d.earthVisiblePct);
+    return {
+      xs: Float64Array.from(days, (d) => d.startMs), sunlight, maxEl, earthPct,
+      sunlightSeries: [{ id: "sun-h", label: "Sunlight", color: SUN, values: sunlight, unit: " h", digits: 0 }],
+      maxElSeries: [{ id: "sun-max", label: "Max Sun elevation", color: SUN, values: maxEl, unit: "°", digits: 2 }],
+      earthSeries: [{ id: "earth-pct", label: "Earth visible", color: EARTH, values: earthPct, unit: "%", digits: 0 }],
+    };
+  }, [days]);
   if (days.length < 2) return <p className="text-xs text-muted-foreground">Not enough data for a yearly view.</p>;
+  const { xs, sunlight, maxEl, earthPct } = c;
 
   const label = (ms: number) => {
     const d = days.find((x) => x.startMs === ms);
     return d ? `Lunar day ${d.index + 1} · ${new Date(d.startMs).toISOString().slice(0, 10)}` : fmtTime(ms);
   };
   const seek = (x: number) => { if (x >= startMs && x <= missionEndMs) setElapsed((x - startMs) / 3_600_000); };
-  const sunlight = Float64Array.from(days, (d) => d.sunlightHours);
-  const maxEl = Float64Array.from(days, (d) => d.maxSunEl);
-  const earthPct = Float64Array.from(days, (d) => d.earthVisiblePct);
   const lunarDayH = (days[0].endMs - days[0].startMs) / 3_600_000;
+  const sunlightDomain: [number, number] = [0, Math.ceil(lunarDayH / 100) * 100];
   const range = (a: Float64Array) => `${Math.min(...a).toFixed(0)}–${Math.max(...a).toFixed(0)}`;
 
   const exportCsv = () => downloadCsv(`${siteId}_${new Date(startMs).toISOString().slice(0, 10)}_yearly.csv`,
@@ -148,18 +165,18 @@ export function YearlyGraphs({ samples, siteId, startMs, tMs, missionEndMs }: { 
     </div>
     <div>
       <h3 className="type-heading text-xs text-bone">Hours of sunlight per lunar day <span className="type-data font-normal text-muted-foreground">({range(sunlight)} of {lunarDayH.toFixed(0)} h)</span></h3>
-      <TimeSeriesChart {...common} title="Hours of sunlight per lunar day" yUnit="h" yDomain={[0, Math.ceil(lunarDayH / 100) * 100]}
-        series={[{ id: "sun-h", label: "Sunlight", color: SUN, values: sunlight, unit: " h", digits: 0 }]} />
+      <TimeSeriesChart {...common} title="Hours of sunlight per lunar day" yUnit="h" yDomain={sunlightDomain}
+        series={c.sunlightSeries} />
     </div>
     <div>
       <h3 className="type-heading text-xs text-bone">Highest Sun elevation <span className="type-data font-normal text-muted-foreground">({range(maxEl)}°)</span></h3>
       <TimeSeriesChart {...common} title="Highest Sun elevation per lunar day" yUnit="°" zeroLine
-        series={[{ id: "sun-max", label: "Max Sun elevation", color: SUN, values: maxEl, unit: "°", digits: 2 }]} />
+        series={c.maxElSeries} />
     </div>
     <div>
       <h3 className="type-heading text-xs text-bone">Time Earth is visible <span className="type-data font-normal text-muted-foreground">({range(earthPct)}%)</span></h3>
       <TimeSeriesChart {...common} title="Percent of each lunar day Earth is above the horizon" yUnit="%" yDomain={[0, 100]}
-        series={[{ id: "earth-pct", label: "Earth visible", color: EARTH, values: earthPct, unit: "%", digits: 0 }]} />
+        series={c.earthSeries} />
     </div>
   </div>;
 }

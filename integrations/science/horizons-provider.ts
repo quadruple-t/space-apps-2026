@@ -201,8 +201,8 @@ export const horizonsScienceProvider: ScienceProvider = {
     return metrics
   },
 
-  async getHorizon(_site: LunarSite): Promise<HorizonProfile | null> {
-    // Returns null until LOLA terrain data is integrated via scripts/build_terrain.py
+  async getHorizon(): Promise<HorizonProfile | null> {
+    // No terrain horizon until a LOLA DEM is integrated.
     return null
   },
 }

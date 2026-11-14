@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Pause, Play, RotateCcw } from "lucide-react";
+import { ChevronDown, ChevronUp, Pause, Play, RotateCcw } from "lucide-react";
 import { DURATION_PRESETS, SPEEDS, currentTimeMs, useFreeplay } from "@/lib/freeplay-store";
 
 /** Advances elapsed mission time while playing. Mount once per Freeplay page. */
@@ -28,7 +28,7 @@ export function usePlaybackClock() {
 const fmtUtc = (ms: number) => new Date(ms).toISOString().slice(0, 16).replace("T", " ") + " UTC";
 const fmtDuration = (h: number) => (h < 48 ? `${h.toFixed(0)} h` : `${(h / 24).toFixed(h % 24 ? 1 : 0)} d`);
 
-export function TimeControls({ compact = false }: { compact?: boolean }) {
+export function TimeControls() {
   const startIso = useFreeplay((s) => s.startIso);
   const durationHours = useFreeplay((s) => s.durationHours);
   const elapsedHours = useFreeplay((s) => s.elapsedHours);
@@ -38,6 +38,7 @@ export function TimeControls({ compact = false }: { compact?: boolean }) {
   const nowMs = currentTimeMs({ startIso, elapsedHours });
 
   const [customDays, setCustomDays] = useState("");
+  const [setupOpen, setSetupOpen] = useState(false);
   const presetMatch = DURATION_PRESETS.find((p) => p.hours === durationHours);
 
   const startDate = startIso.slice(0, 10);
@@ -48,6 +49,11 @@ export function TimeControls({ compact = false }: { compact?: boolean }) {
   };
 
   return <section aria-label="Time controls" className="hud-panel flex flex-wrap items-end gap-x-4 gap-y-2 px-3 py-2.5">
+    <button type="button" onClick={() => setSetupOpen(!setupOpen)} aria-expanded={setupOpen}
+      className="type-data flex w-full items-center justify-between text-[0.58rem] uppercase tracking-[0.12em] text-muted-foreground md:hidden">
+      <span>Mission setup · {startDate} · {fmtDuration(durationHours)}</span>{setupOpen ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+    </button>
+    <div className={`${setupOpen ? "flex" : "hidden"} flex-wrap items-end gap-x-4 gap-y-2 md:contents`}>
     <label className="hud-label">Date (UTC)
       <div className="mt-1 flex gap-1">
         <input type="date" value={startDate} onChange={(e) => changeStart(e.target.value, startTime)} className="hud-input w-[8.6rem] normal-case tracking-normal" />
@@ -68,6 +74,7 @@ export function TimeControls({ compact = false }: { compact?: boolean }) {
           className="hud-input w-[4.2rem] normal-case tracking-normal" />
       </div>
     </div>
+    </div>
 
     <div className="hud-label">Speed
       <div className="mt-1 flex items-center gap-1">
@@ -81,7 +88,7 @@ export function TimeControls({ compact = false }: { compact?: boolean }) {
       </div>
     </div>
 
-    <div className={`flex min-w-[200px] flex-1 flex-col gap-1 ${compact ? "basis-full" : ""}`}>
+    <div className="flex min-w-[200px] flex-1 flex-col gap-1">
       <div className="flex items-baseline justify-between gap-2">
         <span className="type-data text-[0.66rem] text-bone tabular-nums">{fmtUtc(nowMs)}</span>
         <span className="type-data text-[0.56rem] text-muted-foreground tabular-nums">T+{fmtDuration(elapsedHours)} / {fmtDuration(durationHours)} · 1× = 1 h/s</span>

@@ -41,7 +41,7 @@ export function OrbitScreen() {
     </aside>
 
     {/* Main: orbit diagram */}
-    <section className="hud-panel relative min-h-[320px] overflow-hidden" aria-label="Orbit diagram">
+    <section className="hud-panel relative h-[52vh] min-h-[300px] overflow-hidden md:h-auto md:min-h-[320px]" aria-label="Orbit diagram">
       {vectors.data
         ? <OrbitDiagram vectors={vectors.data} site={site} tMs={tMs} missionStartMs={startMs} missionEndMs={startMs + durationHours * 3_600_000}
             sunUp={now ? now.sunEl > 0 : null} earthUp={now ? now.earthEl > 0 : null} />
@@ -49,8 +49,8 @@ export function OrbitScreen() {
     </section>
 
     {/* Right column (full height): readouts + graphs, compact presets at the bottom */}
-    <div className="flex min-h-0 flex-col gap-2 md:col-start-2 md:row-span-2 md:row-start-1 lg:col-start-3">
-      <section className="hud-panel flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-3" aria-label="Conditions and graphs">
+    <div className="flex flex-col gap-2 md:col-start-2 md:row-span-2 md:row-start-1 md:min-h-0 lg:col-start-3">
+      <section className="hud-panel flex flex-col gap-2 p-3 md:min-h-0 md:flex-1 md:overflow-y-auto" aria-label="Conditions and graphs">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="lg:hidden"><GraphTabs /></div>
           <span className="type-data text-[0.56rem] text-muted-foreground">JPL Horizons{series.source ? ` · ${series.source}` : ""}</span>
@@ -68,7 +68,7 @@ export function OrbitScreen() {
     </div>
 
     {/* Bottom bar: time controls across sidebar + main */}
-    <div className="md:col-start-1 md:row-start-2 lg:col-span-2"><TimeControls /></div>
+    <div className="sticky bottom-0 z-10 bg-void md:static md:col-start-1 md:row-start-2 md:bg-transparent lg:col-span-2"><TimeControls /></div>
 
     <Sheet>
       <SheetTrigger asChild>

@@ -11,6 +11,7 @@ const EARTH = "#4b9bff";
 const INK = "#f0ebf7";
 const MUTED = "#b2abc4";
 const MEAN_EARTH_MOON_KM = 384_400;
+const MONTH_MS = 29.530589 * 86_400_000;
 
 type Props = {
   vectors: OrbitVectors;
@@ -39,18 +40,23 @@ export function OrbitDiagram({ vectors, site, tMs, missionStartMs, missionEndMs,
     return m && s ? toSunFrame(m, s) : null;
   };
 
-  // Mission-window trace in the Sun frame (at most ~360 points).
+  // Orbit trace in the Sun frame: the whole mission, or for long missions one
+  // lunar month around now (re-centred every 6 h) so a year isn't 12 overlaid loops.
+  const longMission = missionEndMs - missionStartMs > MONTH_MS;
+  const centre = longMission ? Math.round(tMs / 21_600_000) * 21_600_000 : 0;
   const trace = useMemo(() => {
-    const span = missionEndMs - missionStartMs, n = Math.min(360, Math.max(24, Math.round(span / 3_600_000)));
+    const a = longMission ? Math.max(missionStartMs, Math.min(missionEndMs - MONTH_MS, centre - MONTH_MS / 2)) : missionStartMs;
+    const span = longMission ? MONTH_MS : missionEndMs - missionStartMs;
+    const n = Math.min(240, Math.max(24, Math.round(span / 3_600_000)));
     const pts: string[] = [];
     for (let k = 0; k <= n; k++) {
-      const m = vectorAt(vectors.moon, missionStartMs + (span * k) / n), s = vectorAt(vectors.sun, missionStartMs + (span * k) / n);
+      const m = vectorAt(vectors.moon, a + (span * k) / n), s = vectorAt(vectors.sun, a + (span * k) / n);
       if (!m || !s) continue;
       const p = toSunFrame(m, s), d = Math.hypot(p.x, p.y), r = orbitR * (d / MEAN_EARTH_MOON_KM);
       pts.push(`${(cx + (p.x / d) * r).toFixed(1)},${(cy - (p.y / d) * r).toFixed(1)}`);
     }
     return pts.join(" ");
-  }, [vectors, missionStartMs, missionEndMs, orbitR, cx, cy]);
+  }, [vectors, missionStartMs, missionEndMs, orbitR, cx, cy, longMission, centre]);
 
   const moon = moonAt(tMs);
   if (!moon) return <div ref={ref} className="h-full w-full" />;
@@ -105,11 +111,11 @@ export function OrbitDiagram({ vectors, site, tMs, missionStartMs, missionEndMs,
       <text x={M.x} y={M.y - moonR - 9} textAnchor="middle" fill={INK} fontSize="10" letterSpacing="1.5" fontFamily="var(--font-plex-mono), monospace">MOON</text>
     </svg>
 
-    <div className="pointer-events-none absolute left-3 top-3 flex flex-col gap-1">
+    <div className="pointer-events-none absolute left-3 top-3 flex max-w-[calc(100%-1.5rem)] flex-col gap-1">
       <span className="w-fit rounded border border-retro-red/50 bg-void/80 px-1.5 py-0.5 type-data text-[0.56rem] uppercase tracking-[0.14em] text-bone">Not to scale</span>
-      <span className="type-data text-[0.58rem] text-muted-foreground">Top-down, ecliptic north up · Sun-fixed frame · site position ±8° (libration)</span>
+      <span className="hidden w-fit rounded bg-void/70 px-1 type-data text-[0.58rem] text-muted-foreground sm:block">Top-down, ecliptic north up · Sun-fixed frame · site position ±8° (libration)</span>
     </div>
-    <div className="pointer-events-none absolute bottom-3 left-3 grid gap-0.5 type-data text-[0.6rem] text-muted-foreground">
+    <div className="pointer-events-none absolute bottom-3 left-3 mr-3 grid gap-0.5 rounded bg-void/75 px-1.5 py-1 type-data text-[0.6rem] text-muted-foreground">
       <span><span className="text-bone">{ph.name}</span> · {(ph.illuminated * 100).toFixed(0)}% lit from Earth</span>
       <span>Earth–Moon {Math.round(distKm).toLocaleString("en-US")} km</span>
       <span className="flex items-center gap-1.5">

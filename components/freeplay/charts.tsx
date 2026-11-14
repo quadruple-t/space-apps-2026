@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type MouseEvent } from "react";
+import { useMemo, useState, type MouseEvent } from "react";
 import { useSize } from "./use-size";
 
 export const SUN = "#ff5364";
@@ -43,39 +43,59 @@ export function TimeSeriesChart({ title, xs, series, bands = [], yDomain, yUnit,
   const [ref, { width }] = useSize<HTMLDivElement>({ width: 420, height });
   const [hover, setHover] = useState<number | null>(null);
   const n = xs.length;
-  if (n < 2) return <div ref={ref} />;
+  const d0 = yDomain?.[0], d1 = yDomain?.[1];
 
-  const lanesH = bands.length ? bands.length * (LANE + 3) + 4 : 0;
-  const top = PAD.top + lanesH;
-  const plotW = Math.max(40, width - PAD.left - PAD.right), plotH = height - top - PAD.bottom;
-  const x0 = xs[0], x1 = xs[n - 1];
-  const X = (x: number) => PAD.left + ((x - x0) / (x1 - x0 || 1)) * plotW;
+  // Everything that depends only on data and size. Playback re-renders every
+  // frame but only moves the cursor, so this must not rerun then.
+  const geom = useMemo(() => {
+    if (n < 2) return null;
+    const lanesH = bands.length ? bands.length * (LANE + 3) + 4 : 0;
+    const top = PAD.top + lanesH;
+    const plotW = Math.max(40, width - PAD.left - PAD.right), plotH = height - top - PAD.bottom;
+    const x0 = xs[0], x1 = xs[n - 1];
+    const X = (x: number) => PAD.left + ((x - x0) / (x1 - x0 || 1)) * plotW;
 
-  let lo = Infinity, hi = -Infinity;
-  for (const s of series) for (let i = 0; i < n; i++) { lo = Math.min(lo, s.values[i]); hi = Math.max(hi, s.values[i]); }
-  if (zeroLine) { lo = Math.min(lo, 0); hi = Math.max(hi, 0); }
-  let [yMin, yMax] = yDomain ?? [lo, hi];
-  if (!yDomain) { const pad = (yMax - yMin || 1) * 0.08; yMin -= pad; yMax += pad; }
-  const step = niceStep(yMax - yMin);
-  if (!yDomain) { yMin = Math.floor(yMin / step) * step; yMax = Math.ceil(yMax / step) * step; }
-  const Y = (v: number) => top + plotH - ((v - yMin) / (yMax - yMin || 1)) * plotH;
-  const ticks: number[] = [];
-  for (let v = yMin; v <= yMax + step * 1e-6; v += step) ticks.push(Number(v.toFixed(6)));
+    let lo = Infinity, hi = -Infinity;
+    for (const s of series) for (let i = 0; i < n; i++) { lo = Math.min(lo, s.values[i]); hi = Math.max(hi, s.values[i]); }
+    if (zeroLine) { lo = Math.min(lo, 0); hi = Math.max(hi, 0); }
+    const fixed = d0 !== undefined && d1 !== undefined;
+    let yMin = fixed ? d0 : lo, yMax = fixed ? d1 : hi;
+    if (!fixed) { const pad = (yMax - yMin || 1) * 0.08; yMin -= pad; yMax += pad; }
+    const step = niceStep(yMax - yMin);
+    if (!fixed) { yMin = Math.floor(yMin / step) * step; yMax = Math.ceil(yMax / step) * step; }
+    const Y = (v: number) => top + plotH - ((v - yMin) / (yMax - yMin || 1)) * plotH;
+    const ticks: number[] = [];
+    for (let v = yMin; v <= yMax + step * 1e-6; v += step) ticks.push(Number(v.toFixed(6)));
 
-  // Dense series: draw a min/max envelope per pixel column so a year of hourly data stays honest.
-  const pathFor = (vals: ArrayLike<number>) => {
+    // Dense series: a min/max envelope per pixel column keeps a year of hourly data honest.
     const cols = Math.round(plotW);
-    if (n <= cols * 2) {
+    const pathFor = (vals: ArrayLike<number>) => {
       let d = "";
-      for (let i = 0; i < n; i++) d += `${i ? "L" : "M"}${X(xs[i]).toFixed(1)},${Y(vals[i]).toFixed(1)}`;
+      if (n <= cols * 2) {
+        for (let i = 0; i < n; i++) d += `${i ? "L" : "M"}${X(xs[i]).toFixed(1)},${Y(vals[i]).toFixed(1)}`;
+        return d;
+      }
+      const mn = new Float64Array(cols + 1).fill(Infinity), mx = new Float64Array(cols + 1).fill(-Infinity);
+      for (let i = 0; i < n; i++) { const c = Math.round(X(xs[i]) - PAD.left); mn[c] = Math.min(mn[c], vals[i]); mx[c] = Math.max(mx[c], vals[i]); }
+      for (let c = 0; c <= cols; c++) if (mn[c] !== Infinity) d += `${d ? "L" : "M"}${(PAD.left + c).toFixed(1)},${Y(mx[c]).toFixed(1)}L${(PAD.left + c).toFixed(1)},${Y(mn[c]).toFixed(1)}`;
       return d;
-    }
-    const mn = new Float64Array(cols + 1).fill(Infinity), mx = new Float64Array(cols + 1).fill(-Infinity);
-    for (let i = 0; i < n; i++) { const c = Math.round(X(xs[i]) - PAD.left); mn[c] = Math.min(mn[c], vals[i]); mx[c] = Math.max(mx[c], vals[i]); }
-    let d = "";
-    for (let c = 0; c <= cols; c++) if (mn[c] !== Infinity) d += `${d ? "L" : "M"}${(PAD.left + c).toFixed(1)},${Y(mx[c]).toFixed(1)}L${(PAD.left + c).toFixed(1)},${Y(mn[c]).toFixed(1)}`;
-    return d;
-  };
+    };
+    const paths = series.map((s) => pathFor(s.values));
+    const runs = bands.map((b) => {
+      const out: { a: number; b: number }[] = [];
+      let startI = -1;
+      for (let i = 0; i <= n; i++) {
+        const on = i < n && b.on[i];
+        if (on && startI < 0) startI = i;
+        if (!on && startI >= 0) { out.push({ a: startI, b: i - 1 }); startI = -1; }
+      }
+      return out;
+    });
+    return { top, plotW, plotH, x0, x1, X, Y, yMin, ticks, paths, runs };
+  }, [xs, series, bands, width, height, d0, d1, zeroLine, n]);
+
+  if (!geom) return <div ref={ref} />;
+  const { top, plotW, plotH, x0, x1, X, Y, yMin, ticks, paths, runs } = geom;
 
   const indexAt = (e: MouseEvent<SVGSVGElement>) => {
     const px = e.clientX - e.currentTarget.getBoundingClientRect().left;
@@ -99,16 +119,9 @@ export function TimeSeriesChart({ title, xs, series, bands = [], yDomain, yUnit,
       onClick={(e) => { const i = indexAt(e); if (i !== null && onSeek) onSeek(xs[i]); }}>
       {bands.map((b, k) => {
         const y = PAD.top + k * (LANE + 3);
-        const rects: { a: number; b: number }[] = [];
-        let startI = -1;
-        for (let i = 0; i <= n; i++) {
-          const on = i < n && b.on[i];
-          if (on && startI < 0) startI = i;
-          if (!on && startI >= 0) { rects.push({ a: startI, b: i - 1 }); startI = -1; }
-        }
         return <g key={b.label}>
           <rect x={PAD.left} y={y} width={plotW} height={LANE} fill={GRID} fillOpacity="0.45" rx="2" />
-          {rects.map((r, j) => <rect key={j} x={X(xs[r.a])} y={y} width={Math.max(1, X(xs[r.b]) - X(xs[r.a]))} height={LANE} fill={b.color} fillOpacity="0.85" rx="2" />)}
+          {runs[k].map((r, j) => <rect key={j} x={X(xs[r.a])} y={y} width={Math.max(1, X(xs[r.b]) - X(xs[r.a]))} height={LANE} fill={b.color} fillOpacity="0.85" rx="2" />)}
           <text x={PAD.left + plotW + 4} y={y + LANE - 1} fill={MUTED} fontSize="8" fontFamily={MONO}>{b.label}</text>
         </g>;
       })}
@@ -119,8 +132,8 @@ export function TimeSeriesChart({ title, xs, series, bands = [], yDomain, yUnit,
       </g>)}
       {zeroLine && <text x={PAD.left + 3} y={Y(0) - 3} fill={MUTED} fontSize="8" fontFamily={MONO}>HORIZON</text>}
 
-      {series.map((s) => {
-        const d = pathFor(s.values);
+      {series.map((s, k) => {
+        const d = paths[k];
         return <g key={s.id}>
           {s.area && <path d={`${d}L${X(x1)},${Y(Math.max(yMin, 0))}L${X(x0)},${Y(Math.max(yMin, 0))}Z`} fill={s.color} fillOpacity="0.14" />}
           <path d={d} fill="none" stroke={s.color} strokeWidth="2" strokeLinejoin="round" />
