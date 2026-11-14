@@ -7,7 +7,7 @@ import { Menu } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { LAUNCH_HREF, NAV_LINKS } from "@/data/site";
+import { NAV_LINKS } from "@/data/site";
 import { cn } from "@/lib/utils";
 
 export function Navbar() {
@@ -46,7 +46,7 @@ export function Navbar() {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  aria-current={isActive ? "location" : undefined}
+                  aria-current={isActive ? "page" : undefined}
                   className={cn(
                     "group relative inline-flex h-10 items-center rounded-sm px-3 text-sm transition-colors duration-200",
                     isActive ? "text-bone" : "text-muted-foreground hover:text-bone",
@@ -67,10 +67,6 @@ export function Navbar() {
         </ul>
 
         <div className="flex items-center gap-2">
-          <Button asChild size="lg" className="hidden sm:inline-flex">
-            <Link href={LAUNCH_HREF}>Launch Freeplay</Link>
-          </Button>
-
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon-lg" className="md:hidden" aria-label="Open navigation menu">
@@ -82,7 +78,7 @@ export function Navbar() {
                 <Logo />
               </div>
               <SheetTitle className="sr-only">Navigation</SheetTitle>
-              <SheetDescription className="sr-only">Jump to a section or open a Lunaris360 experience.</SheetDescription>
+              <SheetDescription className="sr-only">Open a Lunaris360 page.</SheetDescription>
               <ul className="flex flex-col px-3 py-4">
                 {NAV_LINKS.map((link) => (
                   <li key={link.href}>
@@ -98,13 +94,6 @@ export function Navbar() {
                   </li>
                 ))}
               </ul>
-              <div className="mt-auto border-t border-line p-6">
-                <SheetClose asChild>
-                  <Button asChild size="xl" className="w-full">
-                    <Link href={LAUNCH_HREF}>Launch Freeplay</Link>
-                  </Button>
-                </SheetClose>
-              </div>
             </SheetContent>
           </Sheet>
         </div>

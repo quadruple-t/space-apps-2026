@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-type Site = { id: string; name: string; family: string; latDeg: number | null; lonDeg: number | null; pointIsApproximate: boolean };
+type Site = { id: string; name: string; family: string; latDeg: number | null; lonDeg: number | null; pointIsApproximate: boolean; coordsVerified: boolean };
 type MetricResult = {
   sunlightPercent?: number; sunlightHours?: number; longestDarknessHours?: number;
   earthVisibilityPercent?: number; longestBlackoutHours?: number; slopeDeg?: number;
@@ -37,7 +37,7 @@ export function ComparisonClient() {
       })
       .then((data) => {
         if (!active) return;
-        const available = (data.sites ?? []).filter((site) => site.latDeg !== null && site.lonDeg !== null && !site.pointIsApproximate);
+        const available = (data.sites ?? []).filter((site) => site.latDeg !== null && site.lonDeg !== null && site.coordsVerified && !site.pointIsApproximate);
         setSites(available);
         setSelected(available.slice(0, 2).map((site) => site.id));
       })

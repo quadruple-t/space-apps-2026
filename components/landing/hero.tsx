@@ -39,7 +39,7 @@ export function Hero() {
                 <Link href={LAUNCH_HREF}>Launch Freeplay</Link>
               </Button>
               <Button asChild size="xl" variant="outline">
-                <Link href="#mission">Discover the Mission</Link>
+                <Link href="/mission">Discover the Mission</Link>
               </Button>
             </div>
           </div>

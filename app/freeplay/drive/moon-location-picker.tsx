@@ -4,12 +4,13 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent, type KeyboardEvent } from "react";
 import { ArrowRight, MapPin, X } from "lucide-react";
 import type { LunarSite } from "@/integrations/science/types";
-import { interpolateTerrain, MOON_REGIONS, SCAFFOLD_MOON_GRID, type MoonRegion } from "@/integrations/terrain/moon-samples";
+import { interpolateTerrain, MOON_REGIONS, SCAFFOLD_MOON_GRID, terrainGridForSite, type MoonRegion, type TerrainGrid } from "@/integrations/terrain/moon-samples";
 import { MoonSunDiagram } from "@/components/graphics/moon-sun-diagram";
 
 type Props = {
   selectedSite: LunarSite;
   onSelect: (site: LunarSite) => void;
+  onNavigate?: (site: LunarSite) => void;
   onContinue: () => void;
   sunAzimuthDeg?: number;
   sunElevationDeg?: number;
@@ -18,7 +19,38 @@ type Props = {
 };
 const mapX = (longitudeDeg: number) => (longitudeDeg / 360) * 720;
 const mapY = (latitudeDeg: number) => ((90 - latitudeDeg) / 180) * 360;
-type CatalogSite = { id: string; name: string; family: string; latDeg: number | null; lonDeg: number | null; pointIsApproximate: boolean };
+const RELIEF_COLORS = ["#22213d", "#314b70", "#477b9b", "#8aa6ad", "#c9b998", "#f0d9b7"];
+
+function TerrainReliefMap({ grid, selectedSite }: { grid: TerrainGrid; selectedSite: LunarSite }) {
+  const values = grid.samples.flatMap((row) => row.map((sample) => sample.elevationMeters));
+  const minimum = Math.min(...values);
+  const maximum = Math.max(...values);
+  const columns = grid.longitudesDeg.map((longitudeDeg, sourceIndex) => ({
+    sourceIndex,
+    delta: ((longitudeDeg - selectedSite.longitudeDeg + 540) % 360) - 180,
+  })).sort((a, b) => a.delta - b.delta);
+  const width = 360;
+  const height = 128;
+  const cellWidth = width / columns.length;
+  const cellHeight = height / grid.latitudesDeg.length;
+  const selectedY = ((grid.latitudesDeg.at(-1)! - selectedSite.latitudeDeg) / (grid.latitudesDeg.at(-1)! - grid.latitudesDeg[0])) * height;
+  const selectedX = ((0 - columns[0].delta) / (columns.at(-1)!.delta - columns[0].delta)) * width;
+
+  return <div className="mt-3 overflow-hidden rounded border border-retro-blue/25 bg-[#090817] p-2">
+    <div className="mb-1 flex items-center justify-between gap-2"><span className="type-data truncate text-[0.55rem] uppercase tracking-[0.1em] text-retro-blue">{grid.landform ?? "Global relief"} · {grid.extentKm ? `~${grid.extentKm} km map` : "global context"}</span><span className="type-data shrink-0 text-[0.5rem] text-muted-foreground">N ↑</span></div>
+    <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${grid.name}, showing interpolated elevation around ${selectedSite.name}`} className="block w-full rounded-sm">
+      {grid.samples.map((row, rowIndex) => columns.map(({ sourceIndex }, columnIndex) => {
+        const value = row[sourceIndex].elevationMeters;
+        const fraction = maximum === minimum ? 0.5 : (value - minimum) / (maximum - minimum);
+        const colorIndex = Math.min(RELIEF_COLORS.length - 1, Math.floor(fraction * RELIEF_COLORS.length));
+        return <rect key={`${rowIndex}-${sourceIndex}`} x={columnIndex * cellWidth} y={(grid.latitudesDeg.length - 1 - rowIndex) * cellHeight} width={cellWidth + 0.5} height={cellHeight + 0.5} fill={RELIEF_COLORS[colorIndex]} stroke="#dbe7ff" strokeOpacity=".12" strokeWidth=".5"/>;
+      }))}
+      <circle cx={selectedX} cy={selectedY} r="4" fill="#ff5364" stroke="#fff0dd" strokeWidth="1.5"/>
+    </svg>
+    <div className="mt-1 flex items-center justify-between type-data text-[0.5rem] text-muted-foreground"><span>{Math.round(minimum).toLocaleString()} m</span><span className="text-retro-red">SITE</span><span>{Math.round(maximum).toLocaleString()} m</span></div>
+  </div>;
+}
+type CatalogSite = { id: string; name: string; family: string; latDeg: number | null; lonDeg: number | null; pointIsApproximate: boolean; coordsVerified: boolean };
 type CatalogDetail = { site?: { coordinates?: { elevationM?: number | null } | null; terrainSummary?: { slope100mDeg?: number | null } | null }; terrain?: { slope100mDeg?: number | null } | null };
 
 function LunarMap({ selectedSite, onSelect }: Pick<Props, "selectedSite" | "onSelect">) {
@@ -62,15 +94,16 @@ function LunarMap({ selectedSite, onSelect }: Pick<Props, "selectedSite" | "onSe
   </div>;
 }
 
-export function MoonLocationPicker({ selectedSite, onSelect, onContinue, sunAzimuthDeg, sunElevationDeg, mode = "setup", onClose }: Props) {
+export function MoonLocationPicker({ selectedSite, onSelect, onNavigate, onContinue, sunAzimuthDeg, sunElevationDeg, mode = "setup", onClose }: Props) {
   const selectedRegion = MOON_REGIONS.find((region) => region.site.id === selectedSite.id)?.id ?? null;
   const [name, setName] = useState("");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
   const [formError, setFormError] = useState("");
+  const selectedGrid = useMemo(() => terrainGridForSite(selectedSite), [selectedSite]);
+  const estimate = useMemo(() => interpolateTerrain(selectedGrid, selectedSite.latitudeDeg, selectedSite.longitudeDeg), [selectedGrid, selectedSite.latitudeDeg, selectedSite.longitudeDeg]);
   const [catalogSites, setCatalogSites] = useState<CatalogSite[]>([]);
   const [catalogError, setCatalogError] = useState("");
-  const estimate = useMemo(() => interpolateTerrain(SCAFFOLD_MOON_GRID, selectedSite.latitudeDeg, selectedSite.longitudeDeg), [selectedSite.latitudeDeg, selectedSite.longitudeDeg]);
 
   useEffect(() => {
     let active = true;
@@ -79,14 +112,19 @@ export function MoonLocationPicker({ selectedSite, onSelect, onContinue, sunAzim
         if (!response.ok) throw new Error("Site catalog unavailable");
         return response.json() as Promise<{ sites?: CatalogSite[] }>;
       })
-      .then((data) => { if (active) setCatalogSites((data.sites ?? []).filter((site) => site.latDeg !== null && site.lonDeg !== null && !site.pointIsApproximate)); })
+      .then((data) => { if (active) setCatalogSites((data.sites ?? []).filter((site) => site.latDeg !== null && site.lonDeg !== null && site.coordsVerified && !site.pointIsApproximate)); })
       .catch(() => { if (active) setCatalogError("Catalog sites unavailable"); });
     return () => { active = false; };
   }, []);
 
-  const selectRegion = (region: MoonRegion) => onSelect(region.site);
+  const selectRegion = (region: MoonRegion) => {
+    if (mode === "hud") onNavigate?.(region.site);
+    else onSelect(region.site);
+  };
   const selectNode = (latitudeDeg: number, longitudeDeg: number, label: string) => {
-    onSelect({ id: `grid-${latitudeDeg}-${longitudeDeg}`, name: label, latitudeDeg, longitudeDeg, coordinateReference: "Planetocentric latitude, east-positive longitude", provenance: "illustrative" });
+    const target = { id: `grid-${latitudeDeg}-${longitudeDeg}`, name: label, latitudeDeg, longitudeDeg, coordinateReference: "Planetocentric latitude, east-positive longitude" as const, provenance: "illustrative" as const };
+    if (mode === "hud") onNavigate?.(target);
+    else onSelect(target);
   };
   const selectCatalogSite = async (id: string) => {
     const site = catalogSites.find((candidate) => candidate.id === id);
@@ -95,12 +133,14 @@ export function MoonLocationPicker({ selectedSite, onSelect, onContinue, sunAzim
       const response = await fetch(`/api/v1/catalog/sites/${encodeURIComponent(id)}`);
       if (!response.ok) throw new Error("Site detail unavailable");
       const details = await response.json() as CatalogDetail;
-      onSelect({
+      const target: LunarSite = {
         id: site.id, name: site.name, latitudeDeg: site.latDeg, longitudeDeg: site.lonDeg,
         coordinateReference: "Planetocentric latitude, east-positive longitude",
         provenance: "scientific", elevationMeters: details.site?.coordinates?.elevationM ?? null,
         slopeDeg: details.terrain?.slope100mDeg ?? details.site?.terrainSummary?.slope100mDeg ?? null,
-      });
+      };
+      if (mode === "hud" && onNavigate) onNavigate(target);
+      else onSelect(target);
     } catch {
       setCatalogError("Could not load this site's terrain record");
     }
@@ -123,16 +163,17 @@ export function MoonLocationPicker({ selectedSite, onSelect, onContinue, sunAzim
   </div>;
 
   const sampleReadout = <>
+    <TerrainReliefMap grid={selectedGrid} selectedSite={selectedSite}/>
     <div className="mt-3 grid grid-cols-2 gap-2">
       <div className="hud-readout"><div className="hud-label">Interpolated elevation</div><div className="type-data mt-1 text-base text-bone">{Math.round(estimate.elevationMeters).toLocaleString()} <span className="text-xs text-muted-foreground">m</span></div></div>
       <div className="hud-readout"><div className="hud-label">Terrain slope</div><div className="type-data mt-1 text-base text-bone">{estimate.slopeDeg.toFixed(1)}<span className="text-xs text-muted-foreground">°</span></div></div>
     </div>
     <div className="mt-2 grid grid-cols-2 gap-1.5">
       {estimate.corners.map((point,index)=><button key={`${point.latitudeDeg}-${point.longitudeDeg}-${index}`} type="button" onClick={()=>selectNode(point.latitudeDeg,point.longitudeDeg,`Grid point ${String.fromCharCode(65+index)}`)} className="hud-readout text-left transition hover:border-retro-blue/60" title="Select this grid point">
-        <div className="type-data text-[0.56rem] text-retro-blue">NODE {String.fromCharCode(65+index)} · {point.latitudeDeg}° / {point.longitudeDeg}°E</div><div className="type-data mt-1 text-[0.66rem] text-bone">{point.elevationMeters.toLocaleString()} m <span className="text-muted-foreground">· {point.slopeDeg}°</span></div>
+        <div className="type-data text-[0.56rem] text-retro-blue">NODE {String.fromCharCode(65+index)} · {point.latitudeDeg.toFixed(3)}° / {point.longitudeDeg.toFixed(3)}°E</div><div className="type-data mt-1 text-[0.66rem] text-bone">{Math.round(point.elevationMeters).toLocaleString()} m <span className="text-muted-foreground">· {point.slopeDeg.toFixed(1)}°</span></div>
       </button>)}
     </div>
-    <p className="mt-2 text-[0.56rem] leading-relaxed text-muted-foreground">Synthetic 45° × 45° latitude/longitude grid scaffold (~1,360 km per longitude step at the equator); not measured LOLA terrain. At either pole, the scaffold elevation is constant across longitude.</p>
+    <p className="mt-2 text-[0.56rem] leading-relaxed text-muted-foreground">Separate local relief scaffold for this landform, bilinearly interpolated around the selected site. Illustrative only; not measured LOLA elevation data.</p>
   </>;
   const terrainReadout = selectedSite.provenance === "scientific" ? <>
     <div className="mt-3 grid grid-cols-2 gap-2">
@@ -156,7 +197,7 @@ export function MoonLocationPicker({ selectedSite, onSelect, onContinue, sunAzim
 
   if (mode === "hud") return <section className="hud-panel h-full overflow-y-auto p-3 sm:p-4" aria-label="Lunar map and terrain samples">
     <div className="flex items-start justify-between"><div><div className="type-data text-[0.58rem] uppercase tracking-[0.16em] text-retro-purple">Navigation map</div><h2 className="type-heading mt-1 text-sm text-bone">Lunar surface</h2></div>{onClose && <button type="button" aria-label="Close lunar map" onClick={onClose} className="grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><X size={15}/></button>}</div>
-    <LunarMap selectedSite={selectedSite} onSelect={(site)=>{onSelect(site);}}/>
+    <LunarMap selectedSite={selectedSite} onSelect={(site)=>{if(onNavigate)onNavigate(site);else onSelect(site);}}/>
     <div className="mt-2 grid grid-cols-3 gap-1.5">{MOON_REGIONS.map((region)=><button key={region.id} type="button" onClick={()=>selectRegion(region)} aria-pressed={selectedRegion===region.id} className={`rounded border px-2 py-1.5 text-left text-[0.63rem] transition ${selectedRegion===region.id?"border-retro-purple/70 bg-retro-purple/10 text-retro-purple":"border-line/80 text-muted-foreground hover:border-retro-blue/60 hover:text-bone"}`}>{region.label}</button>)}</div>
     <div className="mt-3 flex items-center gap-2 border-t border-line/80 pt-3"><MapPin size={14} className="shrink-0 text-retro-red"/><div className="min-w-0 flex-1"><div className="truncate text-xs text-bone">{selectedSite.name}</div><div className="type-data mt-0.5 text-[0.6rem] text-muted-foreground">{selectedSite.latitudeDeg.toFixed(2)}° / {selectedSite.longitudeDeg.toFixed(2)}° E</div></div></div>
     {catalogSelect}{terrainReadout}{customForm}

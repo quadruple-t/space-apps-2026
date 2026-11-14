@@ -13,12 +13,13 @@ export const SITE = {
 
 export type NavLink = { label: string; href: string };
 
-/** Primary navigation between the four main product areas. */
+/** Primary navigation routes to distinct pages. */
 export const NAV_LINKS: NavLink[] = [
   { label: "Overview", href: "/" },
   { label: "Mission Control", href: "/mission-control" },
-  { label: "Mission", href: "/mission" },
-  { label: "Explore", href: "/freeplay" },
+  { label: "Tutorial", href: "/mission" },
+  { label: "How It Works", href: "/how-it-works" },
+  { label: "Freeplay", href: "/freeplay" },
 ];
 
 export const LAUNCH_HREF = "/freeplay";
@@ -41,7 +42,7 @@ export const EXPERIENCES: Experience[] = [
     title: "Guided Mission",
     subtitle: "Understand the environment.",
     description:
-      "A planned step-by-step tutorial on sunlight, terrain obstruction, Earth visibility and mission windows. The chapter experience is not interactive yet.",
+      "An interactive tutorial that runs inside Freeplay: the Moon globe, Orbit + Graphs, then the surface drive. Six lessons follow the First Landing, Robotic Explorer and Lunar Base chapters at catalog landing sites, covering sunlight, terrain obstruction, Earth visibility and mission windows.",
     topics: [
       "Solar elevation",
       "Terrain obstruction",

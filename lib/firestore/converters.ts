@@ -160,6 +160,7 @@ export function siteIndexFromData(_id: string, d: Data, path = "catalog/siteInde
       latDeg: er.numOrNull("latDeg"),
       lonDeg: er.numOrNull("lonDeg"),
       pointIsApproximate: er.bool("pointIsApproximate"),
+      coordsVerified: er.bool("coordsVerified"),
       landingTimeUtc: er.strOrNull("landingTimeUtc"),
       chapterId: er.oneOfOrNull("chapterId", CHAPTER_IDS),
     };

@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Car, Globe2, Orbit, Sun } from "lucide-react";
 import { usePlaybackClock } from "@/components/freeplay/time-controls";
 import { approachHref, driveHref } from "@/lib/drive-link";
@@ -37,7 +37,7 @@ function FreeplayPageLinks() {
   </nav>;
 }
 
-export function FreeplayApp() {
+export function FreeplayApp({ aside }: { aside?: ReactNode }) {
   const view = useFreeplay((s) => s.view);
   const site = useFreeplay((s) => s.site);
   const setView = useFreeplay((s) => s.setView);
@@ -63,8 +63,11 @@ export function FreeplayApp() {
           : "No site selected · click the Moon to pick one"}
       </div>
     </header>
-    <div className="relative min-h-0 flex-1">
-      {view === "globe" ? <GlobeScreen /> : <OrbitScreen />}
+    <div className="relative flex min-h-0 flex-1">
+      <div className="relative min-h-0 min-w-0 flex-1">
+        {view === "globe" ? <GlobeScreen /> : <OrbitScreen />}
+      </div>
+      {aside}
     </div>
   </div>;
 }
