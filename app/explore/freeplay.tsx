@@ -5,18 +5,14 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Activity, ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Clock3, Crosshair, Globe2, Map, Pause, Play, RotateCcw, ZoomIn, ZoomOut, X } from "lucide-react";
-<<<<<<< HEAD
 import type { CameraMode } from "@/scenes/lunar/camera-rig";
-import { mockScienceProvider } from "@/integrations/science/mock-provider";
-=======
-import type { CameraMode, MoveCommand } from "@/scenes/lunar/camera-rig";
 import { apiScienceProvider as scienceProvider } from "@/integrations/science/api-provider";
->>>>>>> origin/tdubs
 import type { CelestialState, LunarSite, MissionMetrics } from "@/integrations/science/types";
 import { interpolateTerrain, MOON_REGIONS, terrainGridForSite, type TerrainSample } from "@/integrations/terrain/moon-samples";
 import { MoonLocationPicker } from "./moon-location-picker";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
-import { GUIDED_LESSONS } from "@/app/mission/tutorial-content";
+import { CHAPTER_LABELS, GUIDED_LESSONS, GUIDED_START_UTC } from "@/app/mission/tutorial-content";
+import { withTerrainRecord, type TutorialData } from "@/app/mission/use-tutorial-data";
 
 const LunarScene = dynamic(() => import("@/scenes/lunar/lunar-scene"), { ssr: false });
 const initialTime = new Date("2026-11-14T12:00:00.000Z");
@@ -28,17 +24,18 @@ function Readout({ label, value, tone = "neutral" }: { label: string; value: str
   return <div className="hud-readout"><div className="hud-label">{label}</div><div className={`type-data mt-1 text-sm ${color}`}>{value}</div></div>;
 }
 
-export function Freeplay({ guided = false }: { guided?: boolean }) {
-  const [site, setSite] = useState<LunarSite>(MOON_REGIONS[0].site);
-  const [activeSite, setActiveSite] = useState<LunarSite>(MOON_REGIONS[0].site);
+export function Freeplay({ guided = false, tutorial }: { guided?: boolean; tutorial?: TutorialData }) {
+  const startSite = (guided && tutorial?.sites[GUIDED_LESSONS[0].chapterId]?.[0]) || MOON_REGIONS[0].site;
+  const [site, setSite] = useState<LunarSite>(startSite);
+  const [activeSite, setActiveSite] = useState<LunarSite>(startSite);
   const [phase, setPhase] = useState<"choose" | "transfer" | "descent" | "explore">(guided ? "descent" : "choose");
-  const [timestamp, setTimestamp] = useState(initialTime);
+  const [timestamp, setTimestamp] = useState(() => guided ? new Date(GUIDED_START_UTC) : initialTime);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(60);
   const [cameraMode, setCameraMode] = useState<CameraMode>("first-person");
   const [lookSensitivity, setLookSensitivity] = useState(1);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [calendarMonth, setCalendarMonth] = useState(() => new Date(Date.UTC(initialTime.getUTCFullYear(), initialTime.getUTCMonth(), 1)));
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date(Date.UTC(timestamp.getUTCFullYear(), timestamp.getUTCMonth(), 1)));
   const [zoom, setZoom] = useState(1);
   const [celestial, setCelestial] = useState<CelestialState | null>(null);
   const [metrics, setMetrics] = useState<MissionMetrics | null>(null);
@@ -48,7 +45,8 @@ export function Freeplay({ guided = false }: { guided?: boolean }) {
   const [mobileTelemetryOpen, setMobileTelemetryOpen] = useState(false);
   const [lessonIndex, setLessonIndex] = useState(0);
   const [tutorialActions, setTutorialActions] = useState<Set<string>>(new Set());
-  const [visitedSites, setVisitedSites] = useState<Set<string>>(() => new Set([MOON_REGIONS[0].site.id]));
+  const [visitedSites, setVisitedSites] = useState<Set<string>>(() => new Set([startSite.id]));
+  const [horizon, setHorizon] = useState<{ siteId: string; peak: { elevationDeg: number; azimuthDeg: number } | null } | null>(null);
   const [earthAcknowledged, setEarthAcknowledged] = useState(false);
   const [guidedComplete, setGuidedComplete] = useState(false);
   const reducedMotion = useReducedMotion();
@@ -61,6 +59,10 @@ export function Freeplay({ guided = false }: { guided?: boolean }) {
     setTutorialActions((current) => current.has(action) ? current : new Set(current).add(action));
   }, []);
   const lesson = GUIDED_LESSONS[lessonIndex];
+  const chapter = tutorial?.chapters[lesson.chapterId];
+  const chapterLabel = chapter ?? CHAPTER_LABELS[lesson.chapterId];
+  const chapterSites = tutorial?.sites[lesson.chapterId] ?? [];
+  const horizonPeak = horizon?.siteId === activeSite.id ? horizon.peak : undefined;
   const lessonComplete = guided && (lessonIndex === 0
     ? tutorialActions.has("look") && tutorialActions.has("move") && tutorialActions.has("camera")
     : lessonIndex === 1
@@ -115,6 +117,16 @@ export function Freeplay({ guided = false }: { guided?: boolean }) {
     void updateMetrics(environmentSite, utcDay);
   }, [environmentSite, utcDay, updateMetrics]);
   useEffect(() => {
+    if (!guided) return;
+    let current = true;
+    scienceProvider.getHorizon(activeSite).then((profile) => {
+      if (!current) return;
+      const elevationDeg = profile ? Math.max(...profile.elevationsDeg) : null;
+      setHorizon({ siteId: activeSite.id, peak: profile && elevationDeg !== null ? { elevationDeg, azimuthDeg: profile.elevationsDeg.indexOf(elevationDeg) * profile.azimuthStepDeg } : null });
+    }).catch(() => { if (current) setHorizon(null); });
+    return () => { current = false; };
+  }, [guided, activeSite]);
+  useEffect(() => {
     if (!playing || reducedMotion) return;
     const timer = window.setInterval(() => {
       setTimestamp((time) => new Date(time.getTime() + speed * 60_000));
@@ -137,7 +149,7 @@ export function Freeplay({ guided = false }: { guided?: boolean }) {
     }
   }, [phase]);
 
-  const navigateToSite = useCallback((target: LunarSite) => {
+  const moveToSite = useCallback((target: LunarSite) => {
     setPlaying(false);
     setSite(target);
     setActiveSite(target);
@@ -146,11 +158,23 @@ export function Freeplay({ guided = false }: { guided?: boolean }) {
     setCameraMode("first-person");
     setPhase("explore");
     setMapOpen(false);
+  }, []);
+  const navigateToSite = useCallback((target: LunarSite) => {
+    moveToSite(target);
     if (guided) {
       setVisitedSites((current) => new Set(current).add(target.id));
       recordTutorialAction(`selected:${target.id}`);
     }
-  }, [guided, recordTutorialAction]);
+  }, [guided, moveToSite, recordTutorialAction]);
+  // Each story chapter opens at its first featured catalog site.
+  const goToLesson = (next: number) => {
+    const chapterStart = GUIDED_LESSONS[next].chapterId !== lesson.chapterId ? tutorial?.sites[GUIDED_LESSONS[next].chapterId]?.[0] : undefined;
+    setLessonIndex(next);
+    setTutorialActions(new Set());
+    setEarthAcknowledged(false);
+    setVisitedSites(new Set([(chapterStart ?? activeSite).id]));
+    if (chapterStart) void withTerrainRecord(chapterStart).then(moveToSite);
+  };
   const selectDataPoint = useCallback((point: TerrainSample) => {
     const target: LunarSite = {
       id: `grid-${point.latitudeDeg}-${point.longitudeDeg}`,
@@ -204,13 +228,8 @@ export function Freeplay({ guided = false }: { guided?: boolean }) {
 
     <header className="absolute inset-x-3 top-3 z-20 flex items-center justify-between gap-2 sm:inset-x-5 sm:top-4">
       <div className="flex min-w-0 items-center gap-2 rounded-lg border border-line/80 bg-void/75 p-1.5 shadow-xl backdrop-blur-xl sm:gap-3 sm:p-2">
-<<<<<<< HEAD
-        <Link href="/" aria-label="Exit simulation to Shadowline home" className="grid size-9 shrink-0 place-items-center rounded-md bg-retro-purple/15 text-retro-purple transition hover:bg-retro-purple/25"><ArrowLeft size={17}/></Link>
-        <div className="min-w-0 pr-2"><div className="type-data text-[0.6rem] uppercase tracking-[0.16em] text-retro-purple">Shadowline / {guided ? "Tutorial" : "Freeplay"}</div><div className="truncate text-xs font-medium text-bone">Lunar surface simulation</div></div>
-=======
         <Link href="/" aria-label="Exit simulation to Lunaris360 home" className="grid size-9 shrink-0 place-items-center rounded-md bg-retro-purple/15 text-retro-purple transition hover:bg-retro-purple/25"><ArrowLeft size={17}/></Link>
-        <div className="min-w-0 pr-2"><div className="type-data text-[0.6rem] uppercase tracking-[0.16em] text-retro-purple">Lunaris360 / Freeplay</div><div className="truncate text-xs font-medium text-bone">Lunar surface simulation</div></div>
->>>>>>> origin/tdubs
+        <div className="min-w-0 pr-2"><div className="type-data text-[0.6rem] uppercase tracking-[0.16em] text-retro-purple">Lunaris360 / {guided ? "Tutorial" : "Freeplay"}</div><div className="truncate text-xs font-medium text-bone">Lunar surface simulation</div></div>
         <span className="hidden h-8 w-px bg-line sm:block"/>
         {phase === "explore" && <button type="button" onClick={()=>setMapOpen((open)=>{if(!open){setMobileTelemetryOpen(false);setDatePickerOpen(false);}return !open;})} aria-expanded={mapOpen} className="inline-flex items-center gap-2 rounded-md border border-line px-2.5 py-2 text-[0.65rem] uppercase tracking-[0.1em] text-muted-foreground hover:border-retro-purple/60 hover:text-bone sm:px-3"><Map size={14} className="text-retro-purple"/><span className="hidden sm:inline">{mapOpen?"Hide map":"Map & samples"}</span></button>}
       </div>
@@ -222,38 +241,47 @@ export function Freeplay({ guided = false }: { guided?: boolean }) {
 
     {phase === "choose" && <MoonLocationPicker selectedSite={site} onSelect={setSite} onContinue={beginDescent} sunAzimuthDeg={celestial?.sun.azimuthDeg} sunElevationDeg={celestial?.sun.elevationDeg}/>}
 
-    {guided && phase === "explore" && <section aria-live="polite" aria-label="Guided mission lesson" className="absolute left-3 top-[5rem] z-30 w-[min(390px,calc(100vw-1.5rem))] rounded-xl border border-retro-purple/40 bg-[#100e20]/95 p-4 shadow-[0_18px_70px_rgba(4,2,18,.78)] backdrop-blur-xl sm:left-5 sm:top-[5.5rem] sm:p-5">
+    {guided && phase === "explore" && <section aria-live="polite" aria-label="Guided mission lesson" className="absolute left-3 top-[5rem] z-30 max-h-[calc(100dvh-16rem)] w-[min(390px,calc(100vw-1.5rem))] overflow-y-auto rounded-xl border border-retro-purple/40 bg-[#100e20]/95 p-4 shadow-[0_18px_70px_rgba(4,2,18,.78)] backdrop-blur-xl sm:left-5 sm:top-[5.5rem] sm:p-5">
       {guidedComplete ? <>
         <div className="type-data text-[.58rem] uppercase tracking-[.17em] text-retro-red">Mission debrief · complete</div>
         <h2 className="type-heading mt-2 text-xl text-bone">You have the flight controls.</h2>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">You compared terrain, celestial geometry, changing time, and candidate sites in the shared simulation. Your selected site is {activeSite.name}. The demo metrics remain illustrative.</p>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">You compared horizons, Sun and Earth geometry, changing time, and candidate sites in the shared simulation. Your selected site is {activeSite.name}. Positions came from stored JPL Horizons ephemerides; check each site&apos;s horizon source before comparing its numbers.</p>
         <Link href="/explore" className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg bg-retro-purple px-4 type-data text-[.62rem] font-semibold uppercase tracking-[.12em] text-void hover:bg-[#c2abff]">Enter Freeplay <ArrowLeft className="rotate-180" size={14}/></Link>
       </> : <>
-        <div className="flex items-center justify-between gap-2"><span className="type-data text-[.56rem] uppercase tracking-[.12em] text-retro-blue">{lesson.era}</span><span className="type-data shrink-0 text-[.58rem] text-retro-red">LESSON {lessonIndex + 1} OF {GUIDED_LESSONS.length}</span></div>
+        <div className="flex items-center justify-between gap-2"><span className="type-data text-[.56rem] uppercase tracking-[.12em] text-retro-blue">{chapterLabel.title} · {chapterLabel.era}</span><span className="type-data shrink-0 text-[.58rem] text-retro-red">LESSON {lessonIndex + 1} OF {GUIDED_LESSONS.length}</span></div>
         <div className="mt-2 h-1 overflow-hidden rounded-full bg-line"><div className="h-full rounded-full bg-gradient-to-r from-retro-purple via-retro-blue to-retro-red transition-[width]" style={{width:`${((lessonIndex+1)/GUIDED_LESSONS.length)*100}%`}}/></div>
         <h2 className="type-heading mt-3 text-xl text-bone">{lesson.title}</h2>
         <p className="mt-2 text-[.78rem] leading-relaxed text-muted-foreground">{lesson.body}</p>
         <div className="mt-3 rounded-lg border border-retro-blue/25 bg-retro-blue/5 p-3">
           <div className="type-data text-[.54rem] uppercase tracking-[.13em] text-retro-blue">Mission objective</div>
           <p className="mt-1 text-xs leading-relaxed text-bone">{lesson.objective}</p>
-          {lessonIndex === 0 && <p className="mt-2 type-data text-[.52rem] leading-relaxed text-muted-foreground">LOOK {tutorialActions.has("look")?"✓":"○"} · MOVE {tutorialActions.has("move")?"✓":"○"} · CAMERA {tutorialActions.has("camera")?"✓":"○"}</p>}
+          {lessonIndex === 0 && <p className="mt-2 type-data text-[.52rem] leading-relaxed text-muted-foreground">LOOK {tutorialActions.has("look")?"✓":"○"} · MOVE {tutorialActions.has("move")?"✓":"○"} · CAMERA {tutorialActions.has("camera")?"✓":"○"}{celestial ? ` · SUN EL ${angle(celestial.sun.elevationDeg)}` : ""}</p>}
+          {lessonIndex === 1 && <p className="mt-2 type-data text-[.54rem] leading-relaxed text-retro-blue">HORIZON · {dataError ? "DATA UNAVAILABLE" : metrics?.horizonSource ?? "LOADING"}{horizonPeak ? ` · HIGHEST OBSTRUCTION ${angle(horizonPeak.elevationDeg)} TOWARD AZ ${horizonPeak.azimuthDeg.toFixed(0)}°` : horizonPeak === null ? " · NO TERRAIN MASK, VISIBILITY SHARES ARE UPPER BOUNDS" : ""}</p>}
           {lessonIndex === 1 && <button type="button" onClick={()=>recordTutorialAction("horizon")} className="mt-2 rounded border border-retro-blue/30 px-2.5 py-1.5 type-data text-[.54rem] uppercase tracking-[.08em] text-retro-blue hover:bg-retro-blue/10">I inspected the terrain horizon</button>}
-          {lessonIndex === 3 && <div className="mt-2 flex flex-wrap gap-2 type-data text-[.54rem] text-retro-blue"><span>EARTH AZ {celestial?`${celestial.earth.azimuthDeg.toFixed(1)}°`:"—"}</span><span>EL {celestial?angle(celestial.earth.elevationDeg):"—"}</span><span className="text-muted-foreground">illustrative apparent geometry</span></div>}
+          {lessonIndex === 3 && <div className="mt-2 flex flex-wrap gap-2 type-data text-[.54rem] text-retro-blue"><span>EARTH AZ {celestial?`${celestial.earth.azimuthDeg.toFixed(1)}°`:"—"}</span><span>EL {celestial?angle(celestial.earth.elevationDeg):"—"}</span><span className="text-muted-foreground">{celestial?.earth.visible == null ? "horizon check pending" : `${celestial.earth.visible ? "above" : "below"} the horizon · ${metrics?.horizonSource ?? "source pending"}`}</span></div>}
           {lessonIndex === 3 && <button type="button" onClick={()=>setEarthAcknowledged(true)} className="mt-2 rounded border border-retro-blue/30 px-2.5 py-1.5 type-data text-[.54rem] uppercase tracking-[.08em] text-retro-blue hover:bg-retro-blue/10">I understand visibility ≠ radio-link guarantee</button>}
+          {lessonIndex === 4 && <p className="mt-2 type-data text-[.54rem] leading-relaxed text-retro-blue">{metrics ? `24 H FROM ${utcDay} · SUNLIT ${metrics.sunlightPercent}% · EARTH VISIBLE ${metrics.earthVisibilityPercent}% · LONGEST BLACKOUT ${metrics.longestBlackoutHours} H · ${metrics.horizonSource ?? "horizon source pending"}${horizonPeak === null ? " · NO TERRAIN MASK, SHARES ARE UPPER BOUNDS" : ""}` : dataError ? "MISSION WINDOW DATA UNAVAILABLE" : "LOADING MISSION WINDOW"}</p>}
+          {lessonIndex === 5 && chapterSites.length > 0 && <label className="mt-2 block type-data text-[.52rem] uppercase tracking-[.08em] text-muted-foreground">{chapterLabel.title} candidates<select value={chapterSites.some((candidate)=>candidate.id===activeSite.id)?activeSite.id:""} onChange={(event)=>{const target=chapterSites.find((candidate)=>candidate.id===event.target.value);if(target)void withTerrainRecord(target).then(navigateToSite);}} className="hud-input mt-1 normal-case tracking-normal"><option value="">Choose a featured site</option>{chapterSites.map((candidate)=><option key={candidate.id} value={candidate.id}>{candidate.name}</option>)}</select></label>}
           {lessonIndex === 5 && <div className="mt-2 flex items-center justify-between gap-2"><span className="type-data text-[.52rem] text-muted-foreground">{visitedSites.size} candidate locations visited</span><button type="button" onClick={()=>{setMapOpen(true);setMobileTelemetryOpen(false);setDatePickerOpen(false);}} className="rounded border border-retro-purple/35 px-2.5 py-1.5 type-data text-[.54rem] uppercase tracking-[.08em] text-retro-purple hover:bg-retro-purple/10">Open candidate map</button></div>}
         </div>
         <p className="mt-2 text-[.67rem] leading-relaxed text-muted-foreground"><span className="text-retro-red">TAKEAWAY</span> · {lesson.takeaway}</p>
+        {chapter && <details className="mt-2 border-t border-line/80 pt-2">
+          <summary className="cursor-pointer type-data text-[.54rem] uppercase tracking-[.1em] text-muted-foreground hover:text-bone">Mission record · {chapter.debrief.realMission}</summary>
+          <p className="mt-2 text-xs font-medium text-bone">{chapter.debrief.headline}</p>
+          <p className="mt-1 text-[.67rem] leading-relaxed text-muted-foreground">{chapter.debrief.whatHappened}</p>
+          <dl className="mt-2 space-y-1.5">{chapter.debrief.keyNumbers.map((item)=><div key={item.label}><dt className="type-data text-[.52rem] uppercase tracking-[.08em] text-retro-blue">{item.label}</dt><dd className="text-[.67rem] leading-relaxed text-bone">{item.value}{item.sources?.[0]?.url && <> · <a href={item.sources[0].url} target="_blank" rel="noreferrer" className="text-muted-foreground underline hover:text-bone">source</a></>}</dd></div>)}</dl>
+        </details>}
         <div className="mt-3 flex items-center justify-between gap-2 border-t border-line/80 pt-3">
-          <button type="button" onClick={()=>{setLessonIndex((index)=>Math.max(0,index-1));setTutorialActions(new Set());setEarthAcknowledged(false);}} disabled={lessonIndex===0} className="rounded px-2 py-2 type-data text-[.55rem] uppercase tracking-[.1em] text-muted-foreground hover:text-bone disabled:opacity-35">Previous</button>
-          <button type="button" onClick={()=>{if(lessonIndex===GUIDED_LESSONS.length-1){setGuidedComplete(true);}else{setLessonIndex((index)=>index+1);setTutorialActions(new Set());setEarthAcknowledged(false);}}} disabled={!lessonComplete} className="rounded-lg bg-retro-purple px-3.5 py-2 type-data text-[.56rem] font-semibold uppercase tracking-[.11em] text-void hover:bg-[#c2abff] disabled:cursor-not-allowed disabled:opacity-40">{lessonIndex===GUIDED_LESSONS.length-1?"Complete mission":"Next lesson"}</button>
-          <button type="button" onClick={()=>{if(lessonIndex===GUIDED_LESSONS.length-1){setGuidedComplete(true);}else{setLessonIndex((index)=>index+1);setTutorialActions(new Set());setEarthAcknowledged(false);}}} className="rounded px-2 py-2 type-data text-[.55rem] uppercase tracking-[.1em] text-muted-foreground hover:text-retro-red">Skip</button>
+          <button type="button" onClick={()=>goToLesson(lessonIndex-1)} disabled={lessonIndex===0} className="rounded px-2 py-2 type-data text-[.55rem] uppercase tracking-[.1em] text-muted-foreground hover:text-bone disabled:opacity-35">Previous</button>
+          <button type="button" onClick={()=>{if(lessonIndex===GUIDED_LESSONS.length-1)setGuidedComplete(true);else goToLesson(lessonIndex+1);}} disabled={!lessonComplete} className="rounded-lg bg-retro-purple px-3.5 py-2 type-data text-[.56rem] font-semibold uppercase tracking-[.11em] text-void hover:bg-[#c2abff] disabled:cursor-not-allowed disabled:opacity-40">{lessonIndex===GUIDED_LESSONS.length-1?"Complete mission":"Next lesson"}</button>
+          <button type="button" onClick={()=>{if(lessonIndex===GUIDED_LESSONS.length-1)setGuidedComplete(true);else goToLesson(lessonIndex+1);}} className="rounded px-2 py-2 type-data text-[.55rem] uppercase tracking-[.1em] text-muted-foreground hover:text-retro-red">Skip</button>
         </div>
       </>}
     </section>}
 
     {(phase === "transfer" || phase === "descent") && <div className="pointer-events-none absolute inset-0 z-30 grid place-items-center bg-void/15 px-5 backdrop-blur-[1px]">
       <div className="w-full max-w-sm rounded-xl border border-retro-purple/40 bg-void/85 p-5 text-center shadow-[0_0_80px_rgba(169,134,255,0.16)] backdrop-blur-xl sm:p-7">
-        <div className="type-data text-[0.62rem] uppercase tracking-[0.18em] text-retro-purple">Freeplay setup · step 2 of 2</div>
+        <div className="type-data text-[0.62rem] uppercase tracking-[0.18em] text-retro-purple">{guided ? "Guided mission · arrival" : "Freeplay setup · step 2 of 2"}</div>
         <h2 className="type-heading mt-3 text-xl text-bone">{phase === "transfer" ? "Transferring to lunar orbit" : "Descending to surface"}</h2>
         <p className="mt-2 text-sm text-muted-foreground">{activeSite.name} · {activeSite.latitudeDeg.toFixed(2)}° / {activeSite.longitudeDeg.toFixed(2)}° E</p>
         <div className="mt-5 h-1 overflow-hidden rounded-full bg-line"><div className={`h-full rounded-full bg-gradient-to-r from-retro-purple via-retro-blue to-retro-red ${phase === "transfer" ? "w-2/5" : "w-4/5"} transition-[width] duration-1000`}/></div>

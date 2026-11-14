@@ -5,7 +5,7 @@ shapes sunlight and direct-to-Earth line of sight at candidate landing sites.
 
 Built for the NASA Space Apps Challenge 2026.
 
-> Freeplay is implemented with stored JPL Horizons ephemerides and available precomputed LOLA horizon masks. Coverage varies by location; unsupported points use a labelled smooth-sphere horizon. The rendered 3D surface is procedural and is not the terrain model used for horizon calculations. The Guided Mission is a non-interactive introduction, and Mission Comparison is an empty layout.
+> Freeplay is implemented with stored JPL Horizons ephemerides and available precomputed LOLA horizon masks. Coverage varies by location; unsupported points use a labelled smooth-sphere horizon. The rendered 3D surface is procedural and is not the terrain model used for horizon calculations. The Guided Mission is an interactive tutorial that runs the same simulation at the story chapters' featured catalog sites, and Mission Comparison is an empty layout.
 
 ## Getting started
 
@@ -37,7 +37,7 @@ npm run lint       # ESLint (Next.js + React Compiler rules)
 | Route      | Purpose                                                   |
 | ---------- | --------------------------------------------------------- |
 | `/`        | Landing page                                              |
-| `/mission` | Guided Mission overview; interactive chapters are not implemented yet |
+| `/mission` | Guided Mission: six interactive lessons across the First Landing, Robotic Explorer and Lunar Base chapters, run inside Freeplay at catalog sites |
 | `/explore` | Freeplay: site and coordinate selection, time controls, first-person/orbit navigation, JPL Horizons Sun/Earth positions, horizon-aware 24-hour metrics where data is available |
 | `/compare` | Mission Comparison shell with an empty state; multi-site comparison is not implemented yet |
 | `/science` | Methodology, data sources and glossary                    |

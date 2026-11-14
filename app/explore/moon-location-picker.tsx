@@ -18,7 +18,6 @@ type Props = {
 };
 const mapX = (longitudeDeg: number) => (longitudeDeg / 360) * 720;
 const mapY = (latitudeDeg: number) => ((90 - latitudeDeg) / 180) * 360;
-<<<<<<< HEAD
 const RELIEF_COLORS = ["#22213d", "#314b70", "#477b9b", "#8aa6ad", "#c9b998", "#f0d9b7"];
 
 function TerrainReliefMap({ grid, selectedSite }: { grid: TerrainGrid; selectedSite: LunarSite }) {
@@ -50,10 +49,8 @@ function TerrainReliefMap({ grid, selectedSite }: { grid: TerrainGrid; selectedS
     <div className="mt-1 flex items-center justify-between type-data text-[0.5rem] text-muted-foreground"><span>{Math.round(minimum).toLocaleString()} m</span><span className="text-retro-red">SITE</span><span>{Math.round(maximum).toLocaleString()} m</span></div>
   </div>;
 }
-=======
 type CatalogSite = { id: string; name: string; family: string; latDeg: number | null; lonDeg: number | null; pointIsApproximate: boolean };
 type CatalogDetail = { site?: { coordinates?: { elevationM?: number | null } | null; terrainSummary?: { slope100mDeg?: number | null } | null }; terrain?: { slope100mDeg?: number | null } | null };
->>>>>>> origin/tdubs
 
 function LunarMap({ selectedSite, onSelect }: Pick<Props, "selectedSite" | "onSelect">) {
   const selectCoordinates = (latitudeDeg: number, longitudeDeg: number) => {
@@ -102,18 +99,10 @@ export function MoonLocationPicker({ selectedSite, onSelect, onNavigate, onConti
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
   const [formError, setFormError] = useState("");
-<<<<<<< HEAD
   const selectedGrid = useMemo(() => terrainGridForSite(selectedSite), [selectedSite]);
   const estimate = useMemo(() => interpolateTerrain(selectedGrid, selectedSite.latitudeDeg, selectedSite.longitudeDeg), [selectedGrid, selectedSite.latitudeDeg, selectedSite.longitudeDeg]);
-
-  const selectRegion = (region: MoonRegion) => {
-    if (mode === "hud") onNavigate?.(region.site);
-    else onSelect(region.site);
-  };
-=======
   const [catalogSites, setCatalogSites] = useState<CatalogSite[]>([]);
   const [catalogError, setCatalogError] = useState("");
-  const estimate = useMemo(() => interpolateTerrain(SCAFFOLD_MOON_GRID, selectedSite.latitudeDeg, selectedSite.longitudeDeg), [selectedSite.latitudeDeg, selectedSite.longitudeDeg]);
 
   useEffect(() => {
     let active = true;
@@ -127,8 +116,10 @@ export function MoonLocationPicker({ selectedSite, onSelect, onNavigate, onConti
     return () => { active = false; };
   }, []);
 
-  const selectRegion = (region: MoonRegion) => onSelect(region.site);
->>>>>>> origin/tdubs
+  const selectRegion = (region: MoonRegion) => {
+    if (mode === "hud") onNavigate?.(region.site);
+    else onSelect(region.site);
+  };
   const selectNode = (latitudeDeg: number, longitudeDeg: number, label: string) => {
     const target = { id: `grid-${latitudeDeg}-${longitudeDeg}`, name: label, latitudeDeg, longitudeDeg, coordinateReference: "Planetocentric latitude, east-positive longitude" as const, provenance: "illustrative" as const };
     if (mode === "hud") onNavigate?.(target);
@@ -141,12 +132,14 @@ export function MoonLocationPicker({ selectedSite, onSelect, onNavigate, onConti
       const response = await fetch(`/api/v1/catalog/sites/${encodeURIComponent(id)}`);
       if (!response.ok) throw new Error("Site detail unavailable");
       const details = await response.json() as CatalogDetail;
-      onSelect({
+      const target: LunarSite = {
         id: site.id, name: site.name, latitudeDeg: site.latDeg, longitudeDeg: site.lonDeg,
         coordinateReference: "Planetocentric latitude, east-positive longitude",
         provenance: "scientific", elevationMeters: details.site?.coordinates?.elevationM ?? null,
         slopeDeg: details.terrain?.slope100mDeg ?? details.site?.terrainSummary?.slope100mDeg ?? null,
-      });
+      };
+      if (mode === "hud" && onNavigate) onNavigate(target);
+      else onSelect(target);
     } catch {
       setCatalogError("Could not load this site's terrain record");
     }

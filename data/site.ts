@@ -41,7 +41,7 @@ export const EXPERIENCES: Experience[] = [
     title: "Guided Mission",
     subtitle: "Understand the environment.",
     description:
-      "A planned step-by-step tutorial on sunlight, terrain obstruction, Earth visibility and mission windows. The chapter experience is not interactive yet.",
+      "An interactive tutorial inside the lunar simulation. Six lessons follow the First Landing, Robotic Explorer and Lunar Base chapters at catalog landing sites, covering sunlight, terrain obstruction, Earth visibility and mission windows.",
     topics: [
       "Solar elevation",
       "Terrain obstruction",

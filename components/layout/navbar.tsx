@@ -78,11 +78,7 @@ export function Navbar() {
                 <Logo />
               </div>
               <SheetTitle className="sr-only">Navigation</SheetTitle>
-<<<<<<< HEAD
-              <SheetDescription className="sr-only">Open a Shadowline page.</SheetDescription>
-=======
-              <SheetDescription className="sr-only">Jump to a section or open a Lunaris360 experience.</SheetDescription>
->>>>>>> origin/tdubs
+              <SheetDescription className="sr-only">Open a Lunaris360 page.</SheetDescription>
               <ul className="flex flex-col px-3 py-4">
                 {NAV_LINKS.map((link) => (
                   <li key={link.href}>
