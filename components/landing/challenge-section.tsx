@@ -46,7 +46,7 @@ const ACCENT = {
 
 export function ChallengeSection() {
   return (
-    <section id="overview" aria-labelledby="overview-title" className="relative py-24 sm:py-32">
+    <section id="challenge" aria-labelledby="overview-title" className="relative py-24 sm:py-32">
       <PageContainer>
         <ChapterTrail active="overview" />
         <Reveal>
