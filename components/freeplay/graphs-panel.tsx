@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { Download, Settings2 } from "lucide-react";
 import { Popover } from "radix-ui";
-import { SOLAR_CONSTANT_W_M2, summarizeByLunarDay, type Sample } from "@/lib/illumination";
+import { earthUp, SOLAR_CONSTANT_W_M2, summarizeByLunarDay, sunUp, type Sample } from "@/lib/illumination";
 import { useFreeplay, type GraphTab } from "@/lib/freeplay-store";
 import { EARTH, SUN, TimeSeriesChart } from "./charts";
 
@@ -11,9 +11,9 @@ const fmtTime = (ms: number) => new Date(ms).toISOString().slice(0, 16).replace(
 const fmtDay = (ms: number) => new Date(ms).toISOString().slice(5, 10);
 const niceCeil = (v: number) => { const p = 10 ** Math.floor(Math.log10(v)); return [1, 2, 2.5, 5, 10].map((m) => m * p).find((m) => m >= v * 1.05)!; };
 
-/** P = area × efficiency × 1361 W/m² × sin(Sun elevation), horizontal panel. */
-export function solarPowerW(sunElDeg: number, areaM2: number, efficiency: number) {
-  return sunElDeg > 0 ? areaM2 * efficiency * SOLAR_CONSTANT_W_M2 * Math.sin((sunElDeg * Math.PI) / 180) : 0;
+/** P = area × efficiency × 1361 W/m² × sin(Sun elevation), horizontal panel; zero when terrain blocks the Sun. */
+export function solarPowerW(s: Sample, areaM2: number, efficiency: number) {
+  return sunUp(s) ? areaM2 * efficiency * SOLAR_CONSTANT_W_M2 * Math.sin((s.sunEl * Math.PI) / 180) : 0;
 }
 
 export function downloadCsv(filename: string, header: string[], rows: (string | number)[][]) {
@@ -76,14 +76,15 @@ export function DailyGraphs({ samples, siteId, startMs, tMs }: { samples: Sample
   const setElapsed = useFreeplay((s) => s.setElapsed);
   const d = useMemo(() => {
     const n = samples.length;
-    const xs = new Float64Array(n), sun = new Float64Array(n), earth = new Float64Array(n), power = new Float64Array(n);
+    const xs = new Float64Array(n), sun = new Float64Array(n), earth = new Float64Array(n), power = new Float64Array(n), terrain = new Float64Array(n);
     const lit: boolean[] = [], seen: boolean[] = [];
     let energyWh = 0;
     for (let i = 0; i < n; i++) {
       const s = samples[i];
-      xs[i] = s.t; sun[i] = s.sunEl; earth[i] = s.earthEl; power[i] = solarPowerW(s.sunEl, area, eff);
-      lit.push(s.sunEl > 0); seen.push(s.earthEl > 0); energyWh += power[i];
+      xs[i] = s.t; sun[i] = s.sunEl; earth[i] = s.earthEl; power[i] = solarPowerW(s, area, eff); terrain[i] = s.sunHorizon;
+      lit.push(sunUp(s)); seen.push(earthUp(s)); energyWh += power[i];
     }
+    const hasTerrain = terrain.some((h) => Math.abs(h) > 0.005);
     let peak = 1;
     for (let i = 0; i < n; i++) peak = Math.max(peak, power[i]);
     return {
@@ -93,6 +94,7 @@ export function DailyGraphs({ samples, siteId, startMs, tMs }: { samples: Sample
       elevation: [
         { id: "sun", label: "Sun elevation", color: SUN, values: sun, unit: "°", digits: 2 },
         { id: "earth", label: "Earth elevation", color: EARTH, values: earth, unit: "°", digits: 2 },
+        ...(hasTerrain ? [{ id: "terrain", label: "Terrain under Sun", color: "#8a84a3", values: terrain, unit: "°", digits: 2 }] : []),
       ],
       bands: [{ label: "DAY", color: SUN, on: lit }, { label: "EARTH", color: EARTH, on: seen }],
       powerSeries: [{ id: "power", label: "Power", color: SUN, values: power, unit: " W", digits: 1, area: true }],
@@ -103,8 +105,8 @@ export function DailyGraphs({ samples, siteId, startMs, tMs }: { samples: Sample
   const fmtTick = samples.length > 72 ? fmtDay : (ms: number) => new Date(ms).toISOString().slice(11, 16);
 
   const exportCsv = () => downloadCsv(`${siteId}_${new Date(startMs).toISOString().slice(0, 10)}_daily.csv`,
-    ["time_utc", "sun_azimuth_deg", "sun_elevation_deg", "earth_azimuth_deg", "earth_elevation_deg", "solar_power_w"],
-    samples.map((s, i) => [new Date(s.t).toISOString(), s.sunAz, s.sunEl, s.earthAz, s.earthEl, d.power[i].toFixed(2)]));
+    ["time_utc", "sun_azimuth_deg", "sun_elevation_deg", "terrain_at_sun_deg", "earth_azimuth_deg", "earth_elevation_deg", "terrain_at_earth_deg", "solar_power_w"],
+    samples.map((s, i) => [new Date(s.t).toISOString(), s.sunAz.toFixed(4), s.sunEl.toFixed(4), s.sunHorizon.toFixed(3), s.earthAz.toFixed(4), s.earthEl.toFixed(4), s.earthHorizon.toFixed(3), d.power[i].toFixed(2)]));
 
   return <div className="flex flex-col gap-3">
     <div className="flex flex-wrap items-center justify-between gap-2">

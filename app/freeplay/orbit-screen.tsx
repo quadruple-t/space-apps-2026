@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { Globe2, List } from "lucide-react";
 import type { FreeplaySite } from "@/data/sites";
 import { ConditionsReadout } from "@/components/freeplay/conditions-readout";
@@ -8,13 +9,13 @@ import { OrbitDiagram } from "@/components/freeplay/orbit-diagram";
 import { PresetsPanel } from "@/components/freeplay/presets-panel";
 import { TimeControls } from "@/components/freeplay/time-controls";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { sampleAt } from "@/lib/illumination";
+import { earthUp, sampleAt, sunUp } from "@/lib/illumination";
 import { currentTimeMs, useFreeplay } from "@/lib/freeplay-store";
-import { useOrbitVectors, useSiteSeries } from "@/lib/use-horizons";
+import { useLunarWindow } from "@/lib/use-lunar-data";
 
 function Status({ loading, error, what }: { loading: boolean; error: string | null; what: string }) {
   if (error) return <p role="alert" className="p-3 text-xs text-destructive">Couldn&apos;t load {what}: {error}</p>;
-  if (loading) return <p className="type-data animate-pulse p-3 text-[0.62rem] uppercase tracking-[0.12em] text-muted-foreground">Loading {what} from JPL Horizons…</p>;
+  if (loading) return <p className="type-data animate-pulse p-3 text-[0.62rem] uppercase tracking-[0.12em] text-muted-foreground">Loading {what}…</p>;
   return null;
 }
 
@@ -41,10 +42,12 @@ function OrbitScreenFor({ site }: { site: FreeplaySite }) {
   const tMs = currentTimeMs({ startIso, elapsedHours });
   const startMs = Date.parse(startIso);
 
-  const series = useSiteSeries(site.latitudeDeg, site.longitudeDeg, startIso, durationHours);
-  const vectors = useOrbitVectors(startIso, durationHours);
-  const year = useSiteSeries(site.latitudeDeg, site.longitudeDeg, startIso, 365 * 24, graphTab === "yearly");
-  const samples = series.data;
+  // A day past the mission end so the orbit diagram can draw its motion arrow ahead of the Moon.
+  const mission = useLunarWindow(site, startIso, durationHours + 30);
+  const year = useLunarWindow(site, startIso, 365 * 24, graphTab === "yearly");
+  const missionEndMs = startMs + durationHours * 3_600_000;
+  const missionData = mission.data;
+  const samples = useMemo(() => missionData?.samples.filter((s) => s.t <= missionEndMs) ?? null, [missionData, missionEndMs]);
   const index = samples?.length ? Math.min(samples.length - 1, elapsedHours) : 0;
   const now = samples?.length ? sampleAt(samples, index) : null;
 
@@ -57,10 +60,10 @@ function OrbitScreenFor({ site }: { site: FreeplaySite }) {
 
     {/* Main: orbit diagram */}
     <section className="hud-panel relative h-[52vh] min-h-[300px] overflow-hidden md:h-auto md:min-h-[320px]" aria-label="Orbit diagram">
-      {vectors.data
-        ? <OrbitDiagram vectors={vectors.data} site={site} tMs={tMs} missionStartMs={startMs} missionEndMs={startMs + durationHours * 3_600_000}
-            sunUp={now ? now.sunEl > 0 : null} earthUp={now ? now.earthEl > 0 : null} />
-        : <Status loading={vectors.loading} error={vectors.error} what="Moon and Sun positions" />}
+      {mission.data
+        ? <OrbitDiagram series={mission.data.series} site={site} tMs={tMs} missionStartMs={startMs} missionEndMs={missionEndMs}
+            sunUp={now ? sunUp(now) : null} earthUp={now ? earthUp(now) : null} />
+        : <Status loading={mission.loading} error={mission.error} what="Moon and Sun positions" />}
     </section>
 
     {/* Right column (full height): readouts + graphs, compact presets at the bottom */}
@@ -68,16 +71,18 @@ function OrbitScreenFor({ site }: { site: FreeplaySite }) {
       <section className="hud-panel flex flex-col gap-2 p-3 md:min-h-0 md:flex-1 md:overflow-y-auto" aria-label="Conditions and graphs">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="lg:hidden"><GraphTabs /></div>
-          <span className="type-data text-[0.56rem] text-muted-foreground">JPL Horizons{series.source ? ` · ${series.source}` : ""}</span>
+          <span className="type-data text-[0.56rem] text-muted-foreground" title="Stored JPL Horizons ephemeris and LOLA horizon masks from the Lunaris360 data API">
+            Lunaris360 data · terrain: {mission.data ? (mission.data.horizon.elevationsDeg ? mission.data.horizon.source : "smooth horizon (upper bound)") : "…"}
+          </span>
           <PanelSettings />
         </div>
-        {now && samples ? <ConditionsReadout samples={samples} index={index} sunEl={now.sunEl} earthEl={now.earthEl} />
-          : <Status loading={series.loading} error={series.error} what={`Sun and Earth angles at ${site.name}`} />}
+        {now && samples ? <ConditionsReadout samples={samples} index={index} now={now} />
+          : <Status loading={mission.loading} error={mission.error} what={`Sun and Earth angles at ${site.name}`} />}
         {graphTab === "daily"
           ? samples && <DailyGraphs samples={samples} siteId={site.id} startMs={startMs} tMs={tMs} />
           : year.data
-            ? <YearlyGraphs samples={year.data} siteId={site.id} startMs={startMs} tMs={tMs} missionEndMs={startMs + durationHours * 3_600_000} />
-            : <Status loading={year.loading} error={year.error} what="a year of hourly data (custom sites can take up to a minute)" />}
+            ? <YearlyGraphs samples={year.data.samples} siteId={site.id} startMs={startMs} tMs={tMs} missionEndMs={missionEndMs} />
+            : <Status loading={year.loading} error={year.error} what="a year of hourly data" />}
       </section>
       <PresetsPanel className="hidden max-h-[28%] shrink-0 md:flex" />
     </div>

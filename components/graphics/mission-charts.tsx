@@ -162,12 +162,17 @@ export function IrradianceChart({ samples, timeline, cursorT, onSeek, height = 1
  * Horizon view: azimuth (x) vs elevation (y) as seen from the site.
  * Shows the Sun's track over the trailing window plus current Sun and Earth.
  */
-export function SkyTrack({ samples, index, current, trailHours = 24, height = 200 }: {
-  samples: Sample[]; index: number; current: Sample; trailHours?: number; height?: number;
+export function SkyTrack({ samples, index, current, terrain, trailHours = 24, height = 200 }: {
+  samples: Sample[]; index: number; current: Sample;
+  /** Terrain horizon elevation (deg) per azimuth bin, bin 0 = north; null/undefined = flat horizon */
+  terrain?: { elevationsDeg: number[] | null; azimuthStepDeg: number } | null;
+  trailHours?: number; height?: number;
 }) {
   const [ref, width] = useWidth<HTMLDivElement>();
   let lo = 0, hi = 2;
   for (const s of samples) { lo = Math.min(lo, s.sunEl, s.earthEl); hi = Math.max(hi, s.sunEl, s.earthEl); }
+  const mask = terrain?.elevationsDeg ?? null;
+  if (mask) for (const v of mask) hi = Math.max(hi, v);
   const yMin = Math.max(-15, Math.floor(lo) - 1), yMax = Math.min(90, Math.ceil(hi) + 1);
   const plotW = width - PAD.left - PAD.right;
   const plotH = height - PAD.top - PAD.bottom;
@@ -188,6 +193,8 @@ export function SkyTrack({ samples, index, current, trailHours = 24, height = 20
   return <div ref={ref}>
     <svg width={width} height={height} role="img" aria-label={`Horizon view. Sun at azimuth ${current.sunAz.toFixed(1)} degrees, elevation ${current.sunEl.toFixed(2)} degrees. Earth at azimuth ${current.earthAz.toFixed(1)} degrees, elevation ${current.earthEl.toFixed(2)} degrees.`} className="block">
       <rect x={PAD.left} y={y(0)} width={plotW} height={y(yMin) - y(0)} fill="#151327" />
+      {mask && terrain && <path aria-hidden fill="#2a2640" stroke="#8a84a3" strokeWidth="1"
+        d={`M${x(0)},${y(yMin)}${mask.map((v, i) => `L${x(i * terrain.azimuthStepDeg).toFixed(1)},${y(v).toFixed(1)}`).join("")}L${x(360)},${y(mask[0])}L${x(360)},${y(yMin)}Z`} />}
       {elTicks.map((el) => <g key={el}>
         <line x1={PAD.left} x2={width - PAD.right} y1={y(el)} y2={y(el)} stroke={el === 0 ? INK_MUTED : GRID} strokeWidth={el === 0 ? 1.5 : 1} />
         <text x={PAD.left - 6} y={y(el) + 3} textAnchor="end" fill={INK_MUTED} fontSize="9" fontFamily="var(--font-mono, monospace)">{el}°</text>

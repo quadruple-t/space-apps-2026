@@ -1,10 +1,8 @@
 /**
- * Mission illumination analysis over a Horizons time series.
- * Pure functions: no fetching, no React. Elevation is the Sun's centre relative
- * to the local horizontal; terrain shadowing is not modelled.
+ * Mission illumination analysis over an hourly Sun/Earth series (see lib/lunar-data.ts).
+ * Pure functions: no fetching, no React. Elevations are the body's centre above the local
+ * horizontal; "up" means clearing the terrain horizon at that azimuth (0° when none is known).
  */
-
-import type { ObserverEntry } from "./horizons"
 
 export const SOLAR_CONSTANT_W_M2 = 1361
 
@@ -15,9 +13,21 @@ export type Sample = {
   t: number            // epoch ms
   sunAz: number
   sunEl: number
+  /** terrain horizon elevation (deg) at the Sun's azimuth */
+  sunHorizon: number
   sunRangeAu: number
   earthAz: number
   earthEl: number
+  /** terrain horizon elevation (deg) at Earth's azimuth */
+  earthHorizon: number
+}
+
+export const sunUp = (s: Sample) => s.sunEl > s.sunHorizon
+export const earthUp = (s: Sample) => s.earthEl > s.earthHorizon
+
+/** Sunlight on the panel at a sample: zero when terrain blocks the Sun. */
+export function irradianceAt(s: Sample, mode: PanelMode): number {
+  return sunUp(s) ? irradiance(s.sunEl, s.sunRangeAu, mode) : 0
 }
 
 export function irradiance(sunElDeg: number, rangeAu: number, mode: PanelMode): number {
@@ -25,18 +35,6 @@ export function irradiance(sunElDeg: number, rangeAu: number, mode: PanelMode): 
   const el = (sunElDeg * Math.PI) / 180
   const flux = SOLAR_CONSTANT_W_M2 / (rangeAu * rangeAu)
   return flux * (mode === "horizontal" ? Math.sin(el) : Math.cos(el))
-}
-
-/** Join Sun and Earth series on timestamp. Rows missing either body are dropped. */
-export function mergeSeries(sun: ObserverEntry[], earth: ObserverEntry[]): Sample[] {
-  const earthByTime = new Map(earth.map((e) => [e.time, e]))
-  const out: Sample[] = []
-  for (const s of sun) {
-    const e = earthByTime.get(s.time)
-    if (!e) continue
-    out.push({ t: Date.parse(s.time), sunAz: s.az, sunEl: s.el, sunRangeAu: s.rangeAu ?? 1, earthAz: e.az, earthEl: e.el })
-  }
-  return out
 }
 
 /**
@@ -67,10 +65,10 @@ export function buildTimeline(samples: Sample[], stepHours: number, mode: PanelM
   let sun = 0, energy = 0, earth = 0, dark = 0, maxDark = 0, blackout = 0, maxBlackout = 0
   for (let i = 0; i < n; i++) {
     const s = samples[i]
-    const w = irradiance(s.sunEl, s.sunRangeAu, mode)
+    const w = irradianceAt(s, mode)
     tl.irradiance[i] = w
-    if (s.sunEl > 0) { sun += stepHours; dark = 0 } else { dark += stepHours; maxDark = Math.max(maxDark, dark) }
-    if (s.earthEl > 0) { earth += stepHours; blackout = 0 } else { blackout += stepHours; maxBlackout = Math.max(maxBlackout, blackout) }
+    if (sunUp(s)) { sun += stepHours; dark = 0 } else { dark += stepHours; maxDark = Math.max(maxDark, dark) }
+    if (earthUp(s)) { earth += stepHours; blackout = 0 } else { blackout += stepHours; maxBlackout = Math.max(maxBlackout, blackout) }
     energy += (w * stepHours) / 1000
     tl.cumSunHours[i] = sun
     tl.cumEnergyKWh[i] = energy
@@ -98,8 +96,8 @@ export function summarizeByDay(samples: Sample[], tl: Timeline): DaySummary[] {
     const d = Math.floor((samples[i].t - t0) / 86_400_000)
     if (!days[d]) days[d] = { dayStart: t0 + d * 86_400_000, sunlightHours: 0, earthHours: 0, peakIrradiance: 0, energyKWh: 0 }
     const day = days[d]
-    if (samples[i].sunEl > 0) day.sunlightHours += tl.stepHours
-    if (samples[i].earthEl > 0) day.earthHours += tl.stepHours
+    if (sunUp(samples[i])) day.sunlightHours += tl.stepHours
+    if (earthUp(samples[i])) day.earthHours += tl.stepHours
     day.peakIrradiance = Math.max(day.peakIrradiance, tl.irradiance[i])
     day.energyKWh += (tl.irradiance[i] * tl.stepHours) / 1000
   }
@@ -128,8 +126,8 @@ export function summarizeByLunarDay(samples: Sample[], stepHours = 1): LunarDayS
     const k = Math.floor((s.t - t0) / span)
     const b = out[k] ??= { index: k, startMs: t0 + k * span, endMs: t0 + (k + 1) * span, sunlightHours: 0, maxSunEl: -90, earthVisiblePct: 0, complete: false, n: 0, earthN: 0 }
     b.n++
-    if (s.sunEl > 0) b.sunlightHours += stepHours
-    if (s.earthEl > 0) b.earthN++
+    if (sunUp(s)) b.sunlightHours += stepHours
+    if (earthUp(s)) b.earthN++
     b.maxSunEl = Math.max(b.maxSunEl, s.sunEl)
   }
   const lastT = samples[samples.length - 1].t
@@ -155,9 +153,11 @@ export function sampleAt(samples: Sample[], index: number): Sample {
     t: a.t + (b.t - a.t) * f,
     sunAz: lerpAngle(a.sunAz, b.sunAz, f),
     sunEl: a.sunEl + (b.sunEl - a.sunEl) * f,
+    sunHorizon: a.sunHorizon + (b.sunHorizon - a.sunHorizon) * f,
     sunRangeAu: a.sunRangeAu + (b.sunRangeAu - a.sunRangeAu) * f,
     earthAz: lerpAngle(a.earthAz, b.earthAz, f),
     earthEl: a.earthEl + (b.earthEl - a.earthEl) * f,
+    earthHorizon: a.earthHorizon + (b.earthHorizon - a.earthHorizon) * f,
   }
 }
 
@@ -166,11 +166,11 @@ export function sampleAt(samples: Sample[], index: number): Sample {
  * Null when it never changes before the series ends.
  */
 export function hoursUntilChange(samples: Sample[], index: number, stepHours: number, body: "sun" | "earth"): number | null {
-  const key = body === "sun" ? "sunEl" : "earthEl"
+  const isUp = body === "sun" ? sunUp : earthUp
   const i0 = Math.max(0, Math.min(samples.length - 1, Math.floor(index)))
-  const up = samples[i0][key] > 0
+  const up = isUp(samples[i0])
   for (let i = i0 + 1; i < samples.length; i++) {
-    if ((samples[i][key] > 0) !== up) return (i - index) * stepHours
+    if (isUp(samples[i]) !== up) return (i - index) * stepHours
   }
   return null
 }

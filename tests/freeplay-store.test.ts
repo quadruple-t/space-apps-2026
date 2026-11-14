@@ -1,6 +1,5 @@
-import { beforeEach, describe, expect, test } from "@jest/globals"
-import { PRESET_SITES } from "../data/sites"
-import { currentTimeMs, useFreeplay } from "../lib/freeplay-store"
+import { beforeEach, describe, expect, test } from "vitest"
+import { COVERAGE_END_ISO, COVERAGE_START_ISO, currentTimeMs, useFreeplay } from "@/lib/freeplay-store"
 
 const initial = useFreeplay.getState()
 beforeEach(() => useFreeplay.setState(initial, true))
@@ -82,14 +81,11 @@ describe("freeplay store", () => {
     expect(useFreeplay.getState().savedSites[0].name).toBe("Site 1")
   })
 
-  test("every preset has coordinates in range and a source", () => {
-    for (const p of PRESET_SITES) {
-      expect(p.latitudeDeg).toBeGreaterThanOrEqual(-90)
-      expect(p.latitudeDeg).toBeLessThanOrEqual(90)
-      expect(p.longitudeDeg).toBeGreaterThanOrEqual(0)
-      expect(p.longitudeDeg).toBeLessThan(360)
-      expect(p.source.length).toBeGreaterThan(5)
-    }
-    expect(new Set(PRESET_SITES.map((p) => p.id)).size).toBe(PRESET_SITES.length)
+  test("mission start is clamped to the stored ephemeris coverage", () => {
+    const s = useFreeplay.getState()
+    s.setStart("2019-05-01T00:00:00.000Z")
+    expect(useFreeplay.getState().startIso).toBe(COVERAGE_START_ISO)
+    s.setStart("2035-01-01T00:00:00.000Z")
+    expect(Date.parse(useFreeplay.getState().startIso)).toBeLessThan(Date.parse(COVERAGE_END_ISO))
   })
 })

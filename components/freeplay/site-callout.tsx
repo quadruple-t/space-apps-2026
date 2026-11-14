@@ -53,7 +53,7 @@ function CalloutBody({ site }: { site: FreeplaySite }) {
     if (Number.isFinite(km) && km > 0) setRadius(km);
     else setRadiusText(String(site.radiusKm));
   };
-  const startNaming = () => { setName(`Site ${savedCount + 1}`); setNaming(true); };
+  const startNaming = () => { setName(site.kind === "catalog" ? site.name : `Site ${savedCount + 1}`); setNaming(true); };
   const save = (e: FormEvent) => { e.preventDefault(); saveCurrentSite(name); setNaming(false); };
   const saved = site.kind === "saved";
 
@@ -65,7 +65,7 @@ function CalloutBody({ site }: { site: FreeplaySite }) {
     <div ref={box} role="dialog" aria-label={`${site.name} details`} className="hud-panel pointer-events-auto absolute left-0 top-0 p-3" style={{ width: BOX_W }}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="type-data text-[0.54rem] uppercase tracking-[0.14em] text-retro-purple">{saved ? "Saved site" : "New site"}</div>
+          <div className="type-data text-[0.54rem] uppercase tracking-[0.14em] text-retro-purple">{saved ? "Saved site" : site.kind === "catalog" ? "Catalog site · LOLA terrain" : "New site"}</div>
           <h2 className="type-heading mt-0.5 truncate text-sm text-bone">{site.name}</h2>
           <div className="type-data mt-0.5 text-[0.62rem] tabular-nums text-muted-foreground">{fmtLat(site.latitudeDeg)} · {site.longitudeDeg.toFixed(4)}°E</div>
         </div>

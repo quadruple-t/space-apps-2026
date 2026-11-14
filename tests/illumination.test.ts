@@ -1,34 +1,12 @@
-import { describe, test, expect } from "@jest/globals"
-import { parseHorizonsObserver } from "../lib/horizons"
+import { describe, test, expect } from "vitest"
 import {
-  buildTimeline, hoursUntilChange, irradiance, mergeSeries, sampleAt, summarizeByDay, summarizeByLunarDay, SOLAR_CONSTANT_W_M2, SYNODIC_MONTH_HOURS,
-  type Sample,
-} from "../lib/illumination"
+  buildTimeline, hoursUntilChange, irradiance, irradianceAt, sampleAt, summarizeByDay, summarizeByLunarDay, sunUp,
+  SOLAR_CONSTANT_W_M2, SYNODIC_MONTH_HOURS, type Sample,
+} from "@/lib/illumination"
 
 const H = 3_600_000
-const mk = (h: number, sunEl: number, earthEl = 5, sunAz = 0): Sample =>
-  ({ t: h * H, sunAz, sunEl, sunRangeAu: 1, earthAz: 0, earthEl })
-
-describe("parseHorizonsObserver flag column", () => {
-  const raw = [
-    "$$SOE",
-    " 2026-Nov-14 00:00 *   126.619609   1.496957  0.98787543056046   0.2966886",
-    " 2026-Nov-14 01:00 *i  126.111757   1.497682  0.98788262646271   0.3013550",
-    " 2027-Feb-21 20:00     352.615295  -0.269527  0.99137017174750   0.2209546",
-    " 2027-Feb-21 21:00  i  352.109619  -0.271163  0.99137538520292   0.2123400",
-    "$$EOE",
-  ].join("\n")
-
-  test("parses rows with blank, *, i and *i flags", () => {
-    const rows = parseHorizonsObserver(raw)
-    expect(rows).toHaveLength(4)
-    expect(rows[2].el).toBeCloseTo(-0.269527, 6)
-  })
-
-  test("reads Sun range in AU when QUANTITIES includes 20", () => {
-    expect(parseHorizonsObserver(raw)[0].rangeAu).toBeCloseTo(0.98787543, 8)
-  })
-})
+const mk = (h: number, sunEl: number, earthEl = 5, sunAz = 0, sunHorizon = 0): Sample =>
+  ({ t: h * H, sunAz, sunEl, sunHorizon, sunRangeAu: 1, earthAz: 0, earthEl, earthHorizon: 0 })
 
 describe("irradiance", () => {
   test("zero when the Sun is below the horizon", () => {
@@ -39,6 +17,12 @@ describe("irradiance", () => {
   })
   test("vertical Sun-facing panel scales with cos(elevation)", () => {
     expect(irradiance(1.5, 1, "vertical")).toBeCloseTo(SOLAR_CONSTANT_W_M2 * Math.cos((1.5 * Math.PI) / 180), 6)
+  })
+  test("terrain above the Sun blocks it even when it's above the flat horizon", () => {
+    const blocked = mk(0, 2, 5, 90, 3.5)
+    expect(sunUp(blocked)).toBe(false)
+    expect(irradianceAt(blocked, "vertical")).toBe(0)
+    expect(irradianceAt(mk(0, 2, 5, 90, 1), "vertical")).toBeGreaterThan(1300)
   })
   test("inverse-square with Sun distance", () => {
     expect(irradiance(90, 0.98, "horizontal")).toBeCloseTo(SOLAR_CONSTANT_W_M2 / 0.98 ** 2, 6)
@@ -101,11 +85,4 @@ describe("interpolation", () => {
     expect(s.sunEl).toBeCloseTo(2, 6)
   })
 
-  test("mergeSeries joins on timestamp", () => {
-    const sun = [{ time: "2026-01-01T00:00:00.000Z", az: 1, el: 2, rangeAu: 0.99 }, { time: "2026-01-01T01:00:00.000Z", az: 1, el: 2 }]
-    const earth = [{ time: "2026-01-01T00:00:00.000Z", az: 3, el: 4 }]
-    const m = mergeSeries(sun, earth)
-    expect(m).toHaveLength(1)
-    expect(m[0]).toMatchObject({ sunRangeAu: 0.99, earthAz: 3, earthEl: 4 })
-  })
 })

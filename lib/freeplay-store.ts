@@ -1,8 +1,7 @@
 "use client"
 
 import { create } from "zustand"
-import type { FreeplaySite } from "@/data/sites"
-import { DEMO_START_ISO } from "@/lib/prefetch"
+import { COORD_REF, type FreeplaySite } from "@/data/sites"
 
 export type FreeplayView = "globe" | "orbit"
 export type LayerId = "slope" | "illumination" | "psr" | "elevation"
@@ -57,6 +56,8 @@ type FreeplayState = {
   speed: Speed
 
   layers: Record<LayerId, LayerState>
+  /** Show the Lunaris360 catalog sites (landings and Artemis candidates) as pins on the globe */
+  showCatalog: boolean
   graphTab: GraphTab
   panelAreaM2: number
   panelEfficiency: number
@@ -78,13 +79,17 @@ type FreeplayState = {
   setSpeed: (s: Speed) => void
 
   setLayer: (id: LayerId, patch: Partial<LayerState>) => void
+  setShowCatalog: (show: boolean) => void
   setGraphTab: (t: GraphTab) => void
   setPanel: (areaM2: number, efficiency: number) => void
   hydrate: () => void
 }
 
 const DEFAULT_RADIUS_KM = 10
-const COORD_REF = "Planetocentric latitude, east-positive longitude (ME frame)"
+/** Default mission start. Stored ephemeris covers 2026-01-01 … 2030-12-31 (docs/API.md). */
+export const DEFAULT_START_ISO = "2026-12-01T00:00:00.000Z"
+export const COVERAGE_START_ISO = "2026-01-01T00:00:00.000Z"
+export const COVERAGE_END_ISO = "2030-12-31T23:00:00.000Z"
 const round = (n: number, d = 4) => Number(n.toFixed(d))
 
 export const useFreeplay = create<FreeplayState>((set, get) => {
@@ -100,7 +105,7 @@ export const useFreeplay = create<FreeplayState>((set, get) => {
     savedSites: [],
     hydrated: false,
 
-    startIso: DEMO_START_ISO,
+    startIso: DEFAULT_START_ISO,
     durationHours: Math.round(LUNAR_DAY_HOURS),
     elapsedHours: 0,
     playing: false,
@@ -112,6 +117,7 @@ export const useFreeplay = create<FreeplayState>((set, get) => {
       psr: { on: false, opacity: 0.9 },
       elevation: { on: false, opacity: 0.6 },
     },
+    showCatalog: false,
     graphTab: "daily",
     panelAreaM2: 1,
     panelEfficiency: 0.3,
@@ -124,8 +130,7 @@ export const useFreeplay = create<FreeplayState>((set, get) => {
         calloutOpen: true,
         site: {
           id: `custom-${lat}-${lon}`, name: "Custom site", latitudeDeg: lat, longitudeDeg: lon,
-          radiusKm: get().site?.radiusKm ?? DEFAULT_RADIUS_KM, program: "—", country: "—", verified: false,
-          source: "Picked on the globe", coordinateReference: COORD_REF,
+          radiusKm: get().site?.radiusKm ?? DEFAULT_RADIUS_KM, coordinateReference: COORD_REF,
           provenance: "user", kind: "custom",
         },
       })
@@ -169,13 +174,17 @@ export const useFreeplay = create<FreeplayState>((set, get) => {
       persist()
     },
 
-    setStart: (startIso) => set({ startIso, elapsedHours: 0, playing: false }),
+    setStart: (iso) => {
+      const ms = Math.min(Date.parse(COVERAGE_END_ISO) - 3_600_000, Math.max(Date.parse(COVERAGE_START_ISO), Date.parse(iso)))
+      set({ startIso: new Date(ms).toISOString(), elapsedHours: 0, playing: false })
+    },
     setDuration: (hours) => set((s) => ({ durationHours: hours, elapsedHours: Math.min(s.elapsedHours, hours) })),
     setElapsed: (h) => set((s) => ({ elapsedHours: Math.max(0, Math.min(s.durationHours, h)) })),
     setPlaying: (playing) => set((s) => ({ playing, elapsedHours: playing && s.elapsedHours >= s.durationHours ? 0 : s.elapsedHours })),
     setSpeed: (speed) => set({ speed }),
 
     setLayer: (id, patch) => set((s) => ({ layers: { ...s.layers, [id]: { ...s.layers[id], ...patch } } })),
+    setShowCatalog: (showCatalog) => set({ showCatalog }),
     setGraphTab: (graphTab) => set({ graphTab }),
     setPanel: (panelAreaM2, panelEfficiency) => { set({ panelAreaM2, panelEfficiency }); persist() },
     hydrate: () => {

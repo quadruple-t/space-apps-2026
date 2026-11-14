@@ -1,6 +1,6 @@
 import type { LayerId } from "@/lib/freeplay-store";
 
-/** Overlay definitions. Identifiers and their provenance are recorded in data/SOURCES.md. */
+/** Overlay definitions. Identifiers and their provenance are recorded in docs/SOURCES.md §7. */
 export type OverlaySource =
   | { kind: "wmts"; layer: string; format: "image/png" | "image/jpeg"; maximumLevel: number; south?: number; north?: number }
   | { kind: "wms"; layers: string };

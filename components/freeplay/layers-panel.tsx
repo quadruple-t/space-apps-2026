@@ -6,6 +6,8 @@ import { useFreeplay } from "@/lib/freeplay-store";
 export function LayersPanel({ className = "" }: { className?: string }) {
   const layers = useFreeplay((s) => s.layers);
   const setLayer = useFreeplay((s) => s.setLayer);
+  const showCatalog = useFreeplay((s) => s.showCatalog);
+  const setShowCatalog = useFreeplay((s) => s.setShowCatalog);
 
   return <section aria-label="Layers" className={`flex flex-col gap-2 overflow-y-auto p-3 ${className}`}>
     <h2 className="type-data text-[0.6rem] uppercase tracking-[0.16em] text-retro-purple">Layers</h2>
@@ -16,6 +18,19 @@ export function LayersPanel({ className = "" }: { className?: string }) {
         <span className="type-data text-[0.52rem] uppercase text-muted-foreground">always on</span>
       </div>
       <p className="mt-0.5 text-[0.56rem] text-muted-foreground">LRO WAC global mosaic · NASA Moon Trek</p>
+    </div>
+
+    <div className={`hud-readout transition-colors ${showCatalog ? "border-retro-purple/50" : ""}`}>
+      <div className="flex items-center justify-between gap-2">
+        <label htmlFor="layer-catalog" className="cursor-pointer text-[0.66rem] text-bone">Catalog sites</label>
+        <button id="layer-catalog" type="button" role="switch" aria-checked={showCatalog} onClick={() => setShowCatalog(!showCatalog)}
+          className={`relative h-4 w-7 shrink-0 rounded-full border transition-colors ${showCatalog ? "border-retro-purple bg-retro-purple/70" : "border-line bg-void"}`}>
+          <span className={`absolute top-1/2 size-2.5 -translate-y-1/2 rounded-full bg-bone transition-[left] ${showCatalog ? "left-[0.85rem]" : "left-[0.15rem]"}`} />
+          <span className="sr-only">{showCatalog ? "On" : "Off"}</span>
+        </button>
+      </div>
+      <p className="mt-0.5 text-[0.56rem] leading-snug text-muted-foreground">Past landings and Artemis III candidates from the Lunaris360 catalog. Their LOLA terrain horizon is used for sunlight and Earth visibility.</p>
+      <div className="type-data mt-1.5 flex items-center gap-1.5 text-[0.54rem] text-muted-foreground"><span aria-hidden className="text-bone">★</span>catalog site</div>
     </div>
 
     {LAYERS.map((def) => {

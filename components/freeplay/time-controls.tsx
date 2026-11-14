@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, Pause, Play, RotateCcw } from "lucide-react";
-import { DURATION_PRESETS, SPEEDS, currentTimeMs, useFreeplay } from "@/lib/freeplay-store";
+import { COVERAGE_END_ISO, COVERAGE_START_ISO, DURATION_PRESETS, SPEEDS, currentTimeMs, useFreeplay } from "@/lib/freeplay-store";
 
 /** Advances elapsed mission time while playing. Mount once per Freeplay page. */
 export function usePlaybackClock() {
@@ -56,7 +56,7 @@ export function TimeControls() {
     <div className={`${setupOpen ? "flex" : "hidden"} flex-wrap items-end gap-x-4 gap-y-2 md:contents`}>
     <label className="hud-label">Date (UTC)
       <div className="mt-1 flex gap-1">
-        <input type="date" value={startDate} onChange={(e) => changeStart(e.target.value, startTime)} className="hud-input w-[8.6rem] normal-case tracking-normal" />
+        <input type="date" value={startDate} min={COVERAGE_START_ISO.slice(0, 10)} max={COVERAGE_END_ISO.slice(0, 10)} onChange={(e) => changeStart(e.target.value, startTime)} className="hud-input w-[8.6rem] normal-case tracking-normal" title="Stored ephemeris covers 2026–2030" />
         <input type="time" value={startTime} onChange={(e) => changeStart(startDate, e.target.value)} className="hud-input w-[5.4rem] normal-case tracking-normal" />
       </div>
     </label>
