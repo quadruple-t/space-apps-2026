@@ -39,7 +39,7 @@ function LunarMap({ selectedSite, onSelect }: Pick<Props, "selectedSite" | "onSe
   };
 
   return <div className="mt-3 overflow-hidden rounded border border-retro-purple/25 bg-[#090817] p-1.5">
-    <svg viewBox="0 0 720 360" role="group" aria-label={`Lunar coordinate map. Selected ${selectedSite.latitudeDeg.toFixed(2)} degrees latitude, ${selectedSite.longitudeDeg.toFixed(2)} degrees east longitude. Use arrow keys to adjust by 5 degrees, or Shift plus an arrow for 15 degrees.`} tabIndex={0} onKeyDown={moveMapPoint} onClick={selectMapPoint} className="block w-full cursor-crosshair touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-retro-purple">
+    <svg viewBox="0 0 720 360" role="group" data-no-flight-controls aria-label={`Lunar coordinate map. Selected ${selectedSite.latitudeDeg.toFixed(2)} degrees latitude, ${selectedSite.longitudeDeg.toFixed(2)} degrees east longitude. Use arrow keys to adjust by 5 degrees, or Shift plus an arrow for 15 degrees.`} tabIndex={0} onKeyDown={moveMapPoint} onClick={selectMapPoint} className="block w-full cursor-crosshair touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-retro-purple">
       <defs>
         <linearGradient id="moonHudBase" x1="0" x2="1" y1="0" y2="1"><stop stopColor="#504b79"/><stop offset=".5" stopColor="#918ba8"/><stop offset="1" stopColor="#393759"/></linearGradient>
         <pattern id="moonHudGrain" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="6" cy="8" r="1" fill="#dbefff" opacity=".14"/><circle cx="21" cy="19" r=".8" fill="#17162d" opacity=".25"/></pattern>

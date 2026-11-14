@@ -91,7 +91,7 @@ export function Navbar() {
 
         <div className="flex items-center gap-2">
           <Button asChild size="lg" className="hidden sm:inline-flex">
-            <Link href={LAUNCH_HREF}>Launch Shadowline</Link>
+            <Link href={LAUNCH_HREF}>Launch Freeplay</Link>
           </Button>
 
           <Sheet>
@@ -123,7 +123,7 @@ export function Navbar() {
               <div className="mt-auto border-t border-line p-6">
                 <SheetClose asChild>
                   <Button asChild size="xl" className="w-full">
-                    <Link href={LAUNCH_HREF}>Launch Shadowline</Link>
+                    <Link href={LAUNCH_HREF}>Launch Freeplay</Link>
                   </Button>
                 </SheetClose>
               </div>
