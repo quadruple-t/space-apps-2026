@@ -35,7 +35,7 @@ export function LandingSite({
     };
     const beamGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 38, 0)]);
     return {
-      sunLine: makeLine(sunDirection, "#e3ae4f", 260),
+      sunLine: makeLine(sunDirection, "#ff637d", 260),
       earthLine: makeLine(earthDirection, "#7fa6cf", 260),
       beam: new THREE.Line(beamGeo, new THREE.LineBasicMaterial({ color: "#ece9e2", transparent: true, opacity: 0.55, toneMapped: false })),
     };

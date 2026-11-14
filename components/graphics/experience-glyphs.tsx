@@ -14,10 +14,10 @@ function GuidedGlyph() {
   return (
     <svg viewBox="0 0 260 120" className="h-auto w-full" aria-hidden>
       <path d="M0 104 L40 96 L70 88 L104 98 L150 78 L186 70 L220 84 L260 76" {...stroke} />
-      <polyline points={pts.map((p) => p.join(",")).join(" ")} fill="none" stroke="#e3ae4f" strokeDasharray="3 4" strokeWidth="1.25" />
+      <polyline points={pts.map((p) => p.join(",")).join(" ")} fill="none" stroke="#ff637d" strokeDasharray="3 4" strokeWidth="1.25" />
       {pts.map(([x, y], i) => (
         <g key={i}>
-          <circle cx={x} cy={y} r={i === 0 ? 5 : 3.5} fill={i === 0 ? "#e3ae4f" : "#050506"} stroke="#e3ae4f" strokeWidth="1.25" />
+          <circle cx={x} cy={y} r={i === 0 ? 5 : 3.5} fill={i === 0 ? "#ff637d" : "#050506"} stroke="#ff637d" strokeWidth="1.25" />
         </g>
       ))}
     </svg>

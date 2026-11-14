@@ -40,7 +40,7 @@ npm run lint       # ESLint (Next.js + React Compiler rules)
 | ---------- | --------------------------------------------------------- |
 | `/`        | Landing page                                              |
 | `/mission` | Guided Mission: tutorial introduction                     |
-| `/explore` | Free Exploration: environment introduction and 3D preview |
+| `/explore` | Freeplay: interactive lunar scene, custom coordinates, time controls, camera modes and demo metrics |
 | `/compare` | Mission Comparison: comparison layout (empty states)      |
 | `/science` | Methodology, data sources and glossary                    |
 
@@ -56,6 +56,7 @@ components/
   graphics/              SVG diagrams: horizon profile, challenge diagrams, static lunar horizon
   ui/                    shadcn primitives + Reveal, SectionHeading, StatusBadge
 scenes/lunar/            Reusable 3D scene (terrain, Sun/Earth/stars, camera rig, landing marker, loader)
+integrations/science/    Typed science-provider boundary and explicitly illustrative mock provider
 data/                    Site copy, nav, experiences, data sources, hero-scene config
 lib/                     Seeded noise, illustrative horizon model, WebGL detection, utils
 hooks/                   useReducedMotion, useInView
@@ -79,14 +80,14 @@ The landing page doesn't depend on simulation code. These are the seams designed
   ephemerides.
 - **Scene configuration:** `data/hero-scene.ts` holds the Sun and Earth angles shared by the 3D scene and
   the HUD.
-- **Experience routes:** `app/mission`, `app/explore` and `app/compare` hold introductory pages today.
-  Each will host its interactive environment, reusing `LunarScene` (`scenes/lunar/lunar-scene.tsx`).
+- **Freeplay:** `/explore` is an interactive demo workspace. See `FREEPLAY_INTEGRATION_CONTRACT.md` for provider,
+  coordinate, terrain and provenance requirements before connecting real science data.
 
 ## Performance and accessibility
 
 - The 3D scene loads client-side via `next/dynamic`. A static SVG horizon renders first and remains as
   the fallback when WebGL is unavailable or the scene errors.
-- Shadows render once (static Sun and terrain). Rendering pauses when a scene scrolls out of view.
+- The cinematic scenes render static shadows; Freeplay updates shadows as its illustrative Sun position changes.
   Low-end and small devices get a lighter mesh and a lower DPR cap.
 - `prefers-reduced-motion` freezes the camera, disables reveals and the hero entrance, and switches the
   canvas to on-demand rendering.

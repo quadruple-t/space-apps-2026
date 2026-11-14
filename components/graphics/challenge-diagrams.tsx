@@ -12,8 +12,8 @@ export function LightingDiagram() {
     <svg viewBox="0 0 320 170" className={frame} role="img" aria-label="Diagram: sunlight grazing a ridge leaves the crater beyond it in shadow">
       <defs>
         <linearGradient id="ld-ray" x1="0" x2="1">
-          <stop offset="0" stopColor="#e3ae4f" stopOpacity="0.9" />
-          <stop offset="1" stopColor="#e3ae4f" stopOpacity="0.05" />
+          <stop offset="0" stopColor="#ff637d" stopOpacity="0.9" />
+          <stop offset="1" stopColor="#ff637d" stopOpacity="0.05" />
         </linearGradient>
       </defs>
       {/* Shadow wedge cast by the ridge */}
@@ -25,8 +25,8 @@ export function LightingDiagram() {
       {/* Terrain: ridge then crater */}
       <path d="M0 150 L0 128 L40 122 L80 110 L118 92 L140 108 L168 140 L200 148 L240 146 L268 132 L300 118 L320 120 L320 170 L0 170 Z" fill="#26262a" stroke="#ece9e2" strokeOpacity="0.55" />
       {/* Lit face of the ridge */}
-      <path d="M40 122 L80 110 L118 92 L118 92" stroke="#e3ae4f" strokeWidth="2" fill="none" />
-      <circle cx="16" cy="72" r="7" fill="#e3ae4f" />
+      <path d="M40 122 L80 110 L118 92 L118 92" stroke="#ff637d" strokeWidth="2" fill="none" />
+      <circle cx="16" cy="72" r="7" fill="#ff637d" />
       <text x="28" y="58" {...label}>Sun +1.5°</text>
       <text x="196" y="138" {...label} fill="#8b8a85">shadow</text>
     </svg>
@@ -64,7 +64,7 @@ export function TradeoffDiagram() {
   ];
   return (
     <svg viewBox="0 0 320 170" className={frame} role="img" aria-label="Diagram: three candidate sites plotted by sunlight against Earth visibility; only one is strong on both">
-      <rect x="200" y="18" width="104" height="58" fill="#e3ae4f" fillOpacity="0.06" stroke="#e3ae4f" strokeOpacity="0.4" strokeDasharray="3 3" />
+      <rect x="200" y="18" width="104" height="58" fill="#ff637d" fillOpacity="0.06" stroke="#ff637d" strokeOpacity="0.4" strokeDasharray="3 3" />
       <line x1="40" y1="140" x2="304" y2="140" stroke="#8b8a85" />
       <line x1="40" y1="140" x2="40" y2="14" stroke="#8b8a85" />
       <text x="304" y="158" textAnchor="end" {...label}>sunlight →</text>
