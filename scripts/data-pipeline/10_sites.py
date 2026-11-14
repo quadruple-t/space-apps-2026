@@ -133,7 +133,7 @@ def _index_row(sid, doc, point, approx=False):
     return {"id": sid, "name": doc["name"], "family": doc["family"], "siteKind": doc["siteKind"], "country": doc["country"],
             "agency": doc["agency"], "outcome": doc["outcome"],
             "latDeg": point["latDeg"] if point else None, "lonDeg": point["lonDeg"] if point else None,
-            "pointIsApproximate": approx, "landingTimeUtc": doc["landingTimeUtc"], "chapterId": doc["chapterId"]}
+            "pointIsApproximate": approx, "coordsVerified": bool(doc["coordsVerified"]) and not approx, "landingTimeUtc": doc["landingTimeUtc"], "chapterId": doc["chapterId"]}
 
 
 if __name__ == "__main__":

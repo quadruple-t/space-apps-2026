@@ -29,8 +29,8 @@ async function getJson<T>(path: string): Promise<T> {
 export function toDriveSite(site: FreeplaySite, catalog: CatalogSite[]): LunarSite {
   const { latitudeDeg, longitudeDeg, coordinateReference } = site;
   const entry = site.catalogId ? catalog.find((candidate) => candidate.id === site.catalogId) : undefined;
-  if (entry && !entry.pointIsApproximate) return { id: entry.id, name: site.name, latitudeDeg, longitudeDeg, coordinateReference, provenance: "scientific" };
-  if (entry) return { id: `approx-${entry.id}`, name: `${site.name} (approximate region point)`, latitudeDeg, longitudeDeg, coordinateReference, provenance: "illustrative" };
+  if (entry?.coordsVerified && !entry.pointIsApproximate) return { id: entry.id, name: site.name, latitudeDeg, longitudeDeg, coordinateReference, provenance: "scientific" };
+  if (entry) return { id: `approx-${entry.id}`, name: `${site.name} (${entry.pointIsApproximate ? "approximate region point" : "unverified coordinates"})`, latitudeDeg, longitudeDeg, coordinateReference, provenance: "illustrative" };
   return { id: site.id, name: site.name, latitudeDeg, longitudeDeg, coordinateReference, provenance: "user" };
 }
 
@@ -63,7 +63,7 @@ export function useTutorialData(): TutorialData {
         if (!chapter) continue;
         chapters[id] = chapter;
         const entries = chapter.featuredSiteIds.flatMap((siteId) => catalog.filter((site) => site.id === siteId));
-        featured[id] = [...entries.filter((site) => !site.pointIsApproximate), ...entries.filter((site) => site.pointIsApproximate)].map((site) => catalogToFreeplay(site));
+        featured[id] = [...entries.filter((site) => site.coordsVerified && !site.pointIsApproximate), ...entries.filter((site) => !site.coordsVerified || site.pointIsApproximate)].map((site) => catalogToFreeplay(site));
       }
       if (active) setData({ status: "ready", chapters, catalog, featured });
     }).catch(() => { if (active) setData({ status: "unavailable", chapters: {}, catalog: [], featured: {} }); });

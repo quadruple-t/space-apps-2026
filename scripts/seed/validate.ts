@@ -119,6 +119,8 @@ export function validateSeed(docs: SeedDoc[]): string[] {
               oneOf(p, e, "siteKind", SITE_KINDS);
               oneOf(p, e, "outcome", OUTCOMES);
               oneOf(p, e, "chapterId", CHAPTER_IDS, true);
+              if (typeof e.coordsVerified !== "boolean") err(p, "coordsVerified must be a boolean");
+              else if (e.coordsVerified && (typeof e.latDeg !== "number" || typeof e.lonDeg !== "number" || e.pointIsApproximate === true)) err(p, "coordsVerified requires a non-approximate point coordinate");
             });
         }
         break;

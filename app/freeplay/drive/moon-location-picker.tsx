@@ -50,7 +50,7 @@ function TerrainReliefMap({ grid, selectedSite }: { grid: TerrainGrid; selectedS
     <div className="mt-1 flex items-center justify-between type-data text-[0.5rem] text-muted-foreground"><span>{Math.round(minimum).toLocaleString()} m</span><span className="text-retro-red">SITE</span><span>{Math.round(maximum).toLocaleString()} m</span></div>
   </div>;
 }
-type CatalogSite = { id: string; name: string; family: string; latDeg: number | null; lonDeg: number | null; pointIsApproximate: boolean };
+type CatalogSite = { id: string; name: string; family: string; latDeg: number | null; lonDeg: number | null; pointIsApproximate: boolean; coordsVerified: boolean };
 type CatalogDetail = { site?: { coordinates?: { elevationM?: number | null } | null; terrainSummary?: { slope100mDeg?: number | null } | null }; terrain?: { slope100mDeg?: number | null } | null };
 
 function LunarMap({ selectedSite, onSelect }: Pick<Props, "selectedSite" | "onSelect">) {
@@ -112,7 +112,7 @@ export function MoonLocationPicker({ selectedSite, onSelect, onNavigate, onConti
         if (!response.ok) throw new Error("Site catalog unavailable");
         return response.json() as Promise<{ sites?: CatalogSite[] }>;
       })
-      .then((data) => { if (active) setCatalogSites((data.sites ?? []).filter((site) => site.latDeg !== null && site.lonDeg !== null && !site.pointIsApproximate)); })
+      .then((data) => { if (active) setCatalogSites((data.sites ?? []).filter((site) => site.latDeg !== null && site.lonDeg !== null && site.coordsVerified && !site.pointIsApproximate)); })
       .catch(() => { if (active) setCatalogError("Catalog sites unavailable"); });
     return () => { active = false; };
   }, []);

@@ -12,7 +12,8 @@
    "lonDeg": 23.47314,
    "pointIsApproximate": false,
    "landingTimeUtc": "1969-07-20T20:17:40Z",
-   "chapterId": "ch1-first-landing"
+   "chapterId": "ch1-first-landing",
+   "coordsVerified": true
   },
   {
    "id": "apollo-12-oceanus-procellarum",
@@ -26,7 +27,8 @@
    "lonDeg": -23.4219,
    "pointIsApproximate": false,
    "landingTimeUtc": "1969-11-19T06:54:35Z",
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "apollo-14-fra-mauro",
@@ -40,7 +42,8 @@
    "lonDeg": -17.47194,
    "pointIsApproximate": false,
    "landingTimeUtc": "1971-02-05T09:18:11Z",
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "apollo-15-hadley-apennine",
@@ -54,7 +57,8 @@
    "lonDeg": 3.6333,
    "pointIsApproximate": false,
    "landingTimeUtc": "1971-07-30T22:16:29Z",
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "apollo-16-descartes",
@@ -68,7 +72,8 @@
    "lonDeg": 15.5011,
    "pointIsApproximate": false,
    "landingTimeUtc": "1972-04-21T02:23:35Z",
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "apollo-17-taurus-littrow",
@@ -82,7 +87,8 @@
    "lonDeg": 30.7723,
    "pointIsApproximate": false,
    "landingTimeUtc": "1972-12-11T19:54:57Z",
-   "chapterId": "ch1-first-landing"
+   "chapterId": "ch1-first-landing",
+   "coordsVerified": true
   },
   {
    "id": "surveyor-1",
@@ -96,7 +102,8 @@
    "lonDeg": -43.3398,
    "pointIsApproximate": false,
    "landingTimeUtc": "1966-06-02T06:17:36Z",
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "surveyor-3",
@@ -110,7 +117,8 @@
    "lonDeg": -23.418,
    "pointIsApproximate": false,
    "landingTimeUtc": "1967-04-20T00:04:53Z",
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "surveyor-5",
@@ -124,7 +132,8 @@
    "lonDeg": 23.1943,
    "pointIsApproximate": false,
    "landingTimeUtc": "1967-09-11T00:46:44Z",
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "surveyor-6",
@@ -138,7 +147,8 @@
    "lonDeg": -1.4275,
    "pointIsApproximate": false,
    "landingTimeUtc": "1967-11-10T01:01:06Z",
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "surveyor-7",
@@ -152,7 +162,8 @@
    "lonDeg": -11.5127,
    "pointIsApproximate": false,
    "landingTimeUtc": "1968-01-10T01:05:36Z",
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "luna-9",
@@ -166,7 +177,8 @@
    "lonDeg": -64.37,
    "pointIsApproximate": false,
    "landingTimeUtc": "1966-02-03T18:44:52Z",
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": false
   },
   {
    "id": "luna-16",
@@ -180,7 +192,8 @@
    "lonDeg": 56.3638,
    "pointIsApproximate": false,
    "landingTimeUtc": "1970-09-20T05:18:00Z",
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "luna-17-lunokhod-1",
@@ -194,7 +207,8 @@
    "lonDeg": -35.00163,
    "pointIsApproximate": false,
    "landingTimeUtc": "1970-11-17T03:47:00Z",
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "lunokhod-1-final",
@@ -208,7 +222,8 @@
    "lonDeg": -35.0081,
    "pointIsApproximate": false,
    "landingTimeUtc": null,
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "luna-20",
@@ -222,7 +237,8 @@
    "lonDeg": 56.6242,
    "pointIsApproximate": false,
    "landingTimeUtc": "1972-02-21T19:19:00Z",
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "luna-21-lunokhod-2",
@@ -236,7 +252,8 @@
    "lonDeg": 30.4076,
    "pointIsApproximate": false,
    "landingTimeUtc": "1973-01-15T23:35:00Z",
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "lunokhod-2-final",
@@ -250,7 +267,8 @@
    "lonDeg": 30.9222,
    "pointIsApproximate": false,
    "landingTimeUtc": null,
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "luna-23",
@@ -264,7 +282,8 @@
    "lonDeg": 62.1511,
    "pointIsApproximate": false,
    "landingTimeUtc": null,
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "luna-24-mare-crisium",
@@ -278,7 +297,8 @@
    "lonDeg": 62.2129,
    "pointIsApproximate": false,
    "landingTimeUtc": "1976-08-18T02:00:00Z",
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "luna-25-impact",
@@ -292,7 +312,8 @@
    "lonDeg": 61.36,
    "pointIsApproximate": false,
    "landingTimeUtc": "2023-08-19T11:58:00Z",
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "change-3",
@@ -306,7 +327,8 @@
    "lonDeg": -19.5117,
    "pointIsApproximate": false,
    "landingTimeUtc": "2013-12-14T13:11:00Z",
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "change-4-von-karman",
@@ -320,7 +342,8 @@
    "lonDeg": 177.5885,
    "pointIsApproximate": false,
    "landingTimeUtc": "2019-01-03T02:26:00Z",
-   "chapterId": "ch2-robotic-explorer"
+   "chapterId": "ch2-robotic-explorer",
+   "coordsVerified": true
   },
   {
    "id": "change-5",
@@ -334,7 +357,8 @@
    "lonDeg": -51.9161,
    "pointIsApproximate": false,
    "landingTimeUtc": "2020-12-01T15:11:00Z",
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "change-6-apollo-basin",
@@ -348,7 +372,8 @@
    "lonDeg": -153.9852,
    "pointIsApproximate": false,
    "landingTimeUtc": "2024-06-01T22:23:00Z",
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "beresheet-impact",
@@ -362,7 +387,8 @@
    "lonDeg": 19.3496,
    "pointIsApproximate": false,
    "landingTimeUtc": "2019-04-11",
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "chandrayaan-2-vikram",
@@ -376,7 +402,8 @@
    "lonDeg": 22.784,
    "pointIsApproximate": false,
    "landingTimeUtc": "2019-09-06",
-   "chapterId": "ch2-robotic-explorer"
+   "chapterId": "ch2-robotic-explorer",
+   "coordsVerified": true
   },
   {
    "id": "chandrayaan-3-shiv-shakti",
@@ -390,7 +417,8 @@
    "lonDeg": 32.3187,
    "pointIsApproximate": false,
    "landingTimeUtc": "2023-08-23",
-   "chapterId": "ch2-robotic-explorer"
+   "chapterId": "ch2-robotic-explorer",
+   "coordsVerified": true
   },
   {
    "id": "hakuto-r-m1-impact",
@@ -404,7 +432,8 @@
    "lonDeg": 44.094,
    "pointIsApproximate": false,
    "landingTimeUtc": "2023-04-25T16:40:00Z",
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "slim-shioli",
@@ -418,7 +447,8 @@
    "lonDeg": 25.251,
    "pointIsApproximate": false,
    "landingTimeUtc": "2024-01-19T15:20:00Z",
-   "chapterId": "ch2-robotic-explorer"
+   "chapterId": "ch2-robotic-explorer",
+   "coordsVerified": true
   },
   {
    "id": "im-1-odysseus",
@@ -432,7 +462,8 @@
    "lonDeg": 1.4367,
    "pointIsApproximate": false,
    "landingTimeUtc": "2024-02-22T23:24:00Z",
-   "chapterId": "ch2-robotic-explorer"
+   "chapterId": "ch2-robotic-explorer",
+   "coordsVerified": true
   },
   {
    "id": "blue-ghost-m1",
@@ -446,7 +477,8 @@
    "lonDeg": 61.8103,
    "pointIsApproximate": false,
    "landingTimeUtc": "2025-03-02T08:34:00Z",
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "im-2-athena",
@@ -460,7 +492,8 @@
    "lonDeg": 29.1957,
    "pointIsApproximate": false,
    "landingTimeUtc": "2025-03-06T17:30:00Z",
-   "chapterId": "ch2-robotic-explorer"
+   "chapterId": "ch2-robotic-explorer",
+   "coordsVerified": true
   },
   {
    "id": "hakuto-r-m2-resilience-impact",
@@ -474,7 +507,8 @@
    "lonDeg": -4.588,
    "pointIsApproximate": false,
    "landingTimeUtc": "2025-06-05T18:13:00Z",
-   "chapterId": null
+   "chapterId": null,
+   "coordsVerified": true
   },
   {
    "id": "artemis-peak-near-cabeus-b",
@@ -488,7 +522,8 @@
    "lonDeg": -54.58,
    "pointIsApproximate": true,
    "landingTimeUtc": null,
-   "chapterId": "ch3-lunar-base"
+   "chapterId": "ch3-lunar-base",
+   "coordsVerified": false
   },
   {
    "id": "artemis-haworth",
@@ -502,7 +537,8 @@
    "lonDeg": -22.78,
    "pointIsApproximate": true,
    "landingTimeUtc": null,
-   "chapterId": "ch3-lunar-base"
+   "chapterId": "ch3-lunar-base",
+   "coordsVerified": false
   },
   {
    "id": "artemis-malapert-massif",
@@ -516,7 +552,8 @@
    "lonDeg": -0.24,
    "pointIsApproximate": true,
    "landingTimeUtc": null,
-   "chapterId": "ch3-lunar-base"
+   "chapterId": "ch3-lunar-base",
+   "coordsVerified": false
   },
   {
    "id": "artemis-mons-mouton-plateau",
@@ -530,7 +567,8 @@
    "lonDeg": 31.0,
    "pointIsApproximate": true,
    "landingTimeUtc": null,
-   "chapterId": "ch3-lunar-base"
+   "chapterId": "ch3-lunar-base",
+   "coordsVerified": false
   },
   {
    "id": "artemis-mons-mouton",
@@ -544,7 +582,8 @@
    "lonDeg": 31.74,
    "pointIsApproximate": true,
    "landingTimeUtc": null,
-   "chapterId": "ch3-lunar-base"
+   "chapterId": "ch3-lunar-base",
+   "coordsVerified": false
   },
   {
    "id": "artemis-nobile-rim-1",
@@ -558,7 +597,8 @@
    "lonDeg": 37.37,
    "pointIsApproximate": true,
    "landingTimeUtc": null,
-   "chapterId": "ch3-lunar-base"
+   "chapterId": "ch3-lunar-base",
+   "coordsVerified": false
   },
   {
    "id": "artemis-nobile-rim-2",
@@ -572,7 +612,8 @@
    "lonDeg": 58.82,
    "pointIsApproximate": true,
    "landingTimeUtc": null,
-   "chapterId": "ch3-lunar-base"
+   "chapterId": "ch3-lunar-base",
+   "coordsVerified": false
   },
   {
    "id": "artemis-de-gerlache-rim-2",
@@ -586,7 +627,8 @@
    "lonDeg": -88.34,
    "pointIsApproximate": true,
    "landingTimeUtc": null,
-   "chapterId": "ch3-lunar-base"
+   "chapterId": "ch3-lunar-base",
+   "coordsVerified": false
   },
   {
    "id": "artemis-slater-plain",
@@ -600,7 +642,8 @@
    "lonDeg": 111.29,
    "pointIsApproximate": true,
    "landingTimeUtc": null,
-   "chapterId": "ch3-lunar-base"
+   "chapterId": "ch3-lunar-base",
+   "coordsVerified": false
   }
  ],
  "count": 43,
