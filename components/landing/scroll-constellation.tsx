@@ -39,11 +39,9 @@ function makeSegment(from: Point, to: Point): Segment {
 
 /** A decorative page-length constellation. Its traveler follows the reader's scroll position. */
 export function ScrollConstellation() {
-  const [mounted, setMounted] = useState(false);
   const [motion, setMotion] = useState<Motion>({ path: "", points: [], width: 0, height: 0, progress: 0, traveler: { x: 0, y: 0 } });
 
   useEffect(() => {
-    setMounted(true);
     let frame = 0;
     const update = () => {
       frame = 0;
@@ -100,7 +98,7 @@ export function ScrollConstellation() {
     };
   }, []);
 
-  if (!mounted || !motion.path) return null;
+  if (!motion.path) return null;
   return createPortal(
     <svg aria-hidden="true" className="pointer-events-none absolute left-0 top-0 z-[8] block" viewBox={`0 0 ${motion.width} ${motion.height}`} preserveAspectRatio="none" style={{ width: motion.width, height: motion.height }}>
       <defs>
@@ -112,7 +110,7 @@ export function ScrollConstellation() {
       </defs>
       <path d={motion.path} pathLength={100} fill="none" stroke="var(--retro-blue)" strokeOpacity="0.28" strokeWidth="1.2" strokeDasharray="1 5" strokeLinecap="round" />
       <path d={motion.path} pathLength={100} fill="none" stroke="url(#landing-constellation-gradient)" strokeWidth="2" strokeDasharray="100" strokeDashoffset={100 - motion.progress * 100} strokeLinecap="round" />
-      {motion.points.map((point, index) => <g key={`${point.x}-${point.y}`} transform={`translate(${point.x} ${point.y})`}>
+      {motion.points.map((point, index) => <g key={`constellation-point-${index}`} transform={`translate(${point.x} ${point.y})`}>
         <circle r="9" fill="var(--retro-blue)" opacity="0.08" />
         <path d={STAR} fill={index === motion.points.length - 1 ? "var(--retro-purple)" : "var(--bone)"} opacity="0.76" />
       </g>)}
