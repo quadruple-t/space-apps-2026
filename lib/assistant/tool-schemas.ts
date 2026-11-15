@@ -12,9 +12,16 @@
  * documented as unsupported, so numeric and array bounds are stated in descriptions and enforced by the validators.
  */
 import { Schema, type TemplateFunctionDeclaration } from "firebase/ai";
+import { METRICS } from "@/lib/comparison";
 import { SITE_FAMILIES } from "@/lib/model/types";
 import { RANK_CRITERIA } from "@/lib/science/rank";
-import { MAX_RANK_SITE_IDS, MAX_RANK_WINDOWS, MAX_WINDOW_HOURS, MIN_WINDOW_HOURS, TOOL_NAMES, UI_GRAPH_TABS, UI_LAYERS, UI_PAGES, UI_SCREENS, UI_SPEEDS, type ToolName } from "./constants";
+import {
+  MAX_ISP_S, MAX_MISSION_HOURS, MAX_PANEL_AREA_M2, MAX_PAYLOAD_KG, MAX_RADIUS_KM, MAX_RANK_SITE_IDS, MAX_RANK_WINDOWS, MAX_WINDOW_HOURS,
+  MIN_ISP_S, MIN_PANEL_AREA_M2, MIN_PAYLOAD_KG, MIN_RADIUS_KM, MIN_WINDOW_HOURS, TOOL_NAMES, UI_COMPARE_GRAPHS, UI_GRAPH_TABS, UI_LAYERS,
+  UI_PAGES, UI_SCREENS, UI_SPEEDS, UI_TRAJECTORY_TYPES, type ToolName,
+} from "./constants";
+
+const METRIC_KEYS = METRICS.map((m) => m.key);
 
 const locationProps = {
   useCurrentSite: Schema.boolean({ description: "true to use the site currently selected in Freeplay ('this site')." }),

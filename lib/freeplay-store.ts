@@ -4,8 +4,8 @@ import { create } from "zustand"
 import { COORD_REF, type FreeplaySite } from "@/data/sites"
 import { DEFAULT_ISP_S, DEFAULT_PAYLOAD_KG, type TrajectoryType } from "@/lib/engine/deltav"
 
-/** "orbit" is the Orbit + Graphs screen, "compare" the two-site Mission comparison. */
-export type FreeplayView = "globe" | "orbit" | "compare"
+/** "orbit" is the Orbit + Graphs screen, "launch" the Launch window planner, "compare" the two-site Mission comparison. */
+export type FreeplayView = "globe" | "orbit" | "launch" | "compare"
 export type LayerId = "slope" | "illumination" | "psr" | "elevation" | "landings" | "impacts" | "heritage" | "coldTraps" | "resources" | "artemis" | "titanium" | "iron" | "thorium" | "olivine" | "plagioclase" | "pyroxene" | "silicates" | "iceDepth" | "temperatureMax" | "temperatureMin" | "impactHistory" | "meteorStreams"
 export type LayerState = { on: boolean; opacity: number }
 export type GraphTab = "daily" | "yearly"

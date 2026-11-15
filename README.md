@@ -39,7 +39,7 @@ npm run lint       # ESLint (Next.js + React Compiler rules)
 | `/`        | Overview and how to use Lunaris360                         |
 | `/mission` | Story Mode: six interactive lessons inside Freeplay |
 | `/how-it-works` | Debrief: lunar science, methods and data sources (`/mission-control` redirects here) |
-| `/freeplay` | Freeplay mission planner: Cesium Moon globe (Moon Trek imagery, LROC overlays, catalog sites, user-named presets) and an orbit + graphs view driven by the stored ephemeris and LOLA horizon masks |
+| `/freeplay` | Freeplay mission planner: Cesium Moon globe (Moon Trek imagery, LROC overlays, catalog sites, user-named presets), an orbit + graphs view driven by the stored ephemeris and LOLA horizon masks, and a launch-window planner that draws the transfer on the orbit diagram |
 | `/freeplay/drive` | Freeplay surface drive: site and coordinate selection, time controls, first-person/orbit navigation, JPL Horizons Sun/Earth positions, horizon-aware 24-hour metrics where data is available (`/explore` redirects here). Opens at the site and time selected in Freeplay. |
 | `/compare` | Mission Comparison shell with an empty state; multi-site comparison is not implemented yet |
 

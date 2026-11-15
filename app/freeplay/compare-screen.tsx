@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { ArrowLeftRight, BatteryCharging, Globe2, Sun, TriangleAlert } from "lucide-react";
 import { MetricsTable } from "@/components/freeplay/comparison/metrics-table";
 import { SitePicker } from "@/components/freeplay/comparison/site-picker";
@@ -9,13 +9,11 @@ import { TimeSeriesChart, type Band, type Series } from "@/components/freeplay/c
 import { PanelSettings, solarPowerW } from "@/components/freeplay/graphs-panel";
 import { TimeControls } from "@/components/freeplay/time-controls";
 import { computeMetrics, type SiteValues } from "@/lib/comparison";
-import { useComparison } from "@/lib/comparison-store";
+import { useComparison, type GraphFocus } from "@/lib/comparison-store";
 import { currentTimeMs, useFreeplay } from "@/lib/freeplay-store";
 import { earthUp, sampleAt, sunUp, type Sample } from "@/lib/illumination";
 import { useTerrainStats } from "@/lib/terrain-stats";
 import { useLunarWindow } from "@/lib/use-lunar-data";
-
-type GraphFocus = "sunlight" | "earth" | "power";
 
 /** Slot identity colours. Kept apart from the Sun (coral) and Earth (blue) colours used elsewhere. */
 const COLOR_A = "#a986ff";
@@ -51,8 +49,8 @@ export function CompareScreen() {
   const slotA = useComparison((s) => s.slotA);
   const slotB = useComparison((s) => s.slotB);
   const selectedMetrics = useComparison((s) => s.metrics);
-  const { setSlot, swap, addMetric, removeMetric, resetMetrics } = useComparison.getState();
-  const [focus, setFocus] = useState<GraphFocus>("sunlight");
+  const focus = useComparison((s) => s.graphFocus);
+  const { setSlot, swap, addMetric, removeMetric, resetMetrics, setFocus } = useComparison.getState();
   useEffect(() => { hydrate(); }, [hydrate]);
 
   // Sites come only from the user's presets. Look the slots up by id so a renamed preset shows its new name

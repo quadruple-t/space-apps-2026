@@ -118,7 +118,7 @@ export function MissionControlContent() {
             Trajectory and launch-cost estimates
           </h2>
           <p className="mt-3 max-w-2xl text-muted-foreground">
-            In Freeplay&apos;s Orbit view, the launch-window planner draws an approximate Earth-to-Moon path and estimates fuel and launch cost. These are
+            In Freeplay&apos;s Launch window view, the planner draws an approximate Earth-to-Moon path on the orbit diagram and estimates fuel and launch cost. These are
             planning approximations, not mission design and not price quotes.
           </p>
           <ul className="mt-8 grid gap-5 md:grid-cols-2">

@@ -4,21 +4,15 @@ import { useMemo } from "react";
 import { Globe2, List } from "lucide-react";
 import type { FreeplaySite } from "@/data/sites";
 import { ConditionsReadout } from "@/components/freeplay/conditions-readout";
+import { DataStatus } from "@/components/freeplay/data-status";
 import { DailyGraphs, GraphTabs, PanelSettings, YearlyGraphs } from "@/components/freeplay/graphs-panel";
 import { OrbitDiagram } from "@/components/freeplay/orbit-diagram";
 import { PresetsPanel } from "@/components/freeplay/presets-panel";
-import { TrajectoryPanel, useTrajectory } from "@/components/freeplay/trajectory-panel";
 import { TimeControls } from "@/components/freeplay/time-controls";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { earthUp, sampleAt, sunUp } from "@/lib/illumination";
 import { currentTimeMs, useFreeplay } from "@/lib/freeplay-store";
 import { useLunarWindow } from "@/lib/use-lunar-data";
-
-function Status({ loading, error, what }: { loading: boolean; error: string | null; what: string }) {
-  if (error) return <p role="alert" className="p-3 text-xs text-destructive">Couldn&apos;t load {what}: {error}</p>;
-  if (loading) return <p className="type-data animate-pulse p-3 text-[0.62rem] uppercase tracking-[0.12em] text-muted-foreground">Loading {what}…</p>;
-  return null;
-}
 
 export function OrbitScreen() {
   const site = useFreeplay((s) => s.site);
@@ -41,7 +35,6 @@ function OrbitScreenFor({ site }: { site: FreeplaySite }) {
   const elapsedHours = useFreeplay((s) => s.elapsedHours);
   const graphTab = useFreeplay((s) => s.graphTab);
   const setElapsed = useFreeplay((s) => s.setElapsed);
-  const trajectory = useTrajectory(site);
   const tMs = currentTimeMs({ startIso, elapsedHours });
   const startMs = Date.parse(startIso);
 
@@ -66,12 +59,11 @@ function OrbitScreenFor({ site }: { site: FreeplaySite }) {
       {mission.data
         ? <OrbitDiagram series={mission.data.series} site={site} tMs={tMs} missionStartMs={startMs} missionEndMs={missionEndMs}
             sunUp={now ? sunUp(now) : null} earthUp={now ? earthUp(now) : null}
-            onSeek={(t) => setElapsed((t - startMs) / 3_600_000)}
-            trajectory={trajectory.plan ? { plan: trajectory.plan, artemis: trajectory.artemis } : null} />
-        : <Status loading={mission.loading} error={mission.error} what="Moon and Sun positions" />}
+            onSeek={(t) => setElapsed((t - startMs) / 3_600_000)} />
+        : <DataStatus loading={mission.loading} error={mission.error} what="Moon and Sun positions" />}
     </section>
 
-    {/* Right column (full height): readouts + graphs, launch-window estimate, compact presets at the bottom; the column scrolls once on md+ */}
+    {/* Right column (full height): readouts + graphs, compact presets at the bottom; the column scrolls once on md+ */}
     <div className="flex flex-col gap-2 md:col-start-2 md:row-span-2 md:row-start-1 md:min-h-0 md:overflow-y-auto lg:col-start-3">
       <section className="hud-panel flex flex-col gap-2 p-3" aria-label="Conditions and graphs">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -82,19 +74,13 @@ function OrbitScreenFor({ site }: { site: FreeplaySite }) {
           <PanelSettings />
         </div>
         {now && samples ? <ConditionsReadout samples={samples} index={index} now={now} />
-          : <Status loading={mission.loading} error={mission.error} what={`Sun and Earth angles at ${site.name}`} />}
+          : <DataStatus loading={mission.loading} error={mission.error} what={`Sun and Earth angles at ${site.name}`} />}
         {graphTab === "daily"
           ? samples && <DailyGraphs samples={samples} siteId={site.id} startMs={startMs} tMs={tMs} />
           : year.data
             ? <YearlyGraphs samples={year.data.samples} siteId={site.id} startMs={startMs} tMs={tMs} missionEndMs={missionEndMs} />
-            : <Status loading={year.loading} error={year.error} what="a year of hourly data" />}
+            : <DataStatus loading={year.loading} error={year.error} what="a year of hourly data" />}
       </section>
-
-      <TrajectoryPanel state={trajectory} site={site} onSyncTimeline={(plan) => {
-        const { setStart, setDuration } = useFreeplay.getState();
-        setStart(new Date(plan.launchMs).toISOString());
-        setDuration(Math.max(24, Math.ceil(plan.transitSeconds / 3600) + 24));
-      }} />
 
       <PresetsPanel className="hidden max-h-[28%] shrink-0 md:flex" />
     </div>

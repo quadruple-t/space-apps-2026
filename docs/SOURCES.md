@@ -199,7 +199,7 @@ The globe's star background is Cesium's bundled Tycho-2 sky box.
 
 ## 8. Trajectory and launch-cost model constants (issue #21)
 
-Used by `lib/engine/deltav.ts`, `lib/engine/launch-costs.ts` and `lib/engine/trajectory.ts` for the Orbit view's launch-window planner. Retrieved 2026-11-15. Everything here is a **planning approximation**; the UI and the Methods page label it so. `tests/trajectory-sources.test.ts` fails if a `sourceId` in those files is missing from this table.
+Used by `lib/engine/deltav.ts`, `lib/engine/launch-costs.ts` and `lib/engine/trajectory.ts` for the Launch window view's planner. Retrieved 2026-11-15. Everything here is a **planning approximation**; the UI and the Methods page label it so. `tests/trajectory-sources.test.ts` fails if a `sourceId` in those files is missing from this table.
 
 Source quality is mixed and marked per row: "secondary" means a reference or aggregator page, not a primary mission document. Rows marked **verify** should be replaced with a primary source before anyone relies on them.
 
