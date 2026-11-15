@@ -5,6 +5,7 @@ import { catalogToFreeplay, type CatalogSite, type FreeplaySite } from "@/data/s
 import type { LunarSite } from "@/integrations/science/types";
 import { fetchCatalogSites } from "@/lib/lunar-data";
 import { CHAPTER_IDS, type ChapterId, type StoryChapter } from "@/lib/model/types";
+import { STORY_STOPS } from "./tutorial-content";
 
 type CatalogDetail = { site?: { coordinates?: { elevationM?: number | null } | null; terrainSummary?: { slope100mDeg?: number | null } | null }; terrain?: { slope100mDeg?: number | null } | null };
 
@@ -14,6 +15,7 @@ export type TutorialData = {
   catalog: CatalogSite[];
   /** Each chapter's featured catalog sites as Freeplay sites, verified coordinates first. */
   featured: Partial<Record<ChapterId, FreeplaySite[]>>;
+  tourStops: FreeplaySite[];
 };
 
 async function getJson<T>(path: string): Promise<T> {
@@ -50,7 +52,7 @@ export async function withTerrainRecord(site: LunarSite): Promise<LunarSite> {
 }
 
 export function useTutorialData(): TutorialData {
-  const [data, setData] = useState<TutorialData>({ status: "loading", chapters: {}, catalog: [], featured: {} });
+  const [data, setData] = useState<TutorialData>({ status: "loading", chapters: {}, catalog: [], featured: {}, tourStops: [] });
 
   useEffect(() => {
     let active = true;
@@ -65,8 +67,24 @@ export function useTutorialData(): TutorialData {
         const entries = chapter.featuredSiteIds.flatMap((siteId) => catalog.filter((site) => site.id === siteId));
         featured[id] = [...entries.filter((site) => site.coordsVerified && !site.pointIsApproximate), ...entries.filter((site) => !site.coordsVerified || site.pointIsApproximate)].map((site) => catalogToFreeplay(site));
       }
-      if (active) setData({ status: "ready", chapters, catalog, featured });
-    }).catch(() => { if (active) setData({ status: "unavailable", chapters: {}, catalog: [], featured: {} }); });
+      const tourStops = STORY_STOPS.flatMap((stop) => {
+        const catalogSite = stop.catalogId ? catalog.find((candidate) => candidate.id === stop.catalogId) : undefined;
+        if (catalogSite) return [{ ...catalogToFreeplay(catalogSite), name: stop.name }];
+        if (stop.latitudeDeg === undefined || stop.longitudeDeg === undefined) return [];
+        return [{
+          id: `tour-${stop.id}`,
+          name: stop.name,
+          latitudeDeg: stop.latitudeDeg,
+          longitudeDeg: stop.longitudeDeg,
+          coordinateReference: "Approximate lunar region reference",
+          provenance: "illustrative" as const,
+          radiusKm: 20,
+          kind: "custom" as const,
+          catalogPointVerified: false,
+        }];
+      });
+      if (active) setData({ status: "ready", chapters, catalog, featured, tourStops });
+    }).catch(() => { if (active) setData({ status: "unavailable", chapters: {}, catalog: [], featured: {}, tourStops: [] }); });
     return () => { active = false; };
   }, []);
 

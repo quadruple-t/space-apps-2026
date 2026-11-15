@@ -41,7 +41,7 @@ const PIN = {
   selected: starImage("#ff5364", "#fff2f5", 36),
 };
 
-export default function MoonGlobe() {
+export default function MoonGlobe({ guidedSites }: { guidedSites?: FreeplaySite[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<CesiumNS.Viewer | null>(null);
   const cesiumRef = useRef<Cesium | null>(null);
@@ -238,8 +238,8 @@ export default function MoonGlobe() {
         const id = picked?.id instanceof C.Entity ? picked.id.id : null;
         const { savedSites, selectSite, selectCustom, site: current } = useFreeplay.getState();
         if (id && id !== "radius") {
-          const hit = savedSites.find((s) => s.id === id) ?? (current?.id === id ? current : null)
-            ?? catalogRef.current.find((s) => s.id === id);
+          const hit = savedSites.find((s) => s.id === id) ?? guidedSites?.find((s) => s.id === id) ?? (current?.id === id ? current : null)
+            ?? (useFreeplay.getState().showCatalog ? catalogRef.current.find((s) => s.id === id) : undefined);
           if (hit) { selectSite(hit, true); return; }
         }
         const cart = viewer.camera.pickEllipsoid(e.position, moon);
@@ -267,7 +267,7 @@ export default function MoonGlobe() {
       cleanup = () => { scene.canvas.removeEventListener("wheel", onWheel); removePostRender(); handler.destroy(); if (!viewer.isDestroyed()) viewer.destroy(); };
     }).catch((e: unknown) => { if (!destroyed) setError(e instanceof Error ? e.message : String(e)); });
     return () => { destroyed = true; cleanup(); viewerRef.current = null; overlays.clear(); };
-  }, []);
+  }, [guidedSites]);
 
   // ── Pins and radius circle ────────────────────────────────────────────────
   useEffect(() => {
@@ -276,7 +276,8 @@ export default function MoonGlobe() {
     // Update entities in place: removing and re-adding the same id in one batch
     // makes Cesium's visualizers drop the new graphics.
     const moon = C.Ellipsoid.MOON;
-    const all: FreeplaySite[] = [...savedSites, ...shownCatalog.filter((c) => !savedSites.some((s) => s.catalogId === c.catalogId))];
+    const sourceSites = guidedSites ?? shownCatalog;
+    const all: FreeplaySite[] = [...savedSites, ...sourceSites.filter((c) => !savedSites.some((s) => s.catalogId && s.catalogId === c.catalogId))];
     if (site && !all.some((s) => s.id === site.id)) all.push(site);
     const keep = new Set(all.map((s) => s.id).concat("radius"));
     for (const e of [...viewer.entities.values]) if (!keep.has(e.id)) viewer.entities.remove(e);
@@ -289,7 +290,7 @@ export default function MoonGlobe() {
       const props = {
         position: new C.ConstantPositionProperty(C.Cartesian3.fromDegrees(s.longitudeDeg, s.latitudeDeg, PIN_HEIGHT_M, moon)),
         billboard: new C.BillboardGraphics({
-          color: C.Color.WHITE.withAlpha(selected || s.kind !== "catalog" || showCatalog ? 1 : layers[group].opacity),
+          color: C.Color.WHITE.withAlpha(selected || s.kind !== "catalog" || guidedSites !== undefined || showCatalog ? 1 : layers[group].opacity),
           image: selected ? PIN.selected : s.kind !== "catalog" ? PIN.saved
             : group === "artemis" ? PIN.artemis : group === "impacts" ? PIN.impact : PIN.catalog,
           verticalOrigin: C.VerticalOrigin.CENTER,
@@ -319,7 +320,7 @@ export default function MoonGlobe() {
     };
     if (radius) Object.assign(radius, circle);
     else viewer.entities.add({ id: "radius", ...circle });
-  }, [ready, site, savedSites, shownCatalog, layers, showCatalog, catalogEntries]);
+  }, [ready, site, savedSites, shownCatalog, guidedSites, layers, showCatalog, catalogEntries]);
 
   // ── Fly to a saved site when it's chosen (not for points picked in view) ──
   const siteId = site?.id, siteKind = site?.kind;

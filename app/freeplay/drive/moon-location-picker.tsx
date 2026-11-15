@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent, type KeyboardEvent } from "react";
 import { ArrowRight, MapPin, X } from "lucide-react";
 import type { LunarSite } from "@/integrations/science/types";
@@ -221,10 +220,6 @@ export function MoonLocationPicker({ selectedSite, onSelect, onNavigate, onConti
         <div className="flex flex-col gap-3">
           <div>
             <MoonSunDiagram latitudeDeg={selectedSite.latitudeDeg} longitudeDeg={selectedSite.longitudeDeg} sunAzimuthDeg={sunAzimuthDeg} sunElevationDeg={sunElevationDeg}/>
-            <Link href={`/freeplay/approach?${new URLSearchParams({ lat: String(selectedSite.latitudeDeg), lon: String(selectedSite.longitudeDeg), name: selectedSite.name })}`}
-              className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded border border-retro-purple/50 bg-retro-purple/10 px-3 py-2 text-[0.62rem] uppercase tracking-[0.1em] text-retro-purple hover:bg-retro-purple/20">
-              Plan a mission at this site: sunlight &amp; Earth over time <ArrowRight size={13}/>
-            </Link>
           </div>
           <section className="hud-panel p-3 sm:p-4" aria-label="Selected terrain estimate">
             <div className="flex items-start justify-between gap-3"><div><div className="type-data text-[0.58rem] uppercase tracking-[0.14em] text-retro-blue">Selected region</div><h2 className="mt-1 text-sm text-bone">{selectedSite.name}</h2></div><span className={`rounded border px-2 py-1 type-data text-[0.56rem] uppercase ${selectedSite.provenance === "scientific" ? "border-retro-blue/35 bg-retro-blue/10 text-retro-blue" : "border-retro-red/35 bg-retro-red/10 text-retro-red"}`}>{selectedSite.provenance === "scientific" ? "LOLA DEM" : SCAFFOLD_MOON_GRID.provenance}</span></div>

@@ -211,6 +211,7 @@ const DETAIL = {
 
 const Z_NEAR = 34;
 const Z_FAR = -820;
+const BOUNDARY_DEPTH = 72;
 
 /** Build the faceted terrain geometry. */
 export function createTerrainGeometry(detail: TerrainDetail = "high", profile: LunarTerrainProfile = terrainProfileForSite()) {
@@ -282,4 +283,65 @@ export function createTerrainGeometry(detail: TerrainDetail = "high", profile: L
   geometry.computeVertexNormals();
   geometry.computeBoundingSphere();
   return geometry;
+}
+
+/** Vertical faces and a top line that make the procedural map edge unmistakable. */
+export function createTerrainBoundaryGeometry(detail: TerrainDetail = "high", profile: LunarTerrainProfile = terrainProfileForSite()) {
+  const { cols, rows } = DETAIL[detail];
+  const perimeter: Array<{ x: number; z: number }> = [];
+  const rowAt = (row: number) => {
+    const v = row / rows;
+    const z = Z_NEAR - (Z_NEAR - Z_FAR) * Math.pow(v, 1.9);
+    return { z, halfW: 70 + (Z_NEAR - z) * 1.3 };
+  };
+
+  for (let row = 0; row <= rows; row++) {
+    const { z, halfW } = rowAt(row);
+    perimeter.push({ x: -halfW, z });
+  }
+  const far = rowAt(rows);
+  for (let col = 1; col <= cols; col++) perimeter.push({ x: -far.halfW + (2 * far.halfW * col) / cols, z: Z_FAR });
+  for (let row = rows - 1; row >= 0; row--) {
+    const { z, halfW } = rowAt(row);
+    perimeter.push({ x: halfW, z });
+  }
+  const near = rowAt(0);
+  for (let col = cols - 1; col > 0; col--) perimeter.push({ x: -near.halfW + (2 * near.halfW * col) / cols, z: Z_NEAR });
+
+  const positions: number[] = [];
+  const colors: number[] = [];
+  const indices: number[] = [];
+  const upper = new THREE.Color("#756b7d");
+  const lower = new THREE.Color("#393447");
+  const edgePoints = perimeter.map(({ x, z }) => new THREE.Vector3(x, heightAt(x, z, profile) + 0.4, z));
+
+  for (let index = 0; index < perimeter.length; index++) {
+    const a = perimeter[index];
+    const b = perimeter[(index + 1) % perimeter.length];
+    const topA = heightAt(a.x, a.z, profile);
+    const topB = heightAt(b.x, b.z, profile);
+    const baseIndex = positions.length / 3;
+    positions.push(
+      a.x, topA, a.z,
+      b.x, topB, b.z,
+      a.x, topA - BOUNDARY_DEPTH, a.z,
+      b.x, topB - BOUNDARY_DEPTH, b.z,
+    );
+    const block = index % 2 === 0 ? upper : lower;
+    for (let vertex = 0; vertex < 4; vertex++) {
+      const shade = vertex < 2 ? block : lower;
+      colors.push(shade.r, shade.g, shade.b);
+    }
+    indices.push(baseIndex, baseIndex + 2, baseIndex + 1, baseIndex + 1, baseIndex + 2, baseIndex + 3);
+  }
+
+  const wall = new THREE.BufferGeometry();
+  wall.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  wall.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+  wall.setIndex(indices);
+  wall.computeVertexNormals();
+  wall.computeBoundingBox();
+
+  const edge = new THREE.BufferGeometry().setFromPoints(edgePoints);
+  return { wall, edge };
 }
