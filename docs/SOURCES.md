@@ -187,6 +187,15 @@ reassembles and verifies lengths and SHA-256 before serving data. Existing catal
 rules permit public reads and deny browser writes. Only the offline importer writes.
 The app keeps source imagery separate from numerical analysis inputs.
 
+For responsive display, `catalog/globe-display-v1` points to separate complete-area
+overviews derived from the archived images by nearest-neighbor half-resolution
+sampling and lossless WebP encoding. Preview documents record the original asset
+and SHA-256 and use the same source citations as that asset. The original snapshots
+are retained unchanged. Preview pixels are checked against the sampled original
+before upload, and their Firebase chunks are checksum-verified before the display
+manifest is published. The globe falls back to the original when a preview is
+absent or derived from a different snapshot. Downsampling can omit small features.
+
 Most stored maps cover the globe at 2048 × 1024. The south-pole slope image covers
 its source tile bounds at 4096 × 256. Unmapped source areas remain unmapped;
 these snapshots do not add coverage or precision. The selected scope excludes
@@ -196,6 +205,19 @@ locally cached source responses/tiles, and citations; user data and credentials 
 excluded. `scripts/data-pipeline/globe-archive.lock.json` is the import manifest.
 
 The globe's star background is Cesium's bundled Tycho-2 sky box.
+
+## 8. Surface-drive elevation
+
+The surface drive's 3D terrain is built from LROC Lunaserv's numeric GLD100 layer, requested live
+by `GET /api/v1/terrain/dem` (the one interactive upstream call; see docs/API.md). Display and
+local line of sight only — mission metrics keep using the LOLA masks in §2–§3.
+
+| Use | Service | Identifier |
+|---|---|---|
+| Drive terrain heights | LROC Lunaserv WMS 1.1.1 (`https://wms.im-ldi.com/`), `FORMAT=image/tiff` (float32, km above 1737.4 km), `SRS=IAU2000:30166,9001,<lon>,<lat>` | `luna_wac_dtm_numeric` (GLD100, ~100 m posting; 79°S–79°N stereo, poleward LOLA-based fill) |
+
+Verified 2026-11-15 against stored PGDA/LOLA site elevations to within 3–8 m (Apollo 11, IM-1, IM-2).
+GLD100: Scholten et al. (2012), *J. Geophys. Res.* 117, E00H17, doi:10.1029/2011JE003926.
 
 ## References
 

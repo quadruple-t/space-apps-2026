@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { Globe2, List } from "lucide-react";
 import type { FreeplaySite } from "@/data/sites";
 import { ConditionsReadout } from "@/components/freeplay/conditions-readout";
+import { LoadingIndicator } from "@/components/freeplay/loading-indicator";
 import { DailyGraphs, GraphTabs, PanelSettings, YearlyGraphs } from "@/components/freeplay/graphs-panel";
 import { OrbitDiagram } from "@/components/freeplay/orbit-diagram";
 import { PresetsPanel } from "@/components/freeplay/presets-panel";
@@ -15,7 +16,7 @@ import { useLunarWindow } from "@/lib/use-lunar-data";
 
 function Status({ loading, error, what }: { loading: boolean; error: string | null; what: string }) {
   if (error) return <p role="alert" className="p-3 text-xs text-destructive">Couldn&apos;t load {what}: {error}</p>;
-  if (loading) return <p className="type-data animate-pulse p-3 text-[0.62rem] uppercase tracking-[0.12em] text-muted-foreground">Loading {what}…</p>;
+  if (loading) return <div className="p-3"><LoadingIndicator label={what} /></div>;
   return null;
 }
 

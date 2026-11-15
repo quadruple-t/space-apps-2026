@@ -1,10 +1,11 @@
 /** Public catalog documents for bounded, versioned globe snapshots and scientific input archives. */
 export const GLOBE_ARCHIVE_DOC = "catalog/globe-assets-v1";
+export const GLOBE_DISPLAY_DOC = "catalog/globe-display-v1";
 export const GLOBE_CHUNK_BYTES = 240 * 1024;
 export type GlobeAsset = {
   id: string;
   kind: "globe-asset";
-  contentType: "image/png" | "image/jpeg" | "application/gzip";
+  contentType: "image/png" | "image/jpeg" | "image/webp" | "application/gzip";
   bytes: number;
   sha256: string;
   chunks: string[];
@@ -15,15 +16,22 @@ export type GlobeAsset = {
   sourceIndex?: number;
   source: Record<string, unknown>;
 };
-export type GlobeArchive = { version: 1; generatedAt: string; assets: GlobeAsset[]; scope: string };
+export type GlobeArchive = { version: 1; generatedAt: string; assets: GlobeAsset[]; scope: string; displayAssets?: GlobeAsset[] };
 export const globeAssetPath = (id: string) => `catalog/globe-asset-${id}`;
 export const globeAssetUrl = (asset: Pick<GlobeAsset, "id" | "sha256">) =>
   `/api/v1/globe/assets/${asset.id}?sha256=${asset.sha256}`;
 
+/** A preview is usable only for the exact original snapshot it was derived from. */
+export function globeDisplayAsset(archive: GlobeArchive, original: GlobeAsset): GlobeAsset {
+  return archive.displayAssets?.find((candidate) => candidate.id === `preview-${original.id}`
+    && candidate.source?.originalSha256 === original.sha256 && candidate.layerId === original.layerId
+    && candidate.sourceIndex === original.sourceIndex) ?? original;
+}
+
 export function validateGlobeAsset(value: unknown, expectedId: string): GlobeAsset {
   const asset = value as GlobeAsset | null;
   if (!asset || asset.kind !== "globe-asset" || asset.id !== expectedId || !/^[a-zA-Z0-9_-]{1,80}$/.test(asset.id)
-    || !["image/png", "image/jpeg", "application/gzip"].includes(asset.contentType)
+    || !["image/png", "image/jpeg", "image/webp", "application/gzip"].includes(asset.contentType)
     || !Number.isSafeInteger(asset.bytes) || asset.bytes <= 0 || asset.bytes > 64 * 1024 * 1024
     || !/^[a-f0-9]{64}$/.test(asset.sha256)
     || !Array.isArray(asset.chunks) || asset.chunks.length !== Math.ceil(asset.bytes / GLOBE_CHUNK_BYTES)

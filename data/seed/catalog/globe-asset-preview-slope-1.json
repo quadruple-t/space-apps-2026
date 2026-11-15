@@ -1,0 +1,54 @@
+{
+ "id": "preview-slope-1",
+ "kind": "globe-asset",
+ "contentType": "image/webp",
+ "bytes": 474034,
+ "sha256": "fdada955f39aa6881c5fa2661536cd0145786f828a84c5d1ace13f957071f9cf",
+ "chunks": [
+  "globe-chunk-preview-slope-1-fdada955f39aa688-0",
+  "globe-chunk-preview-slope-1-fdada955f39aa688-1"
+ ],
+ "layerId": "slope",
+ "sourceIndex": 1,
+ "width": 2048,
+ "height": 128,
+ "rectangle": [
+  -180,
+  -90,
+  180,
+  -67.5
+ ],
+ "source": {
+  "originalId": "slope-1",
+  "originalSha256": "b2a984b622edbe6e68bd6a4b9fb8934bf68ea283f38afbed394b78ad0fc9f5d0",
+  "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+  "originalSource": {
+   "kind": "wmts",
+   "layer": "LRO_LOLA_ClrSlope_SPole75S_120m_EQ",
+   "format": "image/png",
+   "maximumLevel": 6,
+   "south": -90,
+   "north": -68.9,
+   "tileLevel": 3,
+   "urls": [
+    "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/0.png",
+    "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/1.png",
+    "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/10.png",
+    "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/11.png",
+    "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/12.png",
+    "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/13.png",
+    "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/14.png",
+    "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/15.png",
+    "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/2.png",
+    "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/3.png",
+    "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/4.png",
+    "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/5.png",
+    "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/6.png",
+    "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/7.png",
+    "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/8.png",
+    "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/9.png"
+   ],
+   "retrievedAt": "2026-11-15T04:13:30.669Z"
+  }
+ }
+}

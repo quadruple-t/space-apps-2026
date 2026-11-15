@@ -87,7 +87,24 @@ function Bubble({ message, canUndo }: { message: UiMessage; canUndo: boolean }) 
   </li>;
 }
 
-export function AssistantPanel({ onClose }: { onClose: () => void }) {
+export type AssistantPanelProps = {
+  onClose: () => void;
+  /** "dock" is the Freeplay side panel; "floating" is a self-contained card for a corner bubble. */
+  variant?: "dock" | "floating";
+  /** Questions offered before the first message. */
+  suggestions?: string[];
+  suggestionsTitle?: string;
+  /** Workspace shortcuts (Freeplay view changes); `null` hides them. */
+  starterActions?: typeof STARTER_ACTIONS | null;
+  /** Replaces the Freeplay site/time line in the header. */
+  contextLabel?: string;
+  /** Extra app data sent with each question (not shown in the chat), evaluated when the question is sent. */
+  getContext?: () => string | undefined;
+  getSnapshot?: () => import("@/lib/assistant/context").FreeplaySnapshot;
+  placeholder?: string;
+};
+
+export function AssistantPanel({ onClose, variant = "dock", suggestions = SUGGESTIONS, suggestionsTitle = "Ask about a site", starterActions = STARTER_ACTIONS, contextLabel, getContext, getSnapshot, placeholder }: AssistantPanelProps) {
   const site = useFreeplay((s) => s.site);
   const messages = useAssistant((s) => s.messages);
   const status = useAssistant((s) => s.status);
@@ -112,7 +129,7 @@ export function AssistantPanel({ onClose }: { onClose: () => void }) {
   const submit = (e?: FormEvent) => {
     e?.preventDefault();
     if (!input.trim() || busy) return;
-    void send(input);
+    void send(input, getContext?.(), getSnapshot?.());
     setInput("");
   };
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -128,13 +145,13 @@ export function AssistantPanel({ onClose }: { onClose: () => void }) {
   const statusDot = unavailable ? "bg-retro-red" : busy ? "bg-retro-purple" : "bg-retro-blue";
 
   return <aside id={PANEL_ID} aria-label="Mission assistant" onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); onClose(); } }}
-    className="flex h-full min-h-0 flex-col overflow-hidden border border-line bg-void text-bone lg:w-[360px] lg:border-0 lg:border-l lg:border-line">
+    className={variant === "floating" ? "flex h-full min-h-0 w-full flex-col overflow-hidden rounded-xl border border-retro-purple/40 bg-void text-bone shadow-[0_18px_70px_rgba(4,2,18,.78)]" : "flex h-full min-h-0 flex-col overflow-hidden border border-line bg-void text-bone lg:w-[360px] lg:border-0 lg:border-l lg:border-line"}>
     <header className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
       <div className="flex min-w-0 items-center gap-2.5">
         <span className="grid size-9 shrink-0 place-items-center rounded-md border border-retro-purple/35 bg-retro-purple/10 text-retro-purple"><Bot size={19} /></span>
         <div className="min-w-0">
           <h2 className="type-heading text-sm text-bone">Mission assistant</h2>
-          <ContextLine />
+          {contextLabel ? <p className="type-data mt-0.5 truncate text-[0.58rem] text-muted-foreground" title="The assistant sees this setup with each question">{contextLabel}</p> : <ContextLine />}
         </div>
       </div>
       <div className="flex shrink-0 gap-1">
@@ -154,10 +171,10 @@ export function AssistantPanel({ onClose }: { onClose: () => void }) {
           <p className="text-sm leading-relaxed text-bone">Ask about the mission you are building or about lunar terrain. Answers are looked up from the Lunaris360 data service rather than given from memory.</p>
         </section>
 
-        <section aria-labelledby="assistant-shortcuts">
+        {starterActions && <section aria-labelledby="assistant-shortcuts">
           <h3 id="assistant-shortcuts" className="type-data text-xs uppercase text-muted-foreground">Workspace shortcuts</h3>
           <div className="mt-2 flex flex-col gap-2">
-            {STARTER_ACTIONS.map(({ label, Icon, action }) => {
+            {starterActions.map(({ label, Icon, action }) => {
               const disabled = action.type === "set-view" && !site;
               return <button key={label} type="button" disabled={disabled} onClick={() => chooseAction(label, action)} className="flex min-h-11 items-center gap-3 rounded-md border border-line px-3 text-left text-sm text-bone transition hover:border-retro-purple/50 hover:bg-retro-purple/5 disabled:cursor-not-allowed disabled:opacity-45" title={disabled ? "Select a site on the Moon first" : undefined}>
                 <Icon size={16} className="shrink-0 text-retro-purple" />
@@ -167,12 +184,12 @@ export function AssistantPanel({ onClose }: { onClose: () => void }) {
             })}
           </div>
           <p role="status" aria-live="polite" className="mt-2 min-h-5 text-xs text-retro-blue">{lastAction && <><Check size={13} className="mr-1 inline" />{lastAction}</>}</p>
-        </section>
+        </section>}
 
         <section aria-labelledby="assistant-suggestions" className="border-t border-line pt-4">
-          <h3 id="assistant-suggestions" className="type-data text-xs uppercase text-muted-foreground">Ask about a site</h3>
+          <h3 id="assistant-suggestions" className="type-data text-xs uppercase text-muted-foreground">{suggestionsTitle}</h3>
           <ul className="mt-2 space-y-1.5">
-            {SUGGESTIONS.map((q) => <li key={q}><button type="button" onClick={() => void send(q)} disabled={busy || unavailable}
+            {suggestions.map((q) => <li key={q}><button type="button" onClick={() => void send(q, getContext?.(), getSnapshot?.())} disabled={busy || unavailable}
               className="w-full rounded-md border border-line px-2.5 py-1.5 text-left text-[0.8rem] text-bone/85 hover:border-retro-purple/50 hover:text-bone focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50">{q}</button></li>)}
           </ul>
         </section>
@@ -198,7 +215,7 @@ export function AssistantPanel({ onClose }: { onClose: () => void }) {
       {hint && <p role="status" className="type-data mb-1.5 text-[0.62rem] text-retro-purple">{hint}</p>}
       <div className="flex items-end gap-2">
         <textarea ref={inputRef} value={input} onChange={(e) => setInput(e.target.value.slice(0, MAX_INPUT_CHARS))} onKeyDown={onKeyDown}
-          rows={2} maxLength={MAX_INPUT_CHARS} disabled={unavailable} aria-label="Message the mission assistant" placeholder={unavailable ? "AI connection not configured" : "Ask about this site, time or terrain…"}
+          rows={2} maxLength={MAX_INPUT_CHARS} disabled={unavailable} aria-label="Message the mission assistant" placeholder={unavailable ? "AI connection not configured" : placeholder ?? "Ask about this site, time or terrain…"}
           className="min-h-12 flex-1 resize-none rounded-md border border-line bg-void/60 px-2.5 py-1.5 text-[0.8rem] text-bone placeholder:text-muted-foreground focus-visible:border-ring focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50" />
         {busy
           ? <Button type="button" variant="outline" size="icon" onClick={cancel} aria-label="Stop"><Square /></Button>

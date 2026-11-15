@@ -214,7 +214,7 @@ const Z_FAR = -820;
 const BOUNDARY_DEPTH = 72;
 
 /** Build the faceted terrain geometry. */
-export function createTerrainGeometry(detail: TerrainDetail = "high", profile: LunarTerrainProfile = terrainProfileForSite()) {
+export function createTerrainGeometry(detail: TerrainDetail = "high", profile: LunarTerrainProfile = terrainProfileForSite(), neutralRegolith = false) {
   const { cols, rows } = DETAIL[detail];
   const rand = seededRandom(SEED + profile.seed + 99);
 
@@ -254,6 +254,10 @@ export function createTerrainGeometry(detail: TerrainDetail = "high", profile: L
       if (!profile.regional) {
         const rimDist = Math.abs(Math.hypot(x - MAIN_CRATER.x, zz - MAIN_CRATER.z) / MAIN_CRATER.r - 1.12);
         if (rimDist < 0.3) tmp.lerp(bright, (0.3 - rimDist) * 1.1);
+      }
+      if (neutralRegolith) {
+        const grey = Math.min(0.85, 0.12 + (tmp.r * 0.2126 + tmp.g * 0.7152 + tmp.b * 0.0722) * 0.9);
+        tmp.setRGB(grey, grey, grey);
       }
       colors[p] = tmp.r;
       colors[p + 1] = tmp.g;

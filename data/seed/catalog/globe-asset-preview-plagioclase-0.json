@@ -1,0 +1,35 @@
+{
+ "id": "preview-plagioclase-0",
+ "kind": "globe-asset",
+ "contentType": "image/webp",
+ "bytes": 512740,
+ "sha256": "9b6c60c8c54d8c76aba8e312f994b95698dbe148561b5a27484ef28632296b44",
+ "chunks": [
+  "globe-chunk-preview-plagioclase-0-9b6c60c8c54d8c76-0",
+  "globe-chunk-preview-plagioclase-0-9b6c60c8c54d8c76-1",
+  "globe-chunk-preview-plagioclase-0-9b6c60c8c54d8c76-2"
+ ],
+ "layerId": "plagioclase",
+ "sourceIndex": 0,
+ "width": 1024,
+ "height": 512,
+ "rectangle": [
+  -180,
+  -90,
+  180,
+  90
+ ],
+ "source": {
+  "originalId": "plagioclase-0",
+  "originalSha256": "bf622340f99550e0be21ef9d6cf390627dd11bdeac8bab3132e96cc6bdf359a2",
+  "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+  "originalSource": {
+   "kind": "wms",
+   "layers": "luna_kaguya_plagioclase",
+   "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_kaguya_plagioclase&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+   "requestedWidth": 2048,
+   "requestedHeight": 1024,
+   "retrievedAt": "2026-11-15T04:13:30.669Z"
+  }
+ }
+}

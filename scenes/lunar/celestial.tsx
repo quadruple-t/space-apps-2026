@@ -76,7 +76,11 @@ export function Sun({ direction }: { direction: THREE.Vector3 }) {
   );
 }
 
+// logdepthbuf chunks keep the Earth correctly depth-sorted when the drive's canvas uses a
+// logarithmic depth buffer; they compile to nothing otherwise.
 const earthVertex = /* glsl */ `
+  #include <common>
+  #include <logdepthbuf_pars_vertex>
   varying vec3 vWorldNormal;
   varying vec3 vObj;
   varying vec3 vWorldPos;
@@ -86,10 +90,12 @@ const earthVertex = /* glsl */ `
     vec4 wp = modelMatrix * vec4(position, 1.0);
     vWorldPos = wp.xyz;
     gl_Position = projectionMatrix * viewMatrix * wp;
+    #include <logdepthbuf_vertex>
   }
 `;
 
 const earthFragment = /* glsl */ `
+  #include <logdepthbuf_pars_fragment>
   uniform vec3 uSunDir;
   varying vec3 vWorldNormal;
   varying vec3 vObj;
@@ -116,6 +122,7 @@ const earthFragment = /* glsl */ `
   }
 
   void main() {
+    #include <logdepthbuf_fragment>
     vec3 N = normalize(vWorldNormal);
     vec3 V = normalize(cameraPosition - vWorldPos);
     float land = smoothstep(0.53, 0.6, fbm(vObj * 2.3 + 4.0));

@@ -27,6 +27,8 @@ export type LunarSceneProps = {
   cameraMode?: CameraMode;
   lookSensitivity?: number;
   landingActive?: boolean;
+  /** Omit the buggy that the interactive camera otherwise places beside the player. */
+  hideRover?: boolean;
   zoom?: number;
   sunAzimuthDeg?: number;
   sunElevationDeg?: number;
@@ -80,8 +82,8 @@ function StaticShadows({ refreshKey, terrainKey }: { refreshKey?: THREE.Vector3;
   return null;
 }
 
-function Terrain({ detail, profile }: { detail: TerrainDetail; profile: LunarTerrainProfile }) {
-  const geometry = useMemo(() => createTerrainGeometry(detail, profile), [detail, profile]);
+function Terrain({ detail, profile, neutralRegolith = false }: { detail: TerrainDetail; profile: LunarTerrainProfile; neutralRegolith?: boolean }) {
+  const geometry = useMemo(() => createTerrainGeometry(detail, profile, neutralRegolith), [detail, profile, neutralRegolith]);
   useEffect(() => () => geometry.dispose(), [geometry]);
   return (
     <mesh geometry={geometry} castShadow receiveShadow>
@@ -133,7 +135,7 @@ function TerrainDataMarkers({ points, onSelect, site, profile }: { points: Terra
   })}</group>;
 }
 
-function SunLight({ direction }: { direction: THREE.Vector3 }) {
+function SunLight({ direction, neutral = false }: { direction: THREE.Vector3; neutral?: boolean }) {
   const lightRef = useRef<THREE.DirectionalLight>(null);
   const targetRef = useRef<THREE.Object3D>(null);
   useEffect(() => {
@@ -145,10 +147,10 @@ function SunLight({ direction }: { direction: THREE.Vector3 }) {
     lightRef.current.position.copy(direction).multiplyScalar(950).add(targetRef.current.position);
     lightRef.current.shadow.needsUpdate = true;
   }, [direction]);
-  return <><object3D ref={targetRef} position={[-40, 0, -320]} /><directionalLight ref={lightRef} color="#ffd1df" intensity={5.2} castShadow shadow-mapSize-width={2048} shadow-mapSize-height={1024} shadow-camera-left={-560} shadow-camera-right={560} shadow-camera-top={80} shadow-camera-bottom={-80} shadow-camera-near={1} shadow-camera-far={2100} shadow-bias={-0.0004} shadow-normalBias={0.6} /></>;
+  return <><object3D ref={targetRef} position={[-40, 0, -320]} /><directionalLight ref={lightRef} color={neutral ? "#fff3ea" : "#ffd1df"} intensity={5.2} castShadow shadow-mapSize-width={2048} shadow-mapSize-height={1024} shadow-camera-left={-560} shadow-camera-right={560} shadow-camera-top={80} shadow-camera-bottom={-80} shadow-camera-near={1} shadow-camera-far={2100} shadow-bias={-0.0004} shadow-normalBias={0.6} /></>;
 }
 
-function SceneContents({ variant, still, detail, freeplay, cameraMode, zoom, lookSensitivity, sunAzimuthDeg, sunElevationDeg, earthAzimuthDeg, earthElevationDeg, dataPoints, onSelectDataPoint, selectedSite, landingActive, onTutorialAction }: Required<Pick<LunarSceneProps, "variant" | "still" | "detail">> & Pick<LunarSceneProps, "freeplay" | "cameraMode" | "lookSensitivity" | "landingActive" | "zoom" | "sunAzimuthDeg" | "sunElevationDeg" | "earthAzimuthDeg" | "earthElevationDeg" | "dataPoints" | "onSelectDataPoint" | "selectedSite" | "onTutorialAction">) {
+function SceneContents({ variant, still, detail, freeplay, cameraMode, zoom, lookSensitivity, sunAzimuthDeg, sunElevationDeg, earthAzimuthDeg, earthElevationDeg, dataPoints, onSelectDataPoint, selectedSite, landingActive, hideRover, onTutorialAction }: Required<Pick<LunarSceneProps, "variant" | "still" | "detail">> & Pick<LunarSceneProps, "freeplay" | "cameraMode" | "lookSensitivity" | "landingActive" | "hideRover" | "zoom" | "sunAzimuthDeg" | "sunElevationDeg" | "earthAzimuthDeg" | "earthElevationDeg" | "dataPoints" | "onSelectDataPoint" | "selectedSite" | "onTutorialAction">) {
   const sunDir = useMemo(() => toVec(horizonDirection(sunAzimuthDeg ?? HERO_SCENE.sunAzimuthDeg, sunElevationDeg ?? HERO_SCENE.sunElevationDeg)), [sunAzimuthDeg, sunElevationDeg]);
   const earthDir = useMemo(() => toVec(horizonDirection(earthAzimuthDeg ?? HERO_SCENE.earthAzimuthDeg, earthElevationDeg ?? HERO_SCENE.earthElevationDeg)), [earthAzimuthDeg, earthElevationDeg]);
   // Light grazes a touch higher than the visible disc so ridgelines read.
@@ -178,8 +180,8 @@ function SceneContents({ variant, still, detail, freeplay, cameraMode, zoom, loo
       {/* Earthshine: a faint blue fill so shadowed ground is not pure black. */}
       <hemisphereLight args={["#8a7bc8", "#100d22", 0.85]} />
       <ambientLight intensity={0.04} />
-      <SunLight direction={lightDir} />
-      <Terrain detail={detail} profile={terrainProfile} />
+      <SunLight direction={lightDir} neutral={freeplay} />
+      <Terrain detail={detail} profile={terrainProfile} neutralRegolith={freeplay} />
       <TerrainBoundary detail={detail} profile={terrainProfile} />
       {variant === "preview" && !freeplay && <>
         <Astronaut position={[astronautPosition.x, astronautPosition.y, astronautPosition.z]} scale={1.8} />
@@ -192,7 +194,7 @@ function SceneContents({ variant, still, detail, freeplay, cameraMode, zoom, loo
       {variant === "preview" && !freeplay && (
         <LandingSite position={site} sunDirection={sunDir} earthDirection={earthDir} still={still} />
       )}
-      <CameraRig shot={shot} still={still} mode={cameraMode} interactive={freeplay} zoom={zoom} lookSensitivity={lookSensitivity} orbitTarget={site} landingActive={landingActive} terrainProfile={terrainProfile} onTutorialAction={onTutorialAction} />
+      <CameraRig shot={shot} still={still} mode={cameraMode} interactive={freeplay} zoom={zoom} lookSensitivity={lookSensitivity} orbitTarget={site} landingActive={landingActive} hideRover={hideRover} terrainProfile={terrainProfile} onTutorialAction={onTutorialAction} />
       <StaticShadows refreshKey={lightDir} terrainKey={terrainProfile} />
     </>
   );
@@ -212,6 +214,7 @@ export default function LunarScene({
   cameraMode = "first-person",
   lookSensitivity = 1,
   landingActive = false,
+  hideRover = false,
   zoom = 1,
   sunAzimuthDeg,
   sunElevationDeg,
@@ -233,7 +236,7 @@ export default function LunarScene({
       aria-hidden
       tabIndex={-1}
     >
-      <SceneContents variant={variant} still={still} detail={detail} freeplay={freeplay} cameraMode={cameraMode} zoom={zoom} lookSensitivity={lookSensitivity} sunAzimuthDeg={sunAzimuthDeg} sunElevationDeg={sunElevationDeg} earthAzimuthDeg={earthAzimuthDeg} earthElevationDeg={earthElevationDeg} dataPoints={dataPoints} onSelectDataPoint={onSelectDataPoint} selectedSite={selectedSite} landingActive={landingActive} onTutorialAction={onTutorialAction} />
+      <SceneContents variant={variant} still={still} detail={detail} freeplay={freeplay} cameraMode={cameraMode} zoom={zoom} lookSensitivity={lookSensitivity} sunAzimuthDeg={sunAzimuthDeg} sunElevationDeg={sunElevationDeg} earthAzimuthDeg={earthAzimuthDeg} earthElevationDeg={earthElevationDeg} dataPoints={dataPoints} onSelectDataPoint={onSelectDataPoint} selectedSite={selectedSite} landingActive={landingActive} hideRover={hideRover} onTutorialAction={onTutorialAction} />
     </Canvas>
   );
 }

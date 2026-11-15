@@ -10,6 +10,7 @@ import {
   orderBy,
   query,
   startAfter,
+  where,
   type DocumentData,
   type Firestore as ClientFirestore,
 } from "firebase/firestore";
@@ -44,6 +45,20 @@ export function publicReadDb(): AdminFirestore {
     };
   };
 
+  // A single query avoids opening a separate Firestore listener for each part
+  // of a large public globe snapshot. The caller validates the document paths.
+  const readCatalogBatch = async (paths: string[]): Promise<SnapshotLike[]> => {
+    if (paths.length === 0) return [];
+    if (paths.length > 10 || paths.some((path) => !/^catalog\/[^/]+$/.test(path))) throw new Error("Invalid public batch read");
+    const ids = paths.map((path) => path.slice("catalog/".length));
+    const snapshots = await getDocs(query(collection(firestore, "catalog"), where(documentId(), "in", ids)));
+    const found = new Map(snapshots.docs.map((snapshot) => [snapshot.id, snapshot]));
+    return ids.map((id) => {
+      const snapshot = found.get(id);
+      return { id, exists: !!snapshot, data: () => snapshot?.data(), get: (field: string) => snapshot?.get(field) };
+    });
+  };
+
   const collectionQuery = (name: string, options: { pageSize?: number; cursor?: string; ordered?: boolean } = {}) => ({
     orderBy: () => collectionQuery(name, { ...options, ordered: true }),
     limit: (pageSize: number) => collectionQuery(name, { ...options, pageSize }),
@@ -58,5 +73,5 @@ export function publicReadDb(): AdminFirestore {
     },
   });
 
-  return { doc, collection: collectionQuery } as unknown as AdminFirestore;
+  return { doc, readCatalogBatch, collection: collectionQuery } as unknown as AdminFirestore;
 }
