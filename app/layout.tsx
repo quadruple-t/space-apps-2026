@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { ExpeditionBridgeLoader } from "@/components/expeditions/expedition-bridge-loader";
 import { SiteFrame } from "@/components/layout/site-frame";
 import { SITE } from "@/data/site";
 import "./globals.css";
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="flex min-h-dvh flex-col">
         <SiteFrame>{children}</SiteFrame>
+        <ExpeditionBridgeLoader />
       </body>
     </html>
   );

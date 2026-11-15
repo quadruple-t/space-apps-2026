@@ -1,5 +1,5 @@
 /**
- * Creates users/{uid} on first sign-in; later sign-ins only bump lastSeenAt.
+ * Creates users/{uid} on first sign-in; later sign-ins bump lastSeenAt (and fill a missing displayName).
  * expertMode starts false and is only ever set by progressService.enableExpertMode.
  */
 import { doc, runTransaction, serverTimestamp } from "firebase/firestore";
@@ -16,7 +16,9 @@ export async function ensureUserDoc(user: UserProfileFields): Promise<boolean> {
   return runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     if (snap.exists()) {
-      tx.update(ref, { lastSeenAt: serverTimestamp() });
+      // Email sign-up sets the display name just after the account exists; backfill it once.
+      const backfillName = !snap.get("displayName") && user.displayName ? { displayName: user.displayName } : {};
+      tx.update(ref, { lastSeenAt: serverTimestamp(), ...backfillName });
       return false;
     }
     tx.set(ref, {
