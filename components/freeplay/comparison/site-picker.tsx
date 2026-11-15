@@ -18,7 +18,7 @@ export function SitePicker({ label, color, value, presets, otherId, onChange }: 
       <span aria-hidden className="inline-block size-2.5 rounded-sm" style={{ background: color }} />{label}
     </span>
     <select value={value?.id ?? ""} onChange={(e) => onChange(presets.find((s) => s.id === e.target.value) ?? null)} className="hud-input mt-1.5 text-sm text-bone">
-      <option value="">Choose a preset…</option>
+      <option value="">Choose a saved site…</option>
       {presets.map((s) => <option key={s.id} value={s.id} disabled={s.id === otherId}>{s.name} · {fmtLat(s.latitudeDeg)}, {s.longitudeDeg.toFixed(1)}°E</option>)}
     </select>
   </label>;

@@ -152,6 +152,38 @@ Freeplay has an in-app assistant (header button **Mission Control**) that answer
 4. Local development: set `NEXT_PUBLIC_APPCHECK_DEBUG_TOKEN=true`, run `npm run dev`, copy the debug token printed in the browser console and register it under App Check > Apps > Manage debug tokens. Production builds ignore this variable.
 5. Billing: the Gemini Developer API free tier works for development; production traffic needs the Blaze plan. Set a quota or budget alert in Google Cloud and Firebase AI Logic usage limits.
 
+## Habitat power and communication estimates
+
+The build menu offers four types: a four-panel tracking solar array (18 m² total),
+a lunar buggy, a comms mast, and one habitat design. Existing saved habitat designs
+remain readable. The regolith uses neutral gray colors and cosmetic world-scale
+grain/pebble detail to make movement visible; this detail does not alter DEM heights.
+
+Under Terrain & build, Setup performance shows live solar kW, estimated daily kWh,
+sampled peak power, and an editable continuous habitat demand (5 kW per habitat by
+default, explicitly a planning assumption). All arrays feed an ideal shared bus;
+batteries, transmission losses, buggy charging, and mast consumption are excluded.
+Daily energy surplus alone does not establish continuous habitat power.
+
+Once masts are placed, it reports the union of contact windows, coverage percentage,
+longest window/blackout, current remaining or next-window time, and per-mast totals.
+Overlaps are counted once. Full-Earth-disc clearance is reported separately as a
+terrain-visibility margin, not a communications reliability guarantee. Estimates use
+15-minute samples across the selected UTC day, clipped at midnight, and only loaded
+terrain. Site-wide graphs remain available under Sun & Earth.
+
+In bird's-eye view, the center marker is your current ground position. Drag it to
+move across measured terrain; the camera stays fixed while placing the marker and
+recenters after release. Switching to first person starts at that position. Marker
+dragging is disabled while placing hardware, and stays inside the loaded border.
+
+## Surface setup controls and Mission Control
+
+- Click an object in the surface scene to select it. Use **Teleport here** (or double-click the object) to move the camera to it; use **Delete** or Delete/Backspace to remove it. The build-panel list offers the same controls. Placements remain saved per site in this browser.
+- The driving setup panel shows combined mast coverage, per-mast contact windows and blackouts, and habitat power estimates for the selected UTC day. Results are limited by sampling and available terrain; Earth visibility is not a radio-link budget.
+- The bottom-left **Mission Control** bubble is available in the surface view; other screens keep main’s assistant layout. Surface questions include the current site, surface clock, placed-object positions, slopes, sunlight, generation and Earth visibility so replies can discuss this setup. The model and science tools share that same site/time snapshot.
+- Firebase AI uses the existing server prompt template and App Check. Local development uses a registered debug token in the ignored `.env.local` file; production ignores debug tokens and requires `NEXT_PUBLIC_APPCHECK_RECAPTCHA_ENTERPRISE_SITE_KEY`. Never commit debug tokens or use them as production configuration.
+
 ## Data sources
 
 - [Lunar Orbiter Laser Altimeter (LOLA), PDS Geosciences Node](https://pds-geosciences.wustl.edu/missions/lro/lola.htm) — precomputed horizon masks and polar terrain-grid masks where coverage is available.
@@ -190,6 +222,14 @@ data**, not the upstream full-resolution scientific archives. Most images are
 bounds. Zooming does not increase their detail. The globe fetches imagery only
 from this app's Firebase-backed API, with no live Moon Trek/Lunaserv fallback.
 
+For faster loading, the map uses separate half-resolution overview images (usually
+1024 × 512) derived from those stored originals. Nearest-neighbor downsampling
+retains the original sampled colors, and the WebP encoding is lossless; small
+features may be omitted at this display resolution. The complete 2048 × 1024
+originals and all collected source data remain in Firestore. A preview is used
+only when its recorded original SHA-256 matches the current snapshot; otherwise
+the app falls back to the original. The same upstream source credits apply.
+
 `catalog/globe-assets-v1` lists the stored assets. `catalog/globe-asset-*` documents
 hold manifests; `catalog/globe-chunk-*` documents hold their binary payloads.
 The `collected-data` asset is a gzipped JSON bundle containing the original static
@@ -201,12 +241,19 @@ and checksum. Private credentials and user records are excluded.
 npm run archive:globe                 # prepare snapshots and seed files; no cloud writes
 npm run archive:globe -- --upload     # validate and sync static data, then verify readback
 npm run archive:globe -- --verify     # read every stored asset back and check its checksum
+npm run archive:globe-previews        # prepare faster overviews from those verified snapshots
+npm run archive:globe-previews -- --upload --yes  # write and verify only the preview documents
 ```
 
 Import provenance is retained in `scripts/data-pipeline/globe-archive.lock.json`;
 generated Firestore documents remain under `data/seed/catalog/`. The original
 source credits above and [complete inventory](docs/SOURCES.md) also apply to the
 stored copies. The globe sidebar includes a collected-data download link.
+Mission comparison uses Lunar Prospector's regional oxide measurements from
+the composition API; the iron and titanium imagery use different instruments and
+are not point-for-point numerical equivalents. Meteor exposure in comparisons is
+the same relative 2026 reference geometry shown by the meteor layer, not an impact
+forecast. Sources and limitations are documented in [the data inventory](docs/SOURCES.md).
 
 The app is an educational planning and visualization tool, not an operational mission system. Data coverage and assumptions are exposed in Freeplay; the procedural display terrain should not be interpreted as measured topography.
 

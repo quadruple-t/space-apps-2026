@@ -1,0 +1,33 @@
+{
+ "id": "preview-illumination-0",
+ "kind": "globe-asset",
+ "contentType": "image/webp",
+ "bytes": 7512,
+ "sha256": "a3790b7f93da7ac97edf3c83b1434851a9cf7f4e2751cf528b24029814adbb8d",
+ "chunks": [
+  "globe-chunk-preview-illumination-0-a3790b7f93da7ac9-0"
+ ],
+ "layerId": "illumination",
+ "sourceIndex": 0,
+ "width": 1024,
+ "height": 512,
+ "rectangle": [
+  -180,
+  -90,
+  180,
+  90
+ ],
+ "source": {
+  "originalId": "illumination-0",
+  "originalSha256": "087725e8cb94eb835c9fa556d26aecd44ab4d1bd7524e1a29e507e11c3cbbba1",
+  "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+  "originalSource": {
+   "kind": "wms",
+   "layers": "luna_polar_illumination_pct",
+   "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_polar_illumination_pct&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+   "requestedWidth": 2048,
+   "requestedHeight": 1024,
+   "retrievedAt": "2026-11-15T04:13:30.669Z"
+  }
+ }
+}

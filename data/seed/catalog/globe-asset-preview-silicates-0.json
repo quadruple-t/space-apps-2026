@@ -1,0 +1,35 @@
+{
+ "id": "preview-silicates-0",
+ "kind": "globe-asset",
+ "contentType": "image/webp",
+ "bytes": 633250,
+ "sha256": "3adf87b87280a78ff2aab5ee09bc50733c34162251bb722285e148c458fba178",
+ "chunks": [
+  "globe-chunk-preview-silicates-0-3adf87b87280a78f-0",
+  "globe-chunk-preview-silicates-0-3adf87b87280a78f-1",
+  "globe-chunk-preview-silicates-0-3adf87b87280a78f-2"
+ ],
+ "layerId": "silicates",
+ "sourceIndex": 0,
+ "width": 1024,
+ "height": 512,
+ "rectangle": [
+  -180,
+  -90,
+  180,
+  90
+ ],
+ "source": {
+  "originalId": "silicates-0",
+  "originalSha256": "a445cf1222dbdeb8b66bb307d24d93cf0a80acd45645f8c10609368335ca7050",
+  "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+  "originalSource": {
+   "kind": "wms",
+   "layers": "luna_diviner_silicate",
+   "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_diviner_silicate&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+   "requestedWidth": 2048,
+   "requestedHeight": 1024,
+   "retrievedAt": "2026-11-15T04:13:30.669Z"
+  }
+ }
+}

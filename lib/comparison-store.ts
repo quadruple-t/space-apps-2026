@@ -4,6 +4,7 @@ import { create } from "zustand"
 import type { FreeplaySite } from "@/data/sites"
 import { DEFAULT_METRICS, isMetricKey, type MetricKey, type SlotMetrics } from "@/lib/comparison"
 import type { TerrainStats } from "@/lib/terrain-stats"
+import type { CompositionStats } from "@/lib/use-composition"
 
 export type SlotId = "a" | "b"
 export type GraphFocus = "sunlight" | "earth" | "power"
@@ -16,6 +17,9 @@ export type SnapshotSide = {
   metrics: SlotMetrics
   /** Slope, elevation and PSR facts at the time; absent in entries logged before these existed */
   layers?: TerrainStats
+  /** Regional composition and the optional modeled meteor exposure at logging time. */
+  composition?: CompositionStats
+  meteor?: { name: string; referenceUtc: string; exposurePct: number }
 }
 
 /** One tracked row: both sites' numbers plus the window and panel assumptions they were computed with. */
@@ -68,11 +72,14 @@ function load(): Persisted {
     if (!raw) return empty
     const p: unknown = JSON.parse(raw)
     if (!isObject(p)) return empty
+    const oldDefaults = ["sunlightPct", "sunlightHours", "longestDarkHours", "earthPct", "longestBlackoutHours", "peakSunEl", "energyKWh"]
+    const savedMetrics = Array.isArray(p.metrics) ? [...new Set(p.metrics.filter(isMetricKey))] : DEFAULT_METRICS
+    const metrics = savedMetrics.length === oldDefaults.length && oldDefaults.every((key) => savedMetrics.includes(key as MetricKey)) ? DEFAULT_METRICS : savedMetrics
     return {
       slotA: isSite(p.slotA) ? p.slotA : null,
       slotB: isSite(p.slotB) ? p.slotB : null,
       // A saved empty list is the user's choice; only a missing list falls back to the defaults.
-      metrics: Array.isArray(p.metrics) ? [...new Set(p.metrics.filter(isMetricKey))] : DEFAULT_METRICS,
+      metrics,
       graphFocus: p.graphFocus === "earth" || p.graphFocus === "power" ? p.graphFocus : "sunlight",
       siteNotes: stringRecord(p.siteNotes),
       pairNotes: stringRecord(p.pairNotes),

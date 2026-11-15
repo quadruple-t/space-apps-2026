@@ -104,9 +104,23 @@ describe("metric registry", () => {
     expect(metricValue(def("insidePsr"), noTerrain)).toBeNull();
   });
 
+  it("uses regional oxide measurements and hides values below twice their uncertainty", () => {
+    const composition = {
+      oxidesWtPct: { FeO: 10, TiO2: 0.5, Al2O3: 16, CaO: 12, MgO: 9, SiO2: 45 },
+      sigmaWtPct: { FeO: 1, TiO2: 0.4, Al2O3: 1, CaO: 1, MgO: 1, SiO2: 1 }, resolutionKm: 60,
+    };
+    const values = { window, terrain: null, composition, meteorExposure: 42 };
+    expect(metricValue(def("ironOxide"), values)).toBe(10);
+    expect(metricValue(def("titaniumOxide"), values)).toBe("low-confidence");
+    expect(formatValue(def("titaniumOxide"), "low-confidence")).toBe("Low confidence");
+    expect(metricValue(def("meteorExposure"), values)).toBe(42);
+    expect(winnerFor(def("ironOxide"), 10, 20)).toBe("none");
+    expect(metricValue(def("ironOxide"), { window, terrain: null, composition: null })).toBeNull();
+  });
+
   it("has unique keys, a map-layer metric for each layer, and valid defaults", () => {
     expect(new Set(METRICS.map((m) => m.key)).size).toBe(METRICS.length);
-    expect(METRICS.filter((m) => m.layer).map((m) => m.layer).sort()).toEqual(["Elevation", "Illumination", "Permanently shadowed", "Slope"]);
+    expect(METRICS.filter((m) => m.layer).map((m) => m.layer).sort()).toEqual(["Elevation", "Illumination", "Meteor showers", "Permanently shadowed", "Slope"]);
     expect(DEFAULT_METRICS.every(isMetricKey)).toBe(true);
     expect(isMetricKey("nearestPsrKm")).toBe(false);
   });

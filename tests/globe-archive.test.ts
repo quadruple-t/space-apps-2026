@@ -1,8 +1,9 @@
 import { createHash } from "node:crypto";
 import { describe, expect, test } from "vitest";
 import { Bytes } from "firebase/firestore";
-import { GLOBE_CHUNK_BYTES, globeAssetPath, globeAssetUrl, validateGlobeAsset, type GlobeAsset } from "@/lib/globe-archive";
+import { GLOBE_CHUNK_BYTES, globeAssetPath, globeAssetUrl, globeDisplayAsset, validateGlobeAsset, type GlobeArchive, type GlobeAsset } from "@/lib/globe-archive";
 import { GlobeAssetNotFound, readGlobeAsset } from "@/lib/globe-asset-reader";
+import { readCachedGlobeAsset } from "@/lib/globe-asset-cache";
 
 function fixture(data: Buffer) {
   const sha256 = createHash("sha256").update(data).digest("hex");
@@ -38,6 +39,34 @@ describe("Firebase globe archive", () => {
   test("never follows arbitrary chunk document paths", () => {
     const { asset } = fixture(Buffer.from("image"));
     expect(() => validateGlobeAsset({ ...asset, chunks: ["users/private"] }, asset.id)).toThrow();
+  });
+  test("uses bounded batch reads and preserves the original chunk order", async () => {
+    const original = Buffer.alloc(GLOBE_CHUNK_BYTES * 11 + 1, 83);
+    const { db, asset } = fixture(original);
+    const sizes: number[] = [];
+    const batched = { ...db, readCatalogBatch: async (paths: string[]) => {
+      sizes.push(paths.length);
+      return Promise.all(paths.map((path) => db.doc(path).get()));
+    } };
+    expect((await readGlobeAsset(batched, asset.id)).data.equals(original)).toBe(true);
+    expect(sizes).toEqual([10, 2]);
+  });
+  test("shares verified immutable images across concurrent requests", async () => {
+    const { db, asset } = fixture(Buffer.from("a unique cached image"));
+    let reads = 0;
+    const counted = { doc: (path: string) => ({ get: async () => { reads++; return db.doc(path).get(); } }) };
+    const [a, b] = await Promise.all([readCachedGlobeAsset(counted, asset.id, asset.sha256), readCachedGlobeAsset(counted, asset.id, asset.sha256)]);
+    expect(a.data.equals(b.data)).toBe(true);
+    expect(reads).toBe(2); // one manifest and one chunk
+    await readCachedGlobeAsset(counted, asset.id, asset.sha256);
+    expect(reads).toBe(2);
+  });
+  test("only selects a preview derived from the current original snapshot", () => {
+    const { asset } = fixture(Buffer.from("the original"));
+    const preview = { ...asset, id: `preview-${asset.id}`, source: { originalSha256: asset.sha256 } };
+    const archive: GlobeArchive = { version: 1, generatedAt: "", assets: [asset], displayAssets: [preview], scope: "" };
+    expect(globeDisplayAsset(archive, asset)).toBe(preview);
+    expect(globeDisplayAsset(archive, { ...asset, sha256: "a".repeat(64) })).toEqual({ ...asset, sha256: "a".repeat(64) });
   });
   test("rejects unknown IDs and unsupported formats", async () => {
     const { db, asset } = fixture(Buffer.from("image"));

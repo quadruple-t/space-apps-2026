@@ -1,12 +1,13 @@
 import { publicReadDb } from "@/lib/firebase/public-read-db";
-import { GlobeAssetNotFound, readGlobeAsset } from "@/lib/globe-asset-reader";
+import { GlobeAssetNotFound } from "@/lib/globe-asset-reader";
+import { readCachedGlobeAsset } from "@/lib/globe-asset-cache";
 import { errorJson } from "@/lib/api/http";
 
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
   try {
     const hash = new URL(request.url).searchParams.get("sha256");
-    const { asset, data } = await readGlobeAsset(publicReadDb(), id, hash);
+    const { asset, data } = await readCachedGlobeAsset(publicReadDb(), id, hash);
     return new Response(new Uint8Array(data), { headers: {
       "Content-Type": asset.contentType,
       "Content-Length": String(data.length),

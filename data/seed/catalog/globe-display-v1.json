@@ -1,0 +1,678 @@
+{
+ "version": 1,
+ "generatedAt": "2026-11-15T16:40:10.856Z",
+ "assets": [
+  {
+   "id": "preview-base",
+   "kind": "globe-asset",
+   "contentType": "image/webp",
+   "bytes": 407404,
+   "sha256": "d2d6691e4dd03bdd23b363d6d72c67cd81c04a1b90115400934f80a203dd1f20",
+   "chunks": [
+    "globe-chunk-preview-base-d2d6691e4dd03bdd-0",
+    "globe-chunk-preview-base-d2d6691e4dd03bdd-1"
+   ],
+   "layerId": "base",
+   "sourceIndex": 0,
+   "width": 1024,
+   "height": 512,
+   "rectangle": [
+    -180,
+    -90,
+    180,
+    90
+   ],
+   "source": {
+    "originalId": "base",
+    "originalSha256": "423cf5a16729f81372f7b4d2fa489e954fbe6bf93e313893035eea2f7179e884",
+    "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+    "originalSource": {
+     "kind": "wmts",
+     "layer": "LRO_WAC_Mosaic_Global_303ppd_v02",
+     "format": "image/jpeg",
+     "maximumLevel": 8,
+     "tileLevel": 2,
+     "urls": [
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/0/0.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/0/1.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/0/2.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/0/3.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/0/4.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/0/5.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/0/6.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/0/7.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/1/0.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/1/1.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/1/2.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/1/3.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/1/4.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/1/5.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/1/6.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/1/7.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/2/0.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/2/1.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/2/2.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/2/3.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/2/4.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/2/5.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/2/6.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/2/7.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/3/0.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/3/1.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/3/2.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/3/3.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/3/4.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/3/5.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/3/6.jpg",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/2/3/7.jpg"
+     ],
+     "retrievedAt": "2026-11-15T04:13:30.669Z"
+    }
+   }
+  },
+  {
+   "id": "preview-slope-0",
+   "kind": "globe-asset",
+   "contentType": "image/webp",
+   "bytes": 1392904,
+   "sha256": "e4825d9b9e49359c19c3bfb767d0129da49cf3829e148bc2486a92f0ccebaceb",
+   "chunks": [
+    "globe-chunk-preview-slope-0-e4825d9b9e49359c-0",
+    "globe-chunk-preview-slope-0-e4825d9b9e49359c-1",
+    "globe-chunk-preview-slope-0-e4825d9b9e49359c-2",
+    "globe-chunk-preview-slope-0-e4825d9b9e49359c-3",
+    "globe-chunk-preview-slope-0-e4825d9b9e49359c-4",
+    "globe-chunk-preview-slope-0-e4825d9b9e49359c-5"
+   ],
+   "layerId": "slope",
+   "sourceIndex": 0,
+   "width": 1024,
+   "height": 512,
+   "rectangle": [
+    -180,
+    -90,
+    180,
+    90
+   ],
+   "source": {
+    "originalId": "slope-0",
+    "originalSha256": "adfaced8902629330adad5a414b8a402adc4b44f81d471ed169a19d6130cd135",
+    "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+    "originalSource": {
+     "kind": "wmts",
+     "layer": "LRO_LOLA_ClrSlope_Global_16ppd",
+     "format": "image/png",
+     "maximumLevel": 2,
+     "tileLevel": 2,
+     "urls": [
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/0/0.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/0/1.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/0/2.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/0/3.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/0/4.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/0/5.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/0/6.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/0/7.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/1/0.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/1/1.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/1/2.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/1/3.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/1/4.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/1/5.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/1/6.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/1/7.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/2/0.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/2/1.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/2/2.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/2/3.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/2/4.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/2/5.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/2/6.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/2/7.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/3/0.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/3/1.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/3/2.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/3/3.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/3/4.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/3/5.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/3/6.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_Global_16ppd/1.0.0/default/default028mm/2/3/7.png"
+     ],
+     "retrievedAt": "2026-11-15T04:13:30.669Z"
+    }
+   }
+  },
+  {
+   "id": "preview-slope-1",
+   "kind": "globe-asset",
+   "contentType": "image/webp",
+   "bytes": 474034,
+   "sha256": "fdada955f39aa6881c5fa2661536cd0145786f828a84c5d1ace13f957071f9cf",
+   "chunks": [
+    "globe-chunk-preview-slope-1-fdada955f39aa688-0",
+    "globe-chunk-preview-slope-1-fdada955f39aa688-1"
+   ],
+   "layerId": "slope",
+   "sourceIndex": 1,
+   "width": 2048,
+   "height": 128,
+   "rectangle": [
+    -180,
+    -90,
+    180,
+    -67.5
+   ],
+   "source": {
+    "originalId": "slope-1",
+    "originalSha256": "b2a984b622edbe6e68bd6a4b9fb8934bf68ea283f38afbed394b78ad0fc9f5d0",
+    "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+    "originalSource": {
+     "kind": "wmts",
+     "layer": "LRO_LOLA_ClrSlope_SPole75S_120m_EQ",
+     "format": "image/png",
+     "maximumLevel": 6,
+     "south": -90,
+     "north": -68.9,
+     "tileLevel": 3,
+     "urls": [
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/0.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/1.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/10.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/11.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/12.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/13.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/14.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/15.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/2.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/3.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/4.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/5.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/6.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/7.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/8.png",
+      "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrSlope_SPole75S_120m_EQ/1.0.0/default/default028mm/3/7/9.png"
+     ],
+     "retrievedAt": "2026-11-15T04:13:30.669Z"
+    }
+   }
+  },
+  {
+   "id": "preview-illumination-0",
+   "kind": "globe-asset",
+   "contentType": "image/webp",
+   "bytes": 7512,
+   "sha256": "a3790b7f93da7ac97edf3c83b1434851a9cf7f4e2751cf528b24029814adbb8d",
+   "chunks": [
+    "globe-chunk-preview-illumination-0-a3790b7f93da7ac9-0"
+   ],
+   "layerId": "illumination",
+   "sourceIndex": 0,
+   "width": 1024,
+   "height": 512,
+   "rectangle": [
+    -180,
+    -90,
+    180,
+    90
+   ],
+   "source": {
+    "originalId": "illumination-0",
+    "originalSha256": "087725e8cb94eb835c9fa556d26aecd44ab4d1bd7524e1a29e507e11c3cbbba1",
+    "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+    "originalSource": {
+     "kind": "wms",
+     "layers": "luna_polar_illumination_pct",
+     "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_polar_illumination_pct&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+     "requestedWidth": 2048,
+     "requestedHeight": 1024,
+     "retrievedAt": "2026-11-15T04:13:30.669Z"
+    }
+   }
+  },
+  {
+   "id": "preview-psr-0",
+   "kind": "globe-asset",
+   "contentType": "image/webp",
+   "bytes": 1366,
+   "sha256": "5221cf077cfa80cef903c33df42c061b7b959ebf0b5b105e9917106a2a6e88e3",
+   "chunks": [
+    "globe-chunk-preview-psr-0-5221cf077cfa80ce-0"
+   ],
+   "layerId": "psr",
+   "sourceIndex": 0,
+   "width": 1024,
+   "height": 512,
+   "rectangle": [
+    -180,
+    -90,
+    180,
+    90
+   ],
+   "source": {
+    "originalId": "psr-0",
+    "originalSha256": "bcfdc25371e3aabf095e788700f6d19363bc3103166ee1e4b861596560a8595a",
+    "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+    "originalSource": {
+     "kind": "wms",
+     "layers": "luna_psr_81s",
+     "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_psr_81s&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+     "requestedWidth": 2048,
+     "requestedHeight": 1024,
+     "retrievedAt": "2026-11-15T04:13:30.669Z"
+    }
+   }
+  },
+  {
+   "id": "preview-elevation-0",
+   "kind": "globe-asset",
+   "contentType": "image/webp",
+   "bytes": 1072038,
+   "sha256": "b19560f3ffdb533aece09fb297d02fba0d5ba68b6cd978e3d4db4e85597ca3d7",
+   "chunks": [
+    "globe-chunk-preview-elevation-0-b19560f3ffdb533a-0",
+    "globe-chunk-preview-elevation-0-b19560f3ffdb533a-1",
+    "globe-chunk-preview-elevation-0-b19560f3ffdb533a-2",
+    "globe-chunk-preview-elevation-0-b19560f3ffdb533a-3",
+    "globe-chunk-preview-elevation-0-b19560f3ffdb533a-4"
+   ],
+   "layerId": "elevation",
+   "sourceIndex": 0,
+   "width": 1024,
+   "height": 512,
+   "rectangle": [
+    -180,
+    -90,
+    180,
+    90
+   ],
+   "source": {
+    "originalId": "elevation-0",
+    "originalSha256": "a07781bb97ba5e168782460e86d024bcb45e3ca7065443b6f5f29c080094e57c",
+    "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+    "originalSource": {
+     "kind": "wms",
+     "layers": "luna_wac_dtm",
+     "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_wac_dtm&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+     "requestedWidth": 2048,
+     "requestedHeight": 1024,
+     "retrievedAt": "2026-11-15T04:13:30.669Z"
+    }
+   }
+  },
+  {
+   "id": "preview-titanium-0",
+   "kind": "globe-asset",
+   "contentType": "image/webp",
+   "bytes": 304316,
+   "sha256": "4a220f3f4118aecfbe2f00c7e582d6f346fe4cf3bd273b4bcf79e1bcd9cd4f93",
+   "chunks": [
+    "globe-chunk-preview-titanium-0-4a220f3f4118aecf-0",
+    "globe-chunk-preview-titanium-0-4a220f3f4118aecf-1"
+   ],
+   "layerId": "titanium",
+   "sourceIndex": 0,
+   "width": 1024,
+   "height": 512,
+   "rectangle": [
+    -180,
+    -90,
+    180,
+    90
+   ],
+   "source": {
+    "originalId": "titanium-0",
+    "originalSha256": "4337fb6cf39d3ef418737ed8ef741eebe5578c63d17afffe18c53dfd7fb2a80e",
+    "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+    "originalSource": {
+     "kind": "wms",
+     "layers": "luna_wac_tio2_color",
+     "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_wac_tio2_color&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+     "requestedWidth": 2048,
+     "requestedHeight": 1024,
+     "retrievedAt": "2026-11-15T04:13:30.669Z"
+    }
+   }
+  },
+  {
+   "id": "preview-iron-0",
+   "kind": "globe-asset",
+   "contentType": "image/webp",
+   "bytes": 448022,
+   "sha256": "42fee98fca5ff86063aa944569178c7a91b7c1366450981613319f80802fb6a4",
+   "chunks": [
+    "globe-chunk-preview-iron-0-42fee98fca5ff860-0",
+    "globe-chunk-preview-iron-0-42fee98fca5ff860-1"
+   ],
+   "layerId": "iron",
+   "sourceIndex": 0,
+   "width": 1024,
+   "height": 512,
+   "rectangle": [
+    -180,
+    -90,
+    180,
+    90
+   ],
+   "source": {
+    "originalId": "iron-0",
+    "originalSha256": "c91947036af897c8156fb624049532f109783a97e6011a6cbb0bd1a4221c695b",
+    "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+    "originalSource": {
+     "kind": "wms",
+     "layers": "luna_kaguya_feo",
+     "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_kaguya_feo&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+     "requestedWidth": 2048,
+     "requestedHeight": 1024,
+     "retrievedAt": "2026-11-15T04:13:30.669Z"
+    }
+   }
+  },
+  {
+   "id": "preview-thorium-0",
+   "kind": "globe-asset",
+   "contentType": "image/webp",
+   "bytes": 65396,
+   "sha256": "875f3e0ae7d422b3d6945d68ef3966a22a139e4ad7429338d9830d5b88df1493",
+   "chunks": [
+    "globe-chunk-preview-thorium-0-875f3e0ae7d422b3-0"
+   ],
+   "layerId": "thorium",
+   "sourceIndex": 0,
+   "width": 1024,
+   "height": 512,
+   "rectangle": [
+    -180,
+    -90,
+    180,
+    90
+   ],
+   "source": {
+    "originalId": "thorium-0",
+    "originalSha256": "f2c1df087d99e32626e34faffeedebd173f85ec25952f2e6224c2bedd262b66e",
+    "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+    "originalSource": {
+     "kind": "wms",
+     "layers": "luna_lp_deconvolved_thorium",
+     "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_lp_deconvolved_thorium&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+     "requestedWidth": 2048,
+     "requestedHeight": 1024,
+     "retrievedAt": "2026-11-15T04:13:30.669Z"
+    }
+   }
+  },
+  {
+   "id": "preview-olivine-0",
+   "kind": "globe-asset",
+   "contentType": "image/webp",
+   "bytes": 549602,
+   "sha256": "8c8352401a7fc7adeb183042c422f8aac1c2aff7d5d3acc4ca2d2f7cfd3bbdc3",
+   "chunks": [
+    "globe-chunk-preview-olivine-0-8c8352401a7fc7ad-0",
+    "globe-chunk-preview-olivine-0-8c8352401a7fc7ad-1",
+    "globe-chunk-preview-olivine-0-8c8352401a7fc7ad-2"
+   ],
+   "layerId": "olivine",
+   "sourceIndex": 0,
+   "width": 1024,
+   "height": 512,
+   "rectangle": [
+    -180,
+    -90,
+    180,
+    90
+   ],
+   "source": {
+    "originalId": "olivine-0",
+    "originalSha256": "265dcf9c980076d394a53ebb53726bccbf06d5358cd3f370b5b139a6fe495332",
+    "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+    "originalSource": {
+     "kind": "wms",
+     "layers": "luna_kaguya_olivine",
+     "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_kaguya_olivine&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+     "requestedWidth": 2048,
+     "requestedHeight": 1024,
+     "retrievedAt": "2026-11-15T04:13:30.669Z"
+    }
+   }
+  },
+  {
+   "id": "preview-plagioclase-0",
+   "kind": "globe-asset",
+   "contentType": "image/webp",
+   "bytes": 512740,
+   "sha256": "9b6c60c8c54d8c76aba8e312f994b95698dbe148561b5a27484ef28632296b44",
+   "chunks": [
+    "globe-chunk-preview-plagioclase-0-9b6c60c8c54d8c76-0",
+    "globe-chunk-preview-plagioclase-0-9b6c60c8c54d8c76-1",
+    "globe-chunk-preview-plagioclase-0-9b6c60c8c54d8c76-2"
+   ],
+   "layerId": "plagioclase",
+   "sourceIndex": 0,
+   "width": 1024,
+   "height": 512,
+   "rectangle": [
+    -180,
+    -90,
+    180,
+    90
+   ],
+   "source": {
+    "originalId": "plagioclase-0",
+    "originalSha256": "bf622340f99550e0be21ef9d6cf390627dd11bdeac8bab3132e96cc6bdf359a2",
+    "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+    "originalSource": {
+     "kind": "wms",
+     "layers": "luna_kaguya_plagioclase",
+     "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_kaguya_plagioclase&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+     "requestedWidth": 2048,
+     "requestedHeight": 1024,
+     "retrievedAt": "2026-11-15T04:13:30.669Z"
+    }
+   }
+  },
+  {
+   "id": "preview-pyroxene-0",
+   "kind": "globe-asset",
+   "contentType": "image/webp",
+   "bytes": 491284,
+   "sha256": "ba958b440a0bcaa9dd81946afcc1246b20a8acfbd485c46b6a47e2337077418b",
+   "chunks": [
+    "globe-chunk-preview-pyroxene-0-ba958b440a0bcaa9-0",
+    "globe-chunk-preview-pyroxene-0-ba958b440a0bcaa9-1"
+   ],
+   "layerId": "pyroxene",
+   "sourceIndex": 0,
+   "width": 1024,
+   "height": 512,
+   "rectangle": [
+    -180,
+    -90,
+    180,
+    90
+   ],
+   "source": {
+    "originalId": "pyroxene-0",
+    "originalSha256": "29f435df329aa2c1fa88f1df52eb136d5fa5a3ca0cd4c720d1dfd014e0322d1e",
+    "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+    "originalSource": {
+     "kind": "wms",
+     "layers": "luna_kaguya_clinopyroxene",
+     "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_kaguya_clinopyroxene&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+     "requestedWidth": 2048,
+     "requestedHeight": 1024,
+     "retrievedAt": "2026-11-15T04:13:30.669Z"
+    }
+   }
+  },
+  {
+   "id": "preview-silicates-0",
+   "kind": "globe-asset",
+   "contentType": "image/webp",
+   "bytes": 633250,
+   "sha256": "3adf87b87280a78ff2aab5ee09bc50733c34162251bb722285e148c458fba178",
+   "chunks": [
+    "globe-chunk-preview-silicates-0-3adf87b87280a78f-0",
+    "globe-chunk-preview-silicates-0-3adf87b87280a78f-1",
+    "globe-chunk-preview-silicates-0-3adf87b87280a78f-2"
+   ],
+   "layerId": "silicates",
+   "sourceIndex": 0,
+   "width": 1024,
+   "height": 512,
+   "rectangle": [
+    -180,
+    -90,
+    180,
+    90
+   ],
+   "source": {
+    "originalId": "silicates-0",
+    "originalSha256": "a445cf1222dbdeb8b66bb307d24d93cf0a80acd45645f8c10609368335ca7050",
+    "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+    "originalSource": {
+     "kind": "wms",
+     "layers": "luna_diviner_silicate",
+     "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_diviner_silicate&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+     "requestedWidth": 2048,
+     "requestedHeight": 1024,
+     "retrievedAt": "2026-11-15T04:13:30.669Z"
+    }
+   }
+  },
+  {
+   "id": "preview-iceDepth-0",
+   "kind": "globe-asset",
+   "contentType": "image/webp",
+   "bytes": 10136,
+   "sha256": "c62a968b337711e9e979295dd22426166e75453a44d6c73632180484ec7bd001",
+   "chunks": [
+    "globe-chunk-preview-iceDepth-0-c62a968b337711e9-0"
+   ],
+   "layerId": "iceDepth",
+   "sourceIndex": 0,
+   "width": 1024,
+   "height": 512,
+   "rectangle": [
+    -180,
+    -90,
+    180,
+    90
+   ],
+   "source": {
+    "originalId": "iceDepth-0",
+    "originalSha256": "9562c2403d26824a9f42841573ce4d5217d264be3b0e6a99e6293aaa5b11877f",
+    "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+    "originalSource": {
+     "kind": "wms",
+     "layers": "luna_diviner_sp_ice_depth_today",
+     "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_diviner_sp_ice_depth_today&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+     "requestedWidth": 2048,
+     "requestedHeight": 1024,
+     "retrievedAt": "2026-11-15T04:13:30.669Z"
+    }
+   }
+  },
+  {
+   "id": "preview-temperatureMax-0",
+   "kind": "globe-asset",
+   "contentType": "image/webp",
+   "bytes": 408250,
+   "sha256": "5828d3c3b3af53e91a8b1644621448780089ee6a994ee7434c190001d786852e",
+   "chunks": [
+    "globe-chunk-preview-temperatureMax-0-5828d3c3b3af53e9-0",
+    "globe-chunk-preview-temperatureMax-0-5828d3c3b3af53e9-1"
+   ],
+   "layerId": "temperatureMax",
+   "sourceIndex": 0,
+   "width": 1024,
+   "height": 512,
+   "rectangle": [
+    -180,
+    -90,
+    180,
+    90
+   ],
+   "source": {
+    "originalId": "temperatureMax-0",
+    "originalSha256": "8a4de9b2ab32ebcfae45b3a82d3f42102f614f3680cbd356d833fb4964303685",
+    "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+    "originalSource": {
+     "kind": "wms",
+     "layers": "luna_diviner_tbol_max",
+     "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_diviner_tbol_max&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+     "requestedWidth": 2048,
+     "requestedHeight": 1024,
+     "retrievedAt": "2026-11-15T04:13:30.669Z"
+    }
+   }
+  },
+  {
+   "id": "preview-temperatureMin-0",
+   "kind": "globe-asset",
+   "contentType": "image/webp",
+   "bytes": 404212,
+   "sha256": "53a1c428369df21ddf4d039868f20fc5a6229dd60b0f7fa55f5959d8efcfb079",
+   "chunks": [
+    "globe-chunk-preview-temperatureMin-0-53a1c428369df21d-0",
+    "globe-chunk-preview-temperatureMin-0-53a1c428369df21d-1"
+   ],
+   "layerId": "temperatureMin",
+   "sourceIndex": 0,
+   "width": 1024,
+   "height": 512,
+   "rectangle": [
+    -180,
+    -90,
+    180,
+    90
+   ],
+   "source": {
+    "originalId": "temperatureMin-0",
+    "originalSha256": "9fee73b7e11e0110584fbd0430eaf3492184e4b9a2f32da05c0ce27fc0214da8",
+    "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+    "originalSource": {
+     "kind": "wms",
+     "layers": "luna_diviner_tbol_min",
+     "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_diviner_tbol_min&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+     "requestedWidth": 2048,
+     "requestedHeight": 1024,
+     "retrievedAt": "2026-11-15T04:13:30.669Z"
+    }
+   }
+  },
+  {
+   "id": "preview-impactHistory-0",
+   "kind": "globe-asset",
+   "contentType": "image/webp",
+   "bytes": 472,
+   "sha256": "ac06c0c51e84156a8a44da840f14de1d2c4272fec413460c0b6da36f0a4e0bef",
+   "chunks": [
+    "globe-chunk-preview-impactHistory-0-ac06c0c51e84156a-0"
+   ],
+   "layerId": "impactHistory",
+   "sourceIndex": 0,
+   "width": 1024,
+   "height": 512,
+   "rectangle": [
+    -180,
+    -90,
+    180,
+    90
+   ],
+   "source": {
+    "originalId": "impactHistory-0",
+    "originalSha256": "4f435c08ab56231d3d8a4916cd6e6b1ea7fdd5aaf5e8a05f4891aeaa92257e05",
+    "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+    "originalSource": {
+     "kind": "wms",
+     "layers": "luna_copernican_craters",
+     "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_copernican_craters&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+     "requestedWidth": 2048,
+     "requestedHeight": 1024,
+     "retrievedAt": "2026-11-15T04:13:30.669Z"
+    }
+   }
+  }
+ ],
+ "scope": "Full-coverage display overviews derived from the unchanged archived snapshots."
+}

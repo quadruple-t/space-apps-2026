@@ -7,6 +7,7 @@ import { ArrowLeft, Bot, Car, GitCompareArrows, Globe2, Orbit, Rocket } from "lu
 import { ExpeditionControl, EXPEDITION_LAUNCHER_ID } from "@/components/expeditions/expedition-control";
 import { ExpeditionPanel } from "@/components/expeditions/expedition-panel";
 import { Logo } from "@/components/brand/logo";
+import { LoadingIndicator } from "@/components/freeplay/loading-indicator";
 import { AssistantPanel, LAUNCHER_ID, PANEL_ID } from "@/components/freeplay/assistant-panel";
 import { usePlaybackClock } from "@/components/freeplay/time-controls";
 import type { FreeplaySite } from "@/data/sites";
@@ -16,7 +17,7 @@ import { useExpeditions } from "@/lib/expeditions/expedition-store";
 import { currentTimeMs, useFreeplay, type FreeplayView, type LayerId } from "@/lib/freeplay-store";
 
 const Loading = ({ label }: { label: string }) =>
-  <div className="grid h-full place-items-center"><span className="type-data animate-pulse text-[0.65rem] uppercase tracking-[0.14em] text-muted-foreground">Loading {label}…</span></div>;
+  <div className="grid h-full place-items-center"><LoadingIndicator label={label} /></div>;
 
 const GlobeScreen = dynamic(() => import("./globe-screen").then((m) => m.GlobeScreen), { ssr: false, loading: () => <Loading label="Moon globe" /> });
 const OrbitScreen = dynamic(() => import("./orbit-screen").then((m) => m.OrbitScreen), { ssr: false, loading: () => <Loading label="orbit view" /> });
@@ -41,7 +42,7 @@ function SurfaceLink() {
   const startIso = useFreeplay((s) => s.startIso);
   const elapsedHours = useFreeplay((s) => s.elapsedHours);
   const t = currentTimeMs({ startIso, elapsedHours });
-  return <Link href={driveHref(site, t)} className={`${SEGMENT} ${SEGMENT_IDLE}`} title={site ? `Explore the surface at ${site.name}` : "Choose a place before exploring the surface"}>
+  return <Link href={driveHref(site, t)} data-accept-site className={`${SEGMENT} ${SEGMENT_IDLE}`} title={site ? `Explore the surface at ${site.name}` : "Choose a place before exploring the surface"}>
     <Car size={13} />Walk on the Moon
   </Link>;
 }
@@ -88,7 +89,7 @@ export function FreeplayApp({ aside, guidedPanels, assistantEnabled = true, guid
           <h1 className="type-heading text-sm text-bone sm:text-base">Open Exploration</h1>
           <div className="flex max-w-full overflow-x-auto rounded border border-line">
             <div role="tablist" aria-label="Explore views" className="flex">
-              {TABS.map(({ id, label, Icon }) => <button key={id} role="tab" aria-selected={view === id} onClick={() => setView(id)}
+              {TABS.map(({ id, label, Icon }) => <button key={id} role="tab" aria-selected={view === id} data-accept-site={id === "orbit" ? "" : undefined} onClick={() => setView(id)}
                 className={`${SEGMENT} ${view === id ? SEGMENT_ON : SEGMENT_IDLE}`}>
                 <Icon size={13} />{label}
               </button>)}

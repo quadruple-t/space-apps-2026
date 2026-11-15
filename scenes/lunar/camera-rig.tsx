@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
+import { keyBelongsToControl } from "@/lib/keyboard";
 import { LunarRover } from "./rover";
 import { heightAt, type LunarTerrainProfile } from "./terrain";
 
@@ -24,7 +25,7 @@ export type CameraMode = "first-person" | "orbit" | "overhead";
  * Slow cinematic drift plus gentle pointer parallax. Static when
  * `still` is true (reduced motion).
  */
-export function CameraRig({ shot, still, mode = "first-person", interactive = false, zoom = 1, lookSensitivity = 1, orbitTarget, landingActive = false, terrainProfile, onTutorialAction }: { shot: CameraShot; still: boolean; mode?: CameraMode; interactive?: boolean; zoom?: number; lookSensitivity?: number; orbitTarget?: THREE.Vector3; landingActive?: boolean; terrainProfile: LunarTerrainProfile; onTutorialAction?: (action: "look" | "move") => void }) {
+export function CameraRig({ shot, still, mode = "first-person", interactive = false, zoom = 1, lookSensitivity = 1, orbitTarget, landingActive = false, hideRover = false, terrainProfile, onTutorialAction }: { shot: CameraShot; still: boolean; mode?: CameraMode; interactive?: boolean; zoom?: number; lookSensitivity?: number; orbitTarget?: THREE.Vector3; landingActive?: boolean; hideRover?: boolean; terrainProfile: LunarTerrainProfile; onTutorialAction?: (action: "look" | "move") => void }) {
   const { get, gl } = useThree();
   const narrow = useThree((s) => s.size.width / s.size.height < 0.9);
   const target = narrow && shot.narrowTarget ? shot.narrowTarget : shot.target;
@@ -91,7 +92,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
       keyFrame.current = window.requestAnimationFrame(animateKeys);
     };
     const keyDown = (event: KeyboardEvent) => {
-      if (event.target instanceof HTMLElement && (/^(INPUT|TEXTAREA|SELECT)$/.test(event.target.tagName) || event.target.closest("[data-no-flight-controls]"))) return;
+      if (keyBelongsToControl(event.target, event.key)) return;
       const key = event.key.toLowerCase();
       if (!motionKeys.has(key)) return;
       event.preventDefault();
@@ -112,16 +113,16 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
       last.current = { x: event.clientX, y: event.clientY };
     };
     const elDown = (event: PointerEvent) => {
-      // Touchscreens have no hover, so keep drag-to-look as their gesture.
-      if (event.pointerType !== "touch" || event.button !== 0) return;
+      // Looking needs a click-and-drag; merely hovering never rotates the view.
+      if (event.button !== 0) return;
       touchLooking.current = true;
       last.current = { x: event.clientX, y: event.clientY };
       el.setPointerCapture(event.pointerId);
     };
     const move = (event: PointerEvent) => {
-      // Mouse and pen movement steer continuously with no button held.
-      // Touch uses an explicit drag because it cannot hover.
-      if (event.pointerType === "touch" && !touchLooking.current) {
+      // Released out of sight (outside the window): stop looking rather than follow the mouse.
+      if (touchLooking.current && event.buttons === 0) touchLooking.current = false;
+      if (!touchLooking.current) {
         last.current = { x: event.clientX, y: event.clientY };
         return;
       }
@@ -140,6 +141,14 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
       distance.current = THREE.MathUtils.clamp(distance.current + event.deltaY * 0.18, 85, 520);
       get().invalidate();
     };
+    const focusControl = (event: FocusEvent) => {
+      if (!keyBelongsToControl(event.target, "w")) return;
+      pressedKeys.clear();
+      if (keyFrame.current !== null) window.cancelAnimationFrame(keyFrame.current);
+      keyFrame.current = null;
+      touchLooking.current = false;
+    };
+    window.addEventListener("focusin", focusControl);
     window.addEventListener("keydown", keyDown);
     window.addEventListener("keyup", keyUp);
     el.addEventListener("pointerenter", pointerEnter);
@@ -149,6 +158,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
     el.addEventListener("pointercancel", up);
     el.addEventListener("wheel", wheel, { passive: false });
     return () => {
+      window.removeEventListener("focusin", focusControl);
       window.removeEventListener("keydown", keyDown);
       window.removeEventListener("keyup", keyUp);
       el.removeEventListener("pointerenter", pointerEnter);
@@ -248,7 +258,7 @@ export function CameraRig({ shot, still, mode = "first-person", interactive = fa
     state.camera.lookAt(target);
   });
 
-  return interactive ? <>
+  return interactive && !hideRover ? <>
     <group ref={roverRef}><LunarRover /></group>
     <mesh ref={dustRef} rotation={[-Math.PI / 2, 0, 0]}>
       <ringGeometry args={[3.2, 4.2, 28]} />

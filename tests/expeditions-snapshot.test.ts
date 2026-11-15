@@ -38,6 +38,19 @@ describe("workspace capture and restore", () => {
     expect(s.savedSites).toEqual([site]);
     expect(s.playing).toBe(false);
   });
+
+  it("does not autosave an unfinished custom site but does save an intentionally used one", () => {
+    useFreeplay.setState(workspaceToStorePatch(DEFAULT_WORKSPACE, []));
+    useFreeplay.getState().selectCustom(-85, 123);
+    expect(captureWorkspace(useFreeplay.getState()).site).toBeNull();
+    useFreeplay.getState().setCalloutOpen(false);
+    expect(captureWorkspace(useFreeplay.getState()).site).toBeNull();
+    useFreeplay.getState().selectCustom(-85, 123);
+    useFreeplay.getState().setView("orbit");
+    expect(captureWorkspace(useFreeplay.getState()).site?.latitudeDeg).toBe(-85);
+    expect(sanitizeWorkspace({ ...captureWorkspace(useFreeplay.getState()), view: "compare" }).view).toBe("compare");
+    useFreeplay.setState(workspaceToStorePatch(DEFAULT_WORKSPACE, []));
+  });
 });
 
 describe("sanitizers", () => {
@@ -78,7 +91,8 @@ describe("draft content and legacy migration", () => {
     expect(d.sites).toEqual([site]);
     expect(d.workspace.panelAreaM2).toBe(4);
     expect(d.workspace.panelEfficiency).toBe(0.22);
-    expect(migrateLegacyFreeplay("bad", emptyDraft())).toEqual(emptyDraft(d.updatedAt));
+    const unchanged = emptyDraft(d.updatedAt);
+    expect(migrateLegacyFreeplay("bad", unchanged)).toEqual(unchanged);
   });
 });
 

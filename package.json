@@ -15,6 +15,7 @@
     "emulators": "npx -y firebase-tools@15.36.0 emulators:start --project shadowline-2t12",
     "seed:emulator": "tsx scripts/seed-firestore.ts --emulator",
     "archive:globe": "node --import tsx scripts/archive-globe.ts",
+    "archive:globe-previews": "node --import tsx scripts/archive-globe-previews.ts",
     "seed:prod": "tsx scripts/seed-firestore.ts --prod",
     "smoke": "tsx scripts/smoke-emulator.ts"
   },

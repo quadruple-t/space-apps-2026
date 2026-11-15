@@ -1,0 +1,33 @@
+{
+ "id": "preview-iceDepth-0",
+ "kind": "globe-asset",
+ "contentType": "image/webp",
+ "bytes": 10136,
+ "sha256": "c62a968b337711e9e979295dd22426166e75453a44d6c73632180484ec7bd001",
+ "chunks": [
+  "globe-chunk-preview-iceDepth-0-c62a968b337711e9-0"
+ ],
+ "layerId": "iceDepth",
+ "sourceIndex": 0,
+ "width": 1024,
+ "height": 512,
+ "rectangle": [
+  -180,
+  -90,
+  180,
+  90
+ ],
+ "source": {
+  "originalId": "iceDepth-0",
+  "originalSha256": "9562c2403d26824a9f42841573ce4d5217d264be3b0e6a99e6293aaa5b11877f",
+  "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+  "originalSource": {
+   "kind": "wms",
+   "layers": "luna_diviner_sp_ice_depth_today",
+   "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_diviner_sp_ice_depth_today&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+   "requestedWidth": 2048,
+   "requestedHeight": 1024,
+   "retrievedAt": "2026-11-15T04:13:30.669Z"
+  }
+ }
+}

@@ -75,7 +75,7 @@ type WorkspaceSource = { [K in keyof ExpeditionWorkspace]: ExpeditionWorkspace[K
 /** Picks the persistent fields out of the Freeplay store state. */
 export function captureWorkspace(s: WorkspaceSource): ExpeditionWorkspace {
   return {
-    view: s.view, site: s.site, startIso: s.startIso, durationHours: s.durationHours, elapsedHours: s.elapsedHours,
+    view: s.view, site: s.siteDraft === true ? null : s.site, startIso: s.startIso, durationHours: s.durationHours, elapsedHours: s.elapsedHours,
     speed: s.speed, layers: s.layers, meteorStream: s.meteorStream, showCatalog: s.showCatalog, graphTab: s.graphTab,
     panelAreaM2: s.panelAreaM2, panelEfficiency: s.panelEfficiency,
   };
@@ -83,7 +83,7 @@ export function captureWorkspace(s: WorkspaceSource): ExpeditionWorkspace {
 
 /** The Freeplay store patch that restores a workspace; also stops playback and closes the callout. */
 export function workspaceToStorePatch(ws: ExpeditionWorkspace, sites: FreeplaySite[]) {
-  return { ...ws, savedSites: sites, playing: false, calloutOpen: false };
+  return { ...ws, savedSites: sites, playing: false, calloutOpen: false, siteDraft: false };
 }
 
 /** Stable comparison key so autosave only writes when something persistent changed. */
@@ -143,7 +143,7 @@ export function sanitizeWorkspace(v: unknown): ExpeditionWorkspace {
   const d = DEFAULT_WORKSPACE;
   const durationHours = num(v.durationHours, d.durationHours, 1, MAX_DURATION_HOURS);
   return {
-    view: oneOf(v.view, ["globe", "orbit"] as const, d.view),
+    view: oneOf(v.view, ["globe", "orbit", "compare"] as const, d.view),
     site: v.site === null || v.site === undefined ? null : sanitizeSite(v.site),
     startIso: isoIn(v.startIso, d.startIso),
     durationHours,
