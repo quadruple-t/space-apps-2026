@@ -135,7 +135,7 @@ export function CompareScreen() {
       <div className="flex min-w-0 flex-col gap-3">
         <section className="hud-panel p-4 sm:p-5" aria-label="Choose two sites to compare">
           <h2 className="type-heading text-lg text-bone">Mission comparison</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Pick two presets and see them over the same mission window. Change the window with the time controls below.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Pick two saved sites and see them over the same mission window. Change the window with the time controls below.</p>
           <div className="mt-4 grid items-start gap-3 sm:grid-cols-[1fr_auto_1fr]">
             <div className="min-w-0">
               <SitePicker label="Site A" color={COLOR_A} value={a} presets={presets} otherId={b?.id ?? null} onChange={(site) => setSlot("a", site)} />
@@ -150,8 +150,8 @@ export function CompareScreen() {
           </div>
           {presets.length < 2 && <div role="status" className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded border border-dashed border-line p-3">
             <p className="min-w-0 flex-1 text-sm text-muted-foreground">{presets.length === 0
-              ? <>You have no presets yet. On the Moon map, click a place (a catalog pin or any point), choose <span className="text-bone">Save to presets</span>, and repeat for a second place.</>
-              : <>You have one preset. Save at least one more on the Moon map to compare.</>}</p>
+              ? <>You have no saved sites yet. On the Moon map, click a place (a catalog pin or any point), choose <span className="text-bone">Save to expedition</span>, and repeat for a second place.</>
+              : <>You have one saved site. Save at least one more on the Moon map to compare.</>}</p>
             <button type="button" onClick={() => setView("globe")} className="shrink-0 rounded bg-retro-purple px-3 py-2 text-sm font-semibold text-void hover:bg-[#c2aaff]">Open Moon map</button>
           </div>}
           <p className="type-data mt-3 text-[0.6rem] uppercase tracking-[0.1em] text-muted-foreground">Window · {fmtTime(startMs)} → {fmtTime(endMs)}</p>
@@ -183,7 +183,7 @@ export function CompareScreen() {
               ? <TimeSeriesChart title={title} xs={chart.xs} series={chart.series} bands={chart.bands} yUnit={focus === "power" ? "W" : "°"} zeroLine={focus !== "power"}
                   yDomain={focus === "power" ? chart.powerDomain : ELEVATION_DOMAIN} cursorX={tMs} onSeek={(x) => setElapsed((x - startMs) / 3_600_000)}
                   formatX={fmtTime} formatTick={durationHours > 72 ? fmtTick : (ms) => new Date(ms).toISOString().slice(11, 16)} height={230} />
-              : <div className="rounded border border-dashed border-line p-6 text-center text-sm text-muted-foreground">{!a || !b ? "Choose two presets to draw the comparison." : winA.error || winB.error ? "Couldn’t load the comparison graph. Check the site errors above." : <LoadingIndicator label="both sites" />}</div>}
+              : <div className="rounded border border-dashed border-line p-6 text-center text-sm text-muted-foreground">{!a || !b ? "Choose two saved sites to draw the comparison." : winA.error || winB.error ? "Couldn’t load the comparison graph. Check the site errors above." : <LoadingIndicator label="both sites" />}</div>}
           </div>
           <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
             {([["A", COLOR_A, a, nowA], ["B", COLOR_B, b, nowB]] as const).map(([name, color, site, now]) => <div key={name} className="hud-readout">

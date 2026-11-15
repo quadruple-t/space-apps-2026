@@ -53,6 +53,15 @@ describe("freeplay store", () => {
     expect(useFreeplay.getState().calloutOpen).toBe(false)
   })
 
+  test("explicitly using a draft commits the location before surface navigation", () => {
+    const s = useFreeplay.getState()
+    s.selectCustom(-85, 10)
+    s.commitSite()
+    expect(useFreeplay.getState().siteDraft).toBe(false)
+    expect(useFreeplay.getState().site?.latitudeDeg).toBe(-85)
+    expect(useFreeplay.getState().calloutOpen).toBe(false)
+  })
+
   test("elapsed time is clamped to the mission duration", () => {
     const s = useFreeplay.getState()
     s.setDuration(24)

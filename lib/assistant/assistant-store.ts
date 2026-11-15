@@ -9,6 +9,9 @@ import { TURN_INACTIVITY_MS } from "./constants";
 import { capHistory, createRateLimiter, createWatchdog, normalizeInput, turnNotices } from "./guards";
 import type { SourceRecord, UiChange } from "./tool-results";
 import { applyUiPlan, captureView, restoreView, type ViewSnapshot } from "./ui-actions";
+import { studyFromOutcome } from "@/lib/expeditions/mission-control-studies";
+import type { StoredChatMessage, StudyInput } from "@/lib/expeditions/types";
+import { executeToolCall } from "./tools";
 
 export type UiMessage = {
   id: string;
@@ -21,6 +24,8 @@ export type UiMessage = {
   viewBefore?: ViewSnapshot;
   /** User messages count toward model history only once they got a reply. */
   answered?: boolean;
+  /** Rankings and comparisons from this reply that can be saved to an expedition (this session only). */
+  studies?: StudyInput[];
 };
 export type AssistantStatus = "idle" | "thinking" | "tool" | "streaming" | "error" | "unavailable";
 
@@ -46,7 +51,14 @@ type AssistantState = {
   /** Puts the Freeplay view back as it was before this reply's changes. */
   undoView: (messageId: string) => void;
   clear: () => void;
+  /** Replaces the conversation with a saved expedition transcript (or empties it). Restored replies cannot undo view changes. */
+  loadTranscript: (messages: readonly StoredChatMessage[]) => void;
 };
+
+const HORIZON_KINDS = ["site-lola-mask", "lola-polar-grid", "smooth-sphere-fallback", "unrecognised"] as const;
+/** Saved transcripts are untrusted: an unknown horizon kind is shown as unrecognised, never as LOLA data. */
+const restoredHorizonKind = (k: string | null): SourceRecord["horizonKind"] =>
+  k === null ? null : (HORIZON_KINDS as readonly string[]).includes(k) ? (k as SourceRecord["horizonKind"]) : "unrecognised";
 
 const limiter = createRateLimiter();
 let controller: AbortController | null = null;
@@ -106,6 +118,14 @@ export const useAssistant = create<AssistantState>((set, get) => ({
       viewBefore ??= captureView();
       return applyUiPlan(plan, catalog);
     };
+    // Keep ranking/comparison outcomes so the reply can offer "Save to expedition".
+    const studies: StudyInput[] = [];
+    const execute: NonNullable<Parameters<typeof runTurn>[0]["execute"]> = async (call, id, ctx, deps) => {
+      const outcome = await executeToolCall(call, id, ctx, deps);
+      const study = studyFromOutcome(call.args, outcome);
+      if (study) studies.push(study);
+      return outcome;
+    };
     try {
       const snap = surfaceSnapshot ?? snapshot();
       const { createTurnChat, checkAppCheck } = await import("./firebase-ai");
@@ -115,7 +135,7 @@ export const useAssistant = create<AssistantState>((set, get) => ({
       dbg("sending", { historyMessages: history.length, variables });
       const chat = createTurnChat(history, variables, signal);
       const result = await runTurn({
-        chat, userText: context ? `${text}\n\n${context}` : text, ctx: toToolContext(snap), signal, applyUi,
+        chat, userText: context ? `${text}\n\n${context}` : text, ctx: toToolContext(snap), signal, applyUi, execute,
         events: {
           onText: (draft) => { watchdog.poke(); set({ draft, status: draft ? "streaming" : "thinking", progress: null }); },
           onToolStart: (progress) => { watchdog.poke(); dbg("tool start", progress, at()); set({ status: "tool", progress, announce: progress }); },
@@ -131,6 +151,7 @@ export const useAssistant = create<AssistantState>((set, get) => ({
       set((s) => ({
         messages: [...s.messages.map((m) => (m.id === userMessage.id ? { ...m, answered: true } : m)), {
           id: nextId(), role: "model", text: reply, records: result.records, notices,
+          ...(studies.length ? { studies } : {}),
           ...(viewBefore ? { viewBefore, viewChanges: result.records.flatMap((r) => (r.ui ? [r.ui] : [])) } : {}),
         }],
         status: "idle", progress: null, draft: "", announce: `Mission Control replied: ${reply.slice(0, 600)}`,
@@ -171,5 +192,21 @@ export const useAssistant = create<AssistantState>((set, get) => ({
     lastContext = undefined;
     lastSnapshot = undefined;
     set({ messages: [], status: "idle", progress: null, draft: "", error: null, hint: null, lastUserText: null, announce: "Conversation cleared." });
+  },
+
+  loadTranscript: (stored) => {
+    controller?.abort();
+    lastContext = undefined;
+    lastSnapshot = undefined;
+    const messages: UiMessage[] = stored.map((m) => {
+      const id = nextId();
+      return {
+        id, role: m.role, text: m.text,
+        ...(m.answered ? { answered: true } : {}),
+        ...(m.notices?.length ? { notices: [...m.notices] } : {}),
+        ...(m.records?.length ? { records: m.records.map((r, i): SourceRecord => ({ ...r, id: `${id}-r${i}`, tool: r.tool as SourceRecord["tool"], horizonKind: restoredHorizonKind(r.horizonKind), mustSay: [...r.mustSay] })) } : {}),
+      };
+    });
+    set({ messages, status: "idle", progress: null, draft: "", error: null, hint: null, lastUserText: null, announce: "" });
   },
 }));

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Check, Orbit, Save, X } from "lucide-react";
 import type { FreeplaySite } from "@/data/sites";
 import { subscribeAnchor } from "@/scenes/cesium/anchor";
-import { useFreeplay } from "@/lib/freeplay-store";
+import { MAX_SAVED_SITES, useFreeplay } from "@/lib/freeplay-store";
 
 const BOX_W = 248;
 const GAP = 44;
@@ -36,6 +36,7 @@ function CalloutBody({ site, guided }: { site: FreeplaySite; guided: boolean }) 
     const dismiss = (event: PointerEvent) => {
       const target = event.target;
       if (!(target instanceof Element) || box.current?.contains(target)) return;
+      if (target.closest("[data-accept-site]")) { useFreeplay.getState().commitSite(); return; }
       // Globe clicks are handled by Cesium, which can distinguish selecting
       // another pin from dismissing a draft on empty ground.
       if (target.closest(".cesium-viewer")) return;
@@ -76,6 +77,7 @@ function CalloutBody({ site, guided }: { site: FreeplaySite; guided: boolean }) 
   const startNaming = () => { setName(site.kind === "catalog" ? site.name : `Site ${savedCount + 1}`); setNaming(true); };
   const save = (e: FormEvent) => { e.preventDefault(); saveCurrentSite(name); setNaming(false); };
   const saved = site.kind === "saved";
+  const full = savedCount >= MAX_SAVED_SITES;
 
   return <div ref={wrap} className="pointer-events-none absolute inset-0 z-20" style={{ visibility: "hidden" }}>
     <svg className="absolute inset-0 h-full w-full" aria-hidden>
@@ -113,9 +115,9 @@ function CalloutBody({ site, guided }: { site: FreeplaySite; guided: boolean }) 
             </div>
           </form>
         : <div className="mt-2.5 grid grid-cols-2 gap-1.5">
-            <button type="button" onClick={startNaming} disabled={saved}
+            <button type="button" onClick={startNaming} disabled={saved || full} title={full ? `An expedition holds up to ${MAX_SAVED_SITES} sites; delete one to save another.` : undefined}
               className="flex items-center justify-center gap-1 rounded border border-retro-purple/50 bg-retro-purple/10 px-2 py-1.5 text-[0.58rem] uppercase tracking-[0.08em] text-retro-purple hover:bg-retro-purple/20 disabled:opacity-40">
-              <Save size={12} />{saved ? "Saved" : "Save to presets"}
+              <Save size={12} />{saved ? "Saved" : full ? "Site list full" : "Save to expedition"}
             </button>
             <button type="button" onClick={() => setView("orbit")}
               className="flex items-center justify-center gap-1 rounded bg-retro-red px-2 py-1.5 text-[0.58rem] font-semibold uppercase tracking-[0.08em] text-void hover:bg-[#ff91a2]">

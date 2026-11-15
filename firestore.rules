@@ -16,6 +16,7 @@ service cloud.firestore {
     function chapterIds() { return ['ch1-first-landing', 'ch2-robotic-explorer', 'ch3-lunar-base']; }
     function toolIds() { return ['horizon-dial', 'power-simulator', 'base-scoring']; }
     function profileIds() { return ['short-landing', 'robotic-14-day', 'long-term-base']; }
+    function validStudyLabel(label) { return label is string && label.size() >= 1 && label.size() <= 120; }
 
     // ---------------------------------------------------------------
     // Static content (public read, no client writes)
@@ -90,6 +91,49 @@ service cloud.firestore {
           // Size rule: a report stores summaries only, never time series.
           && !('series' in request.resource.data);
         allow update: if false;
+      }
+
+      // Expeditions: named, autosaved workspaces. Caps mirror EXPEDITION_LIMITS in
+      // lib/expeditions/types.ts. The number of studies per expedition is capped client-side.
+      match /expeditions/{expeditionId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && request.resource.data.keys().hasOnly(
+               ['version', 'name', 'notes', 'workspace', 'sites', 'createdAt', 'updatedAt', 'lastOpenedAt'])
+          && request.resource.data.version == 1
+          && request.resource.data.name is string
+          && request.resource.data.name.size() >= 1
+          && request.resource.data.name.size() <= 120
+          && request.resource.data.notes is string
+          && request.resource.data.notes.size() <= 10000
+          && request.resource.data.workspace is map
+          && request.resource.data.sites is list
+          && request.resource.data.sites.size() <= 50;
+
+        match /studies/{studyId} {
+          allow read, delete: if isOwner(uid);
+          allow create: if isOwner(uid)
+            && request.resource.data.keys().hasOnly(['kind', 'source', 'label', 'inputs', 'result', 'createdAt'])
+            && request.resource.data.kind in ['comparison', 'ranking']
+            && request.resource.data.source in ['compare-page', 'mission-control']
+            && validStudyLabel(request.resource.data.label)
+            && request.resource.data.inputs is map
+            && request.resource.data.result is map;
+          // A saved study is a snapshot: only its label can change.
+          allow update: if isOwner(uid)
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['label'])
+            && validStudyLabel(request.resource.data.label);
+        }
+
+        match /chat/{docId} {
+          allow read, delete: if isOwner(uid);
+          allow create, update: if isOwner(uid)
+            && docId == 'transcript'
+            && request.resource.data.keys().hasOnly(['version', 'messages', 'updatedAt'])
+            && request.resource.data.version == 1
+            && request.resource.data.messages is list
+            && request.resource.data.messages.size() <= 40;
+        }
       }
     }
 
