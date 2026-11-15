@@ -79,12 +79,12 @@ The landing page preview and Freeplay share the code-driven Three.js scene. Free
 
 - **Ephemerides:** Stored JPL Horizons series provide Sun and Earth positions from 2026 through 2030 for the main series, plus historical chunks for supported sites. The API calculates local azimuth/elevation and timeline samples for the selected point.
 - **Horizon masks:** Precomputed LOLA DEM masks are used for supported sites and polar grid cells. Locations without a terrain mask use a smooth-sphere horizon; results label that source and describe the sunlight and visibility shares as upper bounds.
-- **Rendered terrain:** `scenes/lunar/terrain.ts` and `integrations/terrain/moon-samples.ts` provide procedural scene geometry and scaffold samples. This visualization is not a LOLA DEM rendering, even when the science calculation has a LOLA mask.
+- **Rendered terrain:** the surface drive builds its 3D surface from measured LROC WAC GLD100 heights (`GET /api/v1/terrain/dem`, ~100 m posting) for the site and preset radius, with lunar curvature to scale and optional relief exaggeration. Terrain-blocked sunlight is ray-marched over that grid. The landing-page scene, and the drive when elevation is unavailable, use the procedural geometry in `scenes/lunar/terrain.ts` and `integrations/terrain/moon-samples.ts`, which is illustrative only.
 - **Illustrative previews:** `data/hero-scene.ts` configures conceptual hero readouts; `lib/horizon.ts` supplies illustrative horizon examples for landing-page graphics. These values are separate from Freeplay's science API.
 - **Scene configuration:** `data/hero-scene.ts` holds the Sun and Earth angles shared by the 3D scene and
   the conceptual hero HUD.
 - **Freeplay (`/freeplay`, `/freeplay/approach`):** loads the monthly `ephemeris` chunks and `science/horizon` masks from `/api/v1` and evaluates hourly Sun/Earth positions in the browser with `lib/ephemeris` (`lib/lunar-data.ts`). Globe imagery and overlays come from NASA Moon Trek and LROC Lunaserv (see `docs/SOURCES.md` §7).
-- **Surface drive:** `/freeplay/drive` calls the versioned science API. The API uses public Firestore reads for catalog and science data; user-owned endpoints use authenticated Firebase tokens and Admin SDK access.
+- **Surface drive:** `/freeplay/drive` opens at the Freeplay site, time and preset radius. It loads measured terrain from `/api/v1/terrain/dem`, places the Sun and Earth from the stored Horizons chunks decoded in the browser (so playback can run at up to 3 days per second), and lets you place solar arrays, buggies, comms masts and three habitat concepts with slope checks and per-object sunlight / Earth line of sight. 24-hour metrics still come from the science API and its LOLA masks.
 
 ## Performance and accessibility
 

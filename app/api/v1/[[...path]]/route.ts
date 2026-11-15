@@ -66,7 +66,7 @@ export async function GET(request: Request, context: { params: Promise<{ path?: 
     const [root, id, child, childId] = path;
     const url = new URL(request.url);
 
-    if (path.length === 0 || root === "manifest") return json({ version: "v1", basePath: "/api/v1", resources: ["catalog/sites", "catalog/meta", "science/celestial", "science/horizon", "science/metrics", "science/compare", "science/timeline", ...Object.keys(PUBLIC_COLLECTIONS), "users/{uid}/sessions", "users/{uid}/reports", "users/{uid}/progress"] });
+    if (path.length === 0 || root === "manifest") return json({ version: "v1", basePath: "/api/v1", resources: ["catalog/sites", "catalog/meta", "science/celestial", "science/horizon", "science/metrics", "science/compare", "science/timeline", "terrain/dem", ...Object.keys(PUBLIC_COLLECTIONS), "users/{uid}/sessions", "users/{uid}/reports", "users/{uid}/progress"] });
     if (root === "users" && !hasAdminCredentials()) return adminCredentialsRequired();
     // Public endpoints use the Web SDK and public Firestore rules. This avoids making
     // catalog/science reads depend on a local service-account key or ADC configuration.

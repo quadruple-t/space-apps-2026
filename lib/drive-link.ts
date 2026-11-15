@@ -1,5 +1,6 @@
 import { COORD_REF, type FreeplaySite } from "@/data/sites"
 import type { LunarSite } from "@/integrations/science/types"
+import { DEM_MAX_RADIUS_KM, DEM_MIN_RADIUS_KM } from "@/lib/terrain/dem"
 
 /**
  * The surface drive (/freeplay/drive) opens at the site and time chosen in Freeplay.
@@ -12,6 +13,7 @@ export function driveHref(site: FreeplaySite | null, timeMs: number): string {
     lon: String(site.longitudeDeg),
     name: site.name,
     t: new Date(timeMs).toISOString(),
+    r: String(site.radiusKm),
   })
   // The science API only accepts catalog ids whose point is verified.
   if (site.catalogId && site.catalogPointVerified !== false) q.set("siteId", site.catalogId)
@@ -29,6 +31,13 @@ export function siteFromDriveParams(p: Params): LunarSite | null {
   return siteId
     ? { id: siteId, name, latitudeDeg: lat, longitudeDeg: lon, coordinateReference: COORD_REF, provenance: "scientific" }
     : { id: `freeplay-${lat}-${lon}`, name, latitudeDeg: lat, longitudeDeg: lon, coordinateReference: COORD_REF, provenance: "user" }
+}
+
+/** Radius (km) of the terrain area to load around the site, from the preset; clamped to the API's range. */
+export function radiusFromDriveParams(p: Params): number | null {
+  const r = Number(p.get("r"))
+  if (p.get("r") === null || !Number.isFinite(r) || r <= 0) return null
+  return Math.max(DEM_MIN_RADIUS_KM, Math.min(DEM_MAX_RADIUS_KM, r))
 }
 
 export function timeFromDriveParams(p: Params): Date | null {

@@ -141,6 +141,19 @@ loads them directly (checked 2026-11-14). Defined in `scenes/cesium/moon-layers.
 
 The globe's star background is Cesium's bundled Tycho-2 sky box.
 
+## 8. Surface-drive elevation
+
+The surface drive's 3D terrain is built from LROC Lunaserv's numeric GLD100 layer, requested live
+by `GET /api/v1/terrain/dem` (the one interactive upstream call; see docs/API.md). Display and
+local line of sight only — mission metrics keep using the LOLA masks in §2–§3.
+
+| Use | Service | Identifier |
+|---|---|---|
+| Drive terrain heights | LROC Lunaserv WMS 1.1.1 (`https://wms.im-ldi.com/`), `FORMAT=image/tiff` (float32, km above 1737.4 km), `SRS=IAU2000:30166,9001,<lon>,<lat>` | `luna_wac_dtm_numeric` (GLD100, ~100 m posting; 79°S–79°N stereo, poleward LOLA-based fill) |
+
+Verified 2026-11-15 against stored PGDA/LOLA site elevations to within 3–8 m (Apollo 11, IM-1, IM-2).
+GLD100: Scholten et al. (2012), *J. Geophys. Res.* 117, E00H17, doi:10.1029/2011JE003926.
+
 ## References
 
 - Smith, D. E. et al. (2010), *Space Sci. Rev.* 150, 209–241, doi:10.1007/s11214-009-9512-y
