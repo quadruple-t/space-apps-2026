@@ -179,7 +179,9 @@ export const useExpeditions = create<ExpeditionState>((set, get) => ({
 
   setUser: async (uid, change) => {
     if (change === "signedOut" || !uid) {
-      autosave.cancel();
+      // Flush any pending cloud autosave before discarding the open expedition so
+      // edits made within the autosave delay are not lost.
+      await autosave.flush();
       cloudCache = null;
       lastChatKey = "";
       set({ uid: null, list: [], listStatus: "idle", importOffer: false, status: "idle", error: null });
