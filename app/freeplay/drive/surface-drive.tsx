@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Activity, ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Clock3, Crosshair, FastForward, Globe2, Map, Pause, Play, RotateCcw, ZoomIn, ZoomOut, X } from "lucide-react";
+import { Logo } from "@/components/brand/logo";
 import type { CameraMode } from "@/scenes/lunar/camera-rig";
 import { apiScienceProvider as scienceProvider } from "@/integrations/science/api-provider";
 import type { CelestialState, LunarSite, MissionMetrics } from "@/integrations/science/types";
@@ -213,6 +214,7 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
     <header className="absolute inset-x-3 top-3 z-20 flex items-center justify-between gap-2 sm:inset-x-5 sm:top-4">
       <div className="flex min-w-0 items-center gap-2 rounded-lg border border-line/80 bg-void/75 p-1.5 shadow-xl backdrop-blur-xl sm:gap-3 sm:p-2">
   <Link href={guided ? "/" : "/freeplay"} aria-label={guided ? "Exit Guided Mission to Lunaris360 home" : "Exit surface drive back to Open Exploration"} className="grid size-9 shrink-0 place-items-center rounded-md bg-retro-purple/15 text-retro-purple transition hover:bg-retro-purple/25"><ArrowLeft size={17} /></Link>
+  {guided && <Logo compact showWordmark={false} />}
   <div className="min-w-0 pr-2"><div className="type-data text-[0.6rem] uppercase tracking-[0.16em] text-retro-purple">Lunaris360 / {guided ? "Guided Mission" : "Open Exploration"}</div><div className="truncate text-xs font-medium text-bone">Lunar surface simulation</div></div>
         <span className="hidden h-8 w-px bg-line sm:block" />
         {phase === "explore" && <button type="button" onClick={() => setMapOpen((open) => { if (!open) { setMobileTelemetryOpen(false); setDatePickerOpen(false); } return !open; })} aria-expanded={mapOpen} className="inline-flex items-center gap-2 rounded-md border border-line px-2.5 py-2 text-[0.65rem] uppercase tracking-[0.1em] text-muted-foreground hover:border-retro-purple/60 hover:text-bone sm:px-3"><Map size={14} className="text-retro-purple" /><span className="hidden sm:inline">{mapOpen ? "Hide map" : "Map & samples"}</span></button>}
@@ -268,7 +270,7 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
       </div>
     </div>}
 
-    {phase === "explore" && !mapOpen && !datePickerOpen && <aside className="absolute right-4 top-[5.5rem] z-10 hidden w-[320px] space-y-3 xl:block">
+    {phase === "explore" && !mapOpen && !datePickerOpen && <aside className="absolute right-4 top-[5.5rem] z-10 hidden max-h-[calc(100dvh-27rem)] w-[320px] space-y-3 overflow-y-auto overscroll-contain pr-1 xl:block">
       <section className="hud-panel p-4">
         <div className="flex items-center justify-between"><div><div className="type-data text-xs uppercase tracking-[0.14em] text-retro-blue">Telemetry</div><h2 className="type-heading mt-1 text-base text-bone">Local conditions</h2></div><Activity size={17} className="text-retro-blue" /></div>
         <div className="mt-4 grid grid-cols-2 gap-x-3 gap-y-3">
@@ -311,7 +313,7 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
     </div>}
     {phase === "explore" && <div className="pointer-events-none absolute bottom-[6.9rem] right-5 z-[2] hidden items-center gap-2 rounded border border-line/70 bg-void/45 px-2.5 py-1.5 text-[0.58rem] uppercase tracking-[0.12em] text-muted-foreground backdrop-blur sm:flex"><Crosshair size={13} className="text-retro-purple" />WASD / arrows to move · move cursor to look · click grid nodes</div>}
 
-    {phase === "explore" && <section aria-label="Simulation controls" className="absolute inset-x-3 bottom-3 z-20 rounded-xl border border-retro-purple/25 bg-void/88 px-3 py-2.5 shadow-[0_20px_90px_rgba(4,2,18,0.65)] backdrop-blur-2xl sm:inset-x-auto sm:left-1/2 sm:w-[min(680px,calc(100vw-400px))] sm:min-w-[560px] sm:-translate-x-1/2 sm:px-4 sm:py-3">
+    {phase === "explore" && <section aria-label="Simulation controls" className="absolute inset-x-3 bottom-3 z-20 rounded-xl border border-retro-purple/25 bg-void/88 px-3 py-2.5 shadow-[0_20px_90px_rgba(4,2,18,0.65)] backdrop-blur-2xl sm:inset-x-auto sm:left-1/2 sm:w-[min(680px,calc(100vw-400px))] sm:min-w-[560px] sm:-translate-x-1/2 sm:px-4 sm:py-3 xl:left-[calc(50%-10rem)]">
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
         <div className="flex items-center gap-1 rounded-lg border border-line/80 bg-void/60 p-1">
           {([["first-person", "First person"], ["orbit", "Orbit"], ["overhead", "Map"]] as const).map(([mode, label]) => <button key={mode} type="button" onClick={() => { setCameraMode(mode); recordTutorialAction("camera"); }} aria-pressed={cameraMode === mode} className={`rounded-md px-3 py-1.5 text-[0.62rem] uppercase tracking-[0.08em] transition ${cameraMode === mode ? "bg-retro-purple/20 text-retro-purple" : "text-muted-foreground hover:text-bone"}`}>{label}</button>)}

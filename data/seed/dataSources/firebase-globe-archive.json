@@ -1,0 +1,15 @@
+{
+ "id": "firebase-globe-archive",
+ "label": "Firebase globe display snapshots and collected scientific data archive",
+ "kind": "catalog",
+ "version": "1",
+ "citation": "Original source citations in docs/SOURCES.md \u00a77; import provenance in scripts/data-pipeline/globe-archive.lock.json",
+ "doi": null,
+ "url": null,
+ "license": null,
+ "usedFor": [
+  "Firebase-hosted globe imagery",
+  "downloadable collected static data and source-response archive"
+ ],
+ "retrievedAt": "2026-11-14"
+}

@@ -7,7 +7,7 @@ import { LAUNCH_HREF } from "@/data/site";
 
 export function FinalCTA() {
   return (
-    <section aria-labelledby="final-cta-title" className="relative isolate overflow-hidden border-t border-line">
+    <section id="launch" data-constellation-node="Launch Freeplay" aria-labelledby="final-cta-title" className="relative isolate overflow-hidden border-t border-line">
       <div className="absolute inset-0 -z-10">
         <LunarHorizonIllustration />
         <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-void via-void/20 via-35% to-transparent" />

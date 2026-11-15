@@ -11,6 +11,7 @@ export function PageIntro({
   title,
   lede,
   status = "In development",
+  beforeTitle,
   children,
   visual,
 }: {
@@ -18,12 +19,14 @@ export function PageIntro({
   title: string;
   lede: string;
   status?: string | null;
+  beforeTitle?: ReactNode;
   children?: ReactNode;
   visual?: ReactNode;
 }) {
   return (
     <section className="relative border-b border-line pb-16 pt-32 sm:pb-20 sm:pt-40">
       <PageContainer>
+        {beforeTitle && <div className="mb-8">{beforeTitle}</div>}
         <div className="flex flex-wrap items-center gap-3">
           {index && <span className="type-data text-xs text-bone/55">{index}</span>}
           {status && <StatusBadge>{status}</StatusBadge>}

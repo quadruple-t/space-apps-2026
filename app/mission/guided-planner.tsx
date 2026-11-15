@@ -35,7 +35,11 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
   const stage = stages[lessonIndex] ?? "story";
   const setStage = (nextStage: LessonStage) => setStages((current) => ({ ...current, [lessonIndex]: nextStage }));
 
-  const candidateStops = tutorial.tourStops.filter((stop) => STORY_STOPS.find((spec) => spec.id === stop.id)?.group === "Artemis III candidate");
+  const storySpecForStop = (stopId: string) => {
+    const id = stopId.replace(/^(?:catalog-|approx-|tour-)/, "");
+    return STORY_STOPS.find((spec) => spec.id === id || spec.catalogId === id);
+  };
+  const candidateStops = tutorial.tourStops.filter((stop) => storySpecForStop(stop.id)?.group === "Artemis III candidate");
 
   useEffect(() => useFreeplay.subscribe((state, previous) => {
     const next = state.site;
@@ -85,6 +89,7 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
     if (stage === "try") setStage("example");
     else if (stage === "example") setStage("story");
     else if (lessonIndex > 0) goToLesson(lessonIndex - 1);
+    else onLessonChange(-1);
   };
 
   const siteForStop = (id: string) => tutorial.tourStops.find((stop) => stop.id === id || stop.catalogId === id);
@@ -99,7 +104,7 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
           <select id="story-site-stop" value={site?.id ?? ""} onChange={(event) => { const selected = siteForStop(event.target.value); if (selected) useFreeplay.getState().selectSite(selected, false); }} className="hud-input mt-1 text-sm normal-case tracking-normal">
             <option value="">Choose from the ten highlighted stops</option>
             {tutorial.tourStops.map((stop, index) => {
-              const spec = STORY_STOPS.find((candidate) => candidate.id === stop.id);
+              const spec = storySpecForStop(stop.id);
               const group = spec?.group === "Historic landing" ? "historic" : spec?.group === "Artemis III candidate" ? "future candidate" : "no past landing";
               return <option key={stop.id} value={stop.id}>{index + 1}. {stop.name} · {group}</option>;
             })}
