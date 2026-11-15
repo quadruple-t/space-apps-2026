@@ -14,6 +14,7 @@ import { MoonLocationPicker } from "./moon-location-picker";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { LessonCard, lessonActionClass, lessonCheckClass, type LessonStage } from "@/app/mission/lesson-card";
 import { SURFACE_LESSON } from "@/app/mission/tutorial-content";
+import { LessonExampleActivity } from "@/app/mission/lesson-example-activity";
 import type { TutorialData } from "@/app/mission/use-tutorial-data";
 import { lunarSiteFor, siteFromDriveParams, timeFromDriveParams } from "@/lib/drive-link";
 import { currentTimeMs, useFreeplay } from "@/lib/freeplay-store";
@@ -243,7 +244,7 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">You picked a site on the globe, followed the Sun and Earth through a mission, compared candidates and stood on the surface. Your selected site is {activeSite.name}. Positions came from stored JPL Horizons ephemerides; check each site&apos;s horizon source before comparing its numbers.</p>
         <Link href="/freeplay" className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg bg-retro-purple px-4 type-data text-[.62rem] font-semibold uppercase tracking-[.12em] text-void hover:bg-[#c2abff]">Explore the Moon <ArrowLeft className="rotate-180" size={14} /></Link>
       </> : <>
-        <LessonCard lesson={SURFACE_LESSON} chapter={chapter} stage={guidedStage} complete={lessonComplete} onPrevious={guidedStage === "story" ? onBack : () => setGuidedStage(guidedStage === "try" ? "example" : "story")} onStageChange={setGuidedStage} onNext={() => setGuidedComplete(true)} nextLabel="Finish Guided Mission">
+        <LessonCard lesson={SURFACE_LESSON} chapter={chapter} stage={guidedStage} complete={lessonComplete} onPrevious={guidedStage === "story" ? onBack : () => setGuidedStage(guidedStage === "try" ? "example" : "story")} onStageChange={setGuidedStage} onNext={() => setGuidedComplete(true)} nextLabel="Finish Guided Mission" exampleContent={<LessonExampleActivity lesson={SURFACE_LESSON} stops={tutorial?.tourStops ?? []} candidates={[]} />}>
           {guidedStage === "try" && <>
             <p className={lessonCheckClass}>Looked {tutorialActions.has("look") ? "✓" : "○"} · Moved {tutorialActions.has("move") ? "✓" : "○"} · Changed camera {tutorialActions.has("camera") ? "✓" : "○"}</p>
             <p className="mt-2 text-xs leading-relaxed text-retro-blue">Terrain source: {dataError ? "unavailable" : metrics?.horizonSource ?? "loading"}{horizonPeak ? ` · Highest ridge ${angle(horizonPeak.elevationDeg)} above the horizon` : horizonPeak === null ? " · No terrain mask; visibility is an upper-bound estimate" : ""}</p>

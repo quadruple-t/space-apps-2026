@@ -10,6 +10,7 @@ import { GUIDED_LESSONS, STORY_STOPS } from "./tutorial-content";
 import type { TutorialData } from "./use-tutorial-data";
 import { CandidateComparison } from "./candidate-comparison";
 import { SitePreview } from "./site-preview";
+import { LessonExampleActivity } from "./lesson-example-activity";
 
 const siteKey = (site: FreeplaySite) => `${site.latitudeDeg},${site.longitudeDeg}`;
 const mark = (done: boolean) => (done ? "✓" : "○");
@@ -92,7 +93,7 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
       {collapsed ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
     </button>
     <div className={collapsed ? "hidden lg:block" : ""}>
-      <LessonCard lesson={lesson} chapter={chapter} stage={stage} complete={complete} onPrevious={stage !== "story" || lessonIndex > 0 ? previous : undefined} onStageChange={setStage} onNext={() => goToLesson(lessonIndex + 1)} nextLabel={lessonIndex === GUIDED_LESSONS.length - 1 ? "Finish Guided Mission" : "Next lesson"}>
+      <LessonCard lesson={lesson} chapter={chapter} stage={stage} complete={complete} onPrevious={stage !== "story" || lessonIndex > 0 ? previous : undefined} onStageChange={setStage} onNext={() => goToLesson(lessonIndex + 1)} nextLabel={lessonIndex === GUIDED_LESSONS.length - 1 ? "Finish Guided Mission" : "Next lesson"} exampleContent={<LessonExampleActivity lesson={lesson} stops={tutorial.tourStops} candidates={candidateStops} />}>
         {stage === "try" && lesson.id === "pick-site" && <>
           <label className="sr-only" htmlFor="story-site-stop">Choose a stop</label>
           <select id="story-site-stop" value={site?.id ?? ""} onChange={(event) => { const selected = siteForStop(event.target.value); if (selected) useFreeplay.getState().selectSite(selected, false); }} className="hud-input mt-1 text-sm normal-case tracking-normal">
