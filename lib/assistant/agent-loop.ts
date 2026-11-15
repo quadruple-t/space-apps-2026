@@ -7,7 +7,7 @@
 import type { Part } from "firebase/ai";
 import { MAX_CALLS_PER_ROUND, MAX_TOOL_ROUNDS, TOOL_LIMIT_WORDING, TOOL_PROGRESS, isToolName } from "./constants";
 import { failure, type SourceRecord, type ToolOutcome } from "./tool-results";
-import { executeToolCall, type ApplyUi } from "./tools";
+import { executeToolCall, type ApplyUi, type ExecuteDeps } from "./tools";
 import type { ToolContext } from "./tool-validation";
 
 export type StreamChunk = { text(): string };
@@ -41,11 +41,14 @@ export type TurnParams = {
   /** Injectable for tests. */
   /** Changes the Freeplay view for show_in_freeplay. */
   applyUi?: ApplyUi;
-  execute?: (call: { name: unknown; args: unknown }, id: string, ctx: ToolContext, deps: { signal?: AbortSignal; applyUi?: ApplyUi }) => Promise<ToolOutcome>;
+  /** Browser-computed estimates (launch plan, solar power); omitted in pure tests. */
+  planLaunch?: ExecuteDeps["planLaunch"];
+  estimatePower?: ExecuteDeps["estimatePower"];
+  execute?: (call: { name: unknown; args: unknown }, id: string, ctx: ToolContext, deps: { signal?: AbortSignal; applyUi?: ApplyUi; planLaunch?: ExecuteDeps["planLaunch"]; estimatePower?: ExecuteDeps["estimatePower"] }) => Promise<ToolOutcome>;
 };
 
 export async function runTurn(p: TurnParams): Promise<TurnResult> {
-  const { chat, userText, ctx, events, signal, maxRounds = MAX_TOOL_ROUNDS, execute = executeToolCall, applyUi } = p;
+  const { chat, userText, ctx, events, signal, maxRounds = MAX_TOOL_ROUNDS, execute = executeToolCall, applyUi, planLaunch, estimatePower } = p;
   const records: SourceRecord[] = [];
   let request: string | Array<string | Part> = userText;
   let rounds = 0;
@@ -75,7 +78,7 @@ export async function runTurn(p: TurnParams): Promise<TurnResult> {
       if (isToolName(call.name)) events?.onToolStart?.(TOOL_PROGRESS[call.name]);
       const outcome = index >= MAX_CALLS_PER_ROUND
         ? failure(isToolName(call.name) ? call.name : "unknown", id, { code: "invalid_arguments", message: `Too many tool calls in one round (limit ${MAX_CALLS_PER_ROUND}).` })
-        : await execute({ name: call.name, args: call.args }, id, ctx, { signal, applyUi });
+        : await execute({ name: call.name, args: call.args }, id, ctx, { signal, applyUi, planLaunch, estimatePower });
       records.push(outcome.record);
       events?.onToolEnd?.(outcome.record);
       return { type: "functionResponse", functionResponse: { name: call.name, response: outcome.response, ...(call.id ? { id: call.id } : {}) } };

@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
-import { ArrowLeft, Bot, Car, GitCompareArrows, Globe2, Orbit } from "lucide-react";
+import { ArrowLeft, Bot, Car, GitCompareArrows, Globe2, Orbit, Rocket } from "lucide-react";
 import { ExpeditionControl, EXPEDITION_LAUNCHER_ID } from "@/components/expeditions/expedition-control";
 import { ExpeditionPanel } from "@/components/expeditions/expedition-panel";
 import { Logo } from "@/components/brand/logo";
@@ -21,11 +21,13 @@ const Loading = ({ label }: { label: string }) =>
 
 const GlobeScreen = dynamic(() => import("./globe-screen").then((m) => m.GlobeScreen), { ssr: false, loading: () => <Loading label="Moon globe" /> });
 const OrbitScreen = dynamic(() => import("./orbit-screen").then((m) => m.OrbitScreen), { ssr: false, loading: () => <Loading label="orbit view" /> });
+const LaunchScreen = dynamic(() => import("./launch-screen").then((m) => m.LaunchScreen), { ssr: false, loading: () => <Loading label="launch window" /> });
 const CompareScreen = dynamic(() => import("./compare-screen").then((m) => m.CompareScreen), { ssr: false, loading: () => <Loading label="mission comparison" /> });
 
 const TABS: { id: FreeplayView; label: string; Icon: typeof Globe2 }[] = [
   { id: "globe", label: "Moon map", Icon: Globe2 },
   { id: "orbit", label: "Orbit + Graphs", Icon: Orbit },
+  { id: "launch", label: "Launch window", Icon: Rocket },
   { id: "compare", label: "Mission comparison", Icon: GitCompareArrows },
 ];
 
@@ -110,7 +112,8 @@ export function FreeplayApp({ aside, guidedPanels, assistantEnabled = true, guid
     <div className="relative flex min-h-0 flex-1">
       <div className="relative min-h-0 min-w-0 flex-1">
         {view === "globe" ? <GlobeScreen guidedLayers={guidedPanels?.layers} guidedSites={guidedMode ? guidedPanels?.tourSites : undefined} guidedMode={guidedMode} />
-          : view === "compare" ? <CompareScreen /> : <OrbitScreen />}
+          : view === "launch" ? <LaunchScreen />
+            : view === "compare" ? <CompareScreen /> : <OrbitScreen />}
       </div>
       {guidedMode && guidedPanels?.dimContent && <div aria-hidden className="pointer-events-auto absolute inset-0 z-20 bg-void/55 backdrop-blur-[2px]" />}
       {aside}

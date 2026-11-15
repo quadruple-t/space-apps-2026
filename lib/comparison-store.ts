@@ -7,6 +7,8 @@ import type { TerrainStats } from "@/lib/terrain-stats"
 import type { CompositionStats } from "@/lib/use-composition"
 
 export type SlotId = "a" | "b"
+export type GraphFocus = "sunlight" | "earth" | "power"
+export const GRAPH_FOCUSES: GraphFocus[] = ["sunlight", "earth", "power"]
 
 export type SnapshotSide = {
   site: FreeplaySite
@@ -41,6 +43,8 @@ type Persisted = {
   slotB: FreeplaySite | null
   /** Metric rows shown in the table, chosen by the user */
   metrics: MetricKey[]
+  /** Which quantity the A vs B graph draws */
+  graphFocus: GraphFocus
   /** Notes follow a site across comparisons */
   siteNotes: Record<string, string>
   /** Decision notes for one pair of sites; key is the two site ids, sorted */
@@ -62,7 +66,7 @@ const stringRecord = (v: unknown): Record<string, string> =>
   isObject(v) ? Object.fromEntries(Object.entries(v).filter((e): e is [string, string] => typeof e[1] === "string")) : {}
 
 function load(): Persisted {
-  const empty: Persisted = { slotA: null, slotB: null, metrics: DEFAULT_METRICS, siteNotes: {}, pairNotes: {}, log: [] }
+  const empty: Persisted = { slotA: null, slotB: null, metrics: DEFAULT_METRICS, graphFocus: "sunlight", siteNotes: {}, pairNotes: {}, log: [] }
   try {
     const raw = typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_KEY) : null
     if (!raw) return empty
@@ -76,6 +80,7 @@ function load(): Persisted {
       slotB: isSite(p.slotB) ? p.slotB : null,
       // A saved empty list is the user's choice; only a missing list falls back to the defaults.
       metrics,
+      graphFocus: p.graphFocus === "earth" || p.graphFocus === "power" ? p.graphFocus : "sunlight",
       siteNotes: stringRecord(p.siteNotes),
       pairNotes: stringRecord(p.pairNotes),
       log: Array.isArray(p.log) ? p.log.filter(isSnapshot) : [],
@@ -97,6 +102,8 @@ type ComparisonState = Persisted & {
   hydrated: boolean
   setSlot: (slot: SlotId, site: FreeplaySite | null) => void
   swap: () => void
+  setFocus: (focus: GraphFocus) => void
+  setMetrics: (keys: MetricKey[]) => void
   addMetric: (key: MetricKey) => void
   removeMetric: (key: MetricKey) => void
   resetMetrics: () => void
@@ -110,13 +117,14 @@ type ComparisonState = Persisted & {
 
 export const useComparison = create<ComparisonState>((set, get) => {
   const persist = () => {
-    const { slotA, slotB, metrics, siteNotes, pairNotes, log } = get()
-    save({ slotA, slotB, metrics, siteNotes, pairNotes, log })
+    const { slotA, slotB, metrics, graphFocus, siteNotes, pairNotes, log } = get()
+    save({ slotA, slotB, metrics, graphFocus, siteNotes, pairNotes, log })
   }
   return {
     slotA: null,
     slotB: null,
     metrics: DEFAULT_METRICS,
+    graphFocus: "sunlight",
     siteNotes: {},
     pairNotes: {},
     log: [],
@@ -124,6 +132,8 @@ export const useComparison = create<ComparisonState>((set, get) => {
 
     setSlot: (slot, site) => { set(slot === "a" ? { slotA: site } : { slotB: site }); persist() },
     swap: () => { set((s) => ({ slotA: s.slotB, slotB: s.slotA })); persist() },
+    setFocus: (focus) => { set({ graphFocus: focus }); persist() },
+    setMetrics: (keys) => { set({ metrics: [...new Set(keys.filter(isMetricKey))] }); persist() },
     addMetric: (key) => { set((s) => (s.metrics.includes(key) ? s : { metrics: [...s.metrics, key] })); persist() },
     removeMetric: (key) => { set((s) => ({ metrics: s.metrics.filter((m) => m !== key) })); persist() },
     resetMetrics: () => { set({ metrics: DEFAULT_METRICS }); persist() },

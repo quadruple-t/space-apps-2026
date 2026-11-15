@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { Globe2, List } from "lucide-react";
 import type { FreeplaySite } from "@/data/sites";
 import { ConditionsReadout } from "@/components/freeplay/conditions-readout";
-import { LoadingIndicator } from "@/components/freeplay/loading-indicator";
+import { DataStatus } from "@/components/freeplay/data-status";
 import { DailyGraphs, GraphTabs, PanelSettings, YearlyGraphs } from "@/components/freeplay/graphs-panel";
 import { OrbitDiagram } from "@/components/freeplay/orbit-diagram";
 import { PresetsPanel } from "@/components/freeplay/presets-panel";
@@ -13,12 +13,6 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from 
 import { earthUp, sampleAt, sunUp } from "@/lib/illumination";
 import { currentTimeMs, useFreeplay } from "@/lib/freeplay-store";
 import { useLunarWindow } from "@/lib/use-lunar-data";
-
-function Status({ loading, error, what }: { loading: boolean; error: string | null; what: string }) {
-  if (error) return <p role="alert" className="p-3 text-xs text-destructive">Couldn&apos;t load {what}: {error}</p>;
-  if (loading) return <div className="p-3"><LoadingIndicator label={what} /></div>;
-  return null;
-}
 
 export function OrbitScreen() {
   const site = useFreeplay((s) => s.site);
@@ -66,12 +60,12 @@ function OrbitScreenFor({ site }: { site: FreeplaySite }) {
         ? <OrbitDiagram series={mission.data.series} site={site} tMs={tMs} missionStartMs={startMs} missionEndMs={missionEndMs}
             sunUp={now ? sunUp(now) : null} earthUp={now ? earthUp(now) : null}
             onSeek={(t) => setElapsed((t - startMs) / 3_600_000)} />
-        : <Status loading={mission.loading} error={mission.error} what="Moon and Sun positions" />}
+        : <DataStatus loading={mission.loading} error={mission.error} what="Moon and Sun positions" />}
     </section>
 
-    {/* Right column (full height): readouts + graphs, compact presets at the bottom */}
-    <div className="flex flex-col gap-2 md:col-start-2 md:row-span-2 md:row-start-1 md:min-h-0 lg:col-start-3">
-      <section className="hud-panel flex flex-col gap-2 p-3 md:min-h-0 md:flex-1 md:overflow-y-auto" aria-label="Conditions and graphs">
+    {/* Right column (full height): readouts + graphs, compact presets at the bottom; the column scrolls once on md+ */}
+    <div className="flex flex-col gap-2 md:col-start-2 md:row-span-2 md:row-start-1 md:min-h-0 md:overflow-y-auto lg:col-start-3">
+      <section className="hud-panel flex flex-col gap-2 p-3" aria-label="Conditions and graphs">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="lg:hidden"><GraphTabs /></div>
           <span className="type-data text-[0.56rem] text-muted-foreground" title="Stored JPL Horizons ephemeris and LOLA horizon masks from the Lunaris360 data API">
@@ -80,13 +74,14 @@ function OrbitScreenFor({ site }: { site: FreeplaySite }) {
           <PanelSettings />
         </div>
         {now && samples ? <ConditionsReadout samples={samples} index={index} now={now} />
-          : <Status loading={mission.loading} error={mission.error} what={`Sun and Earth angles at ${site.name}`} />}
+          : <DataStatus loading={mission.loading} error={mission.error} what={`Sun and Earth angles at ${site.name}`} />}
         {graphTab === "daily"
           ? samples && <DailyGraphs samples={samples} siteId={site.id} startMs={startMs} tMs={tMs} />
           : year.data
             ? <YearlyGraphs samples={year.data.samples} siteId={site.id} startMs={startMs} tMs={tMs} missionEndMs={missionEndMs} />
-            : <Status loading={year.loading} error={year.error} what="a year of hourly data" />}
+            : <DataStatus loading={year.loading} error={year.error} what="a year of hourly data" />}
       </section>
+
       <PresetsPanel className="hidden max-h-[28%] shrink-0 md:flex" />
     </div>
 
