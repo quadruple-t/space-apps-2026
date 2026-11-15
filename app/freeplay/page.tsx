@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { FreeplayApp } from "./freeplay-app";
 
 export const metadata: Metadata = {
-  title: "Freeplay",
-  description: "Pick a lunar landing site on a Moon globe with LRO overlays, then follow the Sun and Earth from that site over a mission with JPL Horizons ephemerides.",
+  title: "Open Exploration",
+  description: "Explore places on the Moon and see how sunlight and Earth visibility change over time.",
 };
 
 export default function FreeplayPage() {

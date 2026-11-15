@@ -14,7 +14,7 @@ export function ExperienceCards() {
         <Reveal>
           <SectionHeading id="explore-title" title="Three ways to explore.">
             <p>
-              Freeplay is ready to explore. The guided tutorial and multi-mission comparison are still being built.
+              Choose a guided story or explore the lunar surface in Freeplay.
             </p>
           </SectionHeading>
         </Reveal>
