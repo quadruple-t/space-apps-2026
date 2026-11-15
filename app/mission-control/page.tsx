@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { DevelopmentNotice, PageIntro } from "@/components/experience/page-intro";
-import { ReadingConstellation } from "@/components/experience/reading-constellation";
 import { HorizonProfile } from "@/components/graphics/horizon-profile";
 import { PageContainer } from "@/components/layout/page-container";
 import { DATA_SOURCES } from "@/data/site";
@@ -51,8 +50,7 @@ export function MissionControlContent() {
         </p>
       </PageIntro>
 
-      <PageContainer className="grid items-start gap-3 pb-12 lg:grid-cols-[180px_minmax(0,1fr)] lg:gap-12">
-        <ReadingConstellation />
+      <PageContainer className="pb-12">
         <div className="min-w-0">
       <section id="why-terrain" aria-labelledby="why-terrain-heading" className="scroll-mt-24 py-16 sm:py-24">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] lg:gap-20">
