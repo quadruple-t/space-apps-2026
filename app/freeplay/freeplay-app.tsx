@@ -58,7 +58,7 @@ export function FreeplayApp({ aside, guidedPanels, assistantEnabled = true, guid
       <div className="flex items-center gap-3">
         {guidedMode ? <>
           <Link href="/" aria-label="Exit Guided Mission to Lunaris360 home" className="grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><ArrowLeft size={16} /></Link>
-          <Logo compact showWordmark={false} />
+          <Logo compact />
           <h1 className="type-heading text-sm text-bone">Guided Mission</h1>
         </> : <>
           <h1 className="type-heading text-sm text-bone sm:text-base">Open Exploration</h1>
