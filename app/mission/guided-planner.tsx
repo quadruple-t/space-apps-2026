@@ -8,6 +8,7 @@ import { useFreeplay } from "@/lib/freeplay-store";
 import { LAYERS } from "@/scenes/cesium/moon-layers";
 import { LessonCard, lessonActionClass, lessonCheckClass } from "./lesson-card";
 import { CHAPTER_LABELS, GUIDED_LESSONS, SCREEN_LABELS } from "./tutorial-content";
+import { SitePreview } from "./site-preview";
 import type { TutorialData } from "./use-tutorial-data";
 
 const siteKey = (site: FreeplaySite) => `${site.latitudeDeg},${site.longitudeDeg}`;
@@ -31,11 +32,16 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange, candidate
   const [clockBaseline, setClockBaseline] = useState(elapsedHours);
   const [earthAcknowledged, setEarthAcknowledged] = useState(false);
   const [compared, setCompared] = useState<Set<string>>(() => new Set(site ? [siteKey(site)] : []));
+  const [comparisonSites, setComparisonSites] = useState<FreeplaySite[]>(() => site ? [site] : []);
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => useFreeplay.subscribe((state, previous) => {
     const next = state.site;
-    if (next && next !== previous.site) setCompared((current) => current.has(siteKey(next)) ? current : new Set(current).add(siteKey(next)));
+    if (next && next !== previous.site) {
+      const key = siteKey(next);
+      setCompared((current) => current.has(key) ? current : new Set(current).add(key));
+      setComparisonSites((current) => [...current.filter((item) => siteKey(item) !== key), next].slice(-2));
+    }
   }), []);
 
   const chapter = tutorial.chapters[lesson.chapterId];
@@ -58,6 +64,7 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange, candidate
       if (target.screen === "globe") store.setView("globe");
       const current = chapterStart ?? store.site;
       setCompared(new Set(current ? [siteKey(current)] : []));
+      setComparisonSites(current ? [current] : []);
       setClockBaseline(store.elapsedHours);
       setEarthAcknowledged(false);
     }
@@ -73,12 +80,26 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange, candidate
         nextLabel={GUIDED_LESSONS[lessonIndex + 1].screen === "drive" ? "Descend to the surface" : "Next lesson"}>
         {lesson.id === "pick-site" && <>
           <p className={lessonCheckClass}>CATALOG SITES LAYER {mark(showCatalog)} · SITE SELECTED {mark(site !== null)}{site ? ` · ${site.name}` : ""}</p>
-          {featured[0] && <button type="button" onClick={() => useFreeplay.getState().selectSite(featured[0], true)} className={lessonActionClass}>Jump to {featured[0].name}</button>}
+          {featured[0] && <div className="mt-2 overflow-hidden border border-retro-purple/30 bg-void/70">
+            <SitePreview site={site ?? featured[0]} />
+            <button type="button" onClick={() => useFreeplay.getState().selectSite(featured[0], true)} className={`${lessonActionClass} mx-2 mb-2`}>View {featured[0].name}</button>
+          </div>}
         </>}
         {lesson.id === "overlays" && <p className={lessonCheckClass}>OVERLAYS ON · {overlaysOn.length ? overlaysOn.join(", ") : "none yet"}</p>}
         {lesson.id === "sun" && <p className={lessonCheckClass}>ORBIT + GRAPHS OPEN {mark(view === "orbit")} · MISSION CLOCK MOVED {mark(clockMoved)}</p>}
         {lesson.id === "earth" && <button type="button" onClick={() => setEarthAcknowledged(true)} className={lessonActionClass}>{earthAcknowledged ? "Understood ✓" : "I understand visibility ≠ radio-link guarantee"}</button>}
         {lesson.id === "candidates" && <>
+          <div className="mt-2 grid grid-cols-2 gap-2" role="group" aria-label="Selected landing sites being compared">
+            {comparisonSites.map((candidate, index) => {
+              const record = tutorial.catalog.find((entry) => entry.id === candidate.catalogId);
+              return <div key={`${siteKey(candidate)}:${index}`} className="overflow-hidden border border-retro-purple/45 bg-void/70">
+                <SitePreview site={candidate} compact />
+                <span className="block px-2 py-1.5"><span className="block truncate text-[.6rem] font-medium text-bone">{candidate.name}</span><span className="mt-1 block text-[.52rem] leading-snug text-muted-foreground">{candidate.latitudeDeg.toFixed(2)}°, {candidate.longitudeDeg.toFixed(2)}° E · {record?.coordsVerified && !record.pointIsApproximate ? "verified point" : "approximate point"}</span></span>
+              </div>;
+            })}
+            {comparisonSites.length < 2 && <div className="grid min-h-24 place-items-center border border-dashed border-line p-2 text-center text-[.55rem] text-muted-foreground">Choose another site to compare its imagery and orbit data.</div>}
+          </div>
+          {featured.length >= 2 && <p className="mt-1 type-data text-[.5rem] uppercase tracking-[.08em] text-retro-purple">The comparison previews follow the most recently selected sites</p>}
           {featured.length > 0 && <label className="mt-2 block type-data text-[.52rem] uppercase tracking-[.08em] text-muted-foreground">{(chapter ?? CHAPTER_LABELS[lesson.chapterId]).title} candidates
             <select value={featured.find((candidate) => candidate.id === site?.id)?.id ?? ""} onChange={(event) => { const target = featured.find((candidate) => candidate.id === event.target.value); if (target) useFreeplay.getState().selectSite(target, view === "globe"); }} className="hud-input mt-1 normal-case tracking-normal">
               <option value="">Choose a featured site</option>
