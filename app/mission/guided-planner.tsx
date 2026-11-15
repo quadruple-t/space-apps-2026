@@ -8,15 +8,19 @@ import { useFreeplay, type LayerId } from "@/lib/freeplay-store";
 import { LessonCard, lessonActionClass, lessonCheckClass, type LessonStage } from "./lesson-card";
 import { GUIDED_LESSONS, STORY_STOPS } from "./tutorial-content";
 import type { TutorialData } from "./use-tutorial-data";
+import { CandidateComparison } from "./candidate-comparison";
+import { SitePreview } from "./site-preview";
+import { LessonExampleActivity } from "./lesson-example-activity";
 
 const siteKey = (site: FreeplaySite) => `${site.latitudeDeg},${site.longitudeDeg}`;
 const mark = (done: boolean) => (done ? "✓" : "○");
 
 /** A staged Guided Mission lesson beside only the map or chart needed for the current action. */
-export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
+export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange, onGuidedExit }: {
   tutorial: TutorialData;
   lessonIndex: number;
   onLessonChange: (index: number) => void;
+  onGuidedExit: () => void;
 }) {
   const lesson = GUIDED_LESSONS[lessonIndex];
   const view = useFreeplay((state) => state.view);
@@ -32,11 +36,19 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
   const stage = stages[lessonIndex] ?? "story";
   const setStage = (nextStage: LessonStage) => setStages((current) => ({ ...current, [lessonIndex]: nextStage }));
 
-  const storySpecForStop = (stopId: string) => {
-    const id = stopId.replace(/^(?:catalog-|approx-|tour-)/, "");
-    return STORY_STOPS.find((spec) => spec.id === id || spec.catalogId === id);
+  const storySpecForStop = (stop: Partial<FreeplaySite> | null | undefined) => {
+    if (!stop) return undefined;
+    const id = typeof stop.id === "string" ? stop.id.replace(/^(?:catalog-|approx-|tour-)/, "") : "";
+    return STORY_STOPS.find((spec) => Boolean(id && (spec.id === id || spec.catalogId === id))
+      || Boolean(stop.catalogId && spec.catalogId === stop.catalogId)
+      || Boolean(stop.name && spec.name === stop.name));
   };
-  const candidateStops = tutorial.tourStops.filter((stop) => storySpecForStop(stop.id)?.group === "Artemis III candidate");
+  const candidateStops = tutorial.tourStops.filter((stop) => storySpecForStop(stop)?.group === "Artemis III candidate");
+  const presetStops = ["apollo-11", "luna-9"].flatMap((id) => {
+    const spec = STORY_STOPS.find((stop) => stop.id === id);
+    const match = spec && tutorial.tourStops.find((stop) => stop.catalogId === spec.catalogId || stop.name === spec.name || stop.id === spec.catalogId);
+    return match ? [match] : [];
+  });
 
   useEffect(() => useFreeplay.subscribe((state, previous) => {
     const next = state.site;
@@ -52,6 +64,9 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
   }, [lessonIndex, stage]);
 
   const chapter = tutorial.chapters[lesson.chapterId];
+  const selectedStoryStop = site && STORY_STOPS.find((stop) =>
+    stop.catalogId === site.catalogId || stop.name === site.name || stop.id === site.id.replace(/^(?:catalog-|approx-|tour-)/, ""),
+  );
   const clockMoved = elapsedHours !== clockBaseline;
   const complete = lesson.id === "pick-site" ? site !== null
     : lesson.id === "overlays" ? layers.slope.on
@@ -69,7 +84,7 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
     const store = useFreeplay.getState();
     if (target.screen !== "drive") {
       const chapterStart = target.chapterId !== lesson.chapterId
-        ? target.chapterId === "ch3-lunar-base" ? candidateStops[0] : tutorial.tourStops[0]
+        ? target.chapterId === "ch3-lunar-base" ? candidateStops[0] ?? tutorial.tourStops[0] : tutorial.tourStops[0]
         : undefined;
       if (chapterStart) store.selectSite(chapterStart, false);
       store.setView(target.screen === "orbit" ? "orbit" : "globe");
@@ -89,36 +104,32 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
     else onLessonChange(-1);
   };
 
-  const siteForStop = (id: string) => tutorial.tourStops.find((stop) => stop.id === id || stop.catalogId === id);
+  const siteForStop = (id: string) => tutorial.tourStops.find((stop) => Boolean(stop && (stop.id === id || stop.catalogId === id)));
   const aside = <aside ref={asideRef} aria-live="polite" aria-label="Guided Mission lesson" className={`absolute inset-x-2 bottom-2 z-30 overflow-y-auto rounded-xl border border-retro-purple/40 bg-[#100e20]/95 p-4 shadow-[0_18px_70px_rgba(4,2,18,.78)] backdrop-blur-xl ${stage === "try" ? "max-h-[90%]" : "max-h-[68%]"} lg:static lg:max-h-none lg:w-[23rem] lg:shrink-0 lg:rounded-none lg:border-0 lg:border-l lg:border-line lg:shadow-none`}>
     <button type="button" onClick={() => setCollapsed((value) => !value)} aria-expanded={!collapsed} aria-label={collapsed ? "Expand lesson" : "Collapse lesson"} className="absolute right-3 top-3 z-10 grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone lg:hidden">
       {collapsed ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
     </button>
     <div className={collapsed ? "hidden lg:block" : ""}>
-      <LessonCard lesson={lesson} chapter={chapter} stage={stage} complete={complete} onPrevious={previous} onStageChange={setStage} onNext={() => goToLesson(lessonIndex + 1)} nextLabel={lessonIndex === GUIDED_LESSONS.length - 1 ? "Finish Guided Mission" : "Next lesson"}>
+      <LessonCard lesson={lesson} chapter={chapter} missionStory={selectedStoryStop && site ? { title: selectedStoryStop.name, body: selectedStoryStop.note } : null} stage={stage} complete={complete} onPrevious={stage !== "story" || lessonIndex > 0 ? previous : undefined} onStageChange={setStage} onNext={() => goToLesson(lessonIndex + 1)} nextLabel={lessonIndex === GUIDED_LESSONS.length - 1 ? "Finish Guided Mission" : "Next lesson"} exampleContent={<LessonExampleActivity lesson={lesson} stops={tutorial.tourStops} candidates={presetStops} />}>
         {stage === "try" && lesson.id === "pick-site" && <>
           <label className="sr-only" htmlFor="story-site-stop">Choose a stop</label>
           <select id="story-site-stop" value={site?.id ?? ""} onChange={(event) => { const selected = siteForStop(event.target.value); if (selected) useFreeplay.getState().selectSite(selected, false); }} className="hud-input mt-1 text-sm normal-case tracking-normal">
             <option value="">Choose from the ten highlighted stops</option>
-            {tutorial.tourStops.map((stop, index) => {
-              const spec = storySpecForStop(stop.id);
+            {tutorial.tourStops.filter((stop): stop is FreeplaySite => Boolean(stop && typeof stop.id === "string" && typeof stop.name === "string")).map((stop, index) => {
+              const spec = storySpecForStop(stop);
               const group = spec?.group === "Historic landing" ? "historic" : spec?.group === "Artemis III candidate" ? "future candidate" : "no past landing";
               return <option key={stop.id} value={stop.id}>{index + 1}. {stop.name} · {group}</option>;
             })}
           </select>
           <p className={lessonCheckClass}>{site ? `Selected: ${site.name}` : "Or click a marker on the Moon."}</p>
+          {site && <div className="mt-2 overflow-hidden border border-retro-purple/35"><SitePreview site={site} /></div>}
         </>}
         {stage === "try" && lesson.id === "overlays" && <p className={lessonCheckClass}>Slope layer {mark(layers.slope.on)}</p>}
         {stage === "try" && lesson.id === "sun" && <p className={lessonCheckClass}>Mission time moved {mark(view === "orbit" && clockMoved)}</p>}
         {stage === "try" && lesson.id === "earth" && <button type="button" onClick={() => setEarthAcknowledged(true)} className={lessonActionClass}>{earthAcknowledged ? "Readout found ✓" : "I found the Earth visibility readout"}</button>}
         {stage === "try" && lesson.id === "candidates" && <>
-          <label className="mt-3 block text-sm text-bone">Compare candidate sites
-            <select value={candidateStops.find((candidate) => candidate.id === site?.id)?.id ?? ""} onChange={(event) => { const selected = candidateStops.find((candidate) => candidate.id === event.target.value); if (selected) useFreeplay.getState().selectSite(selected, false); }} className="hud-input mt-2 text-sm normal-case tracking-normal">
-              <option value="">Choose a candidate</option>
-              {candidateStops.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.name}</option>)}
-            </select>
-          </label>
-          <p className={lessonCheckClass}>Places compared: {compared.size}</p>
+          <CandidateComparison sites={tutorial.tourStops} />
+          <p className={lessonCheckClass}>Compare two stops from the site picker in lesson 1. Select a card to inspect that place in the orbit view. Places visited: {compared.size}</p>
         </>}
       </LessonCard>
     </div>
@@ -127,10 +138,9 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
   const guidedPanels = {
     layers: { show: stage === "try" && lesson.id === "overlays", showCatalog: false, layerIds: lesson.id === "overlays" ? ["slope"] as LayerId[] : [] },
     tourSites: tutorial.tourStops,
-    dimContent: stage !== "try" && lesson.id !== "pick-site",
   };
 
   return <div className="fixed inset-0 z-50 h-dvh overflow-hidden bg-void">
-    <FreeplayApp aside={aside} guidedPanels={guidedPanels} assistantEnabled={false} guidedMode />
+    <FreeplayApp aside={aside} guidedPanels={guidedPanels} assistantEnabled={false} guidedMode onGuidedExit={onGuidedExit} />
   </div>;
 }

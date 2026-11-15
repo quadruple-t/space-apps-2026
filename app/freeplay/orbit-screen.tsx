@@ -26,7 +26,7 @@ export function OrbitScreen() {
       <PresetsPanel collapsible={false} className="mt-4 max-h-60 text-left" />
     </div>
   </div>;
-  return <OrbitScreenFor site={site} />;
+  return <OrbitScreenFor key={`${site.catalogId ?? site.id}:${site.latitudeDeg}:${site.longitudeDeg}`} site={site} />;
 }
 
 function OrbitScreenFor({ site }: { site: FreeplaySite }) {

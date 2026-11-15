@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { DevelopmentNotice, PageIntro } from "@/components/experience/page-intro";
-import { OtherExperiences } from "@/components/experience/other-experiences";
 import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
 import { ComparisonClient } from "./comparison-client";
@@ -31,7 +31,9 @@ export default function ComparePage() {
             been analysed.
           </p>
 
-          <ComparisonClient />
+          <Suspense fallback={<p className="mt-6 text-sm text-muted-foreground">Loading the comparison…</p>}>
+            <ComparisonClient />
+          </Suspense>
 
           <div className="mt-14 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
             <DevelopmentNotice>
@@ -44,7 +46,6 @@ export default function ComparePage() {
         </PageContainer>
       </section>
 
-      <OtherExperiences current="compare" />
     </>
   );
 }

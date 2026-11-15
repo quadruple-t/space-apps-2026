@@ -15,6 +15,7 @@ import { MoonLocationPicker } from "./moon-location-picker";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { LessonCard, lessonActionClass, lessonCheckClass, type LessonStage } from "@/app/mission/lesson-card";
 import { SURFACE_LESSON } from "@/app/mission/tutorial-content";
+import { LessonExampleActivity } from "@/app/mission/lesson-example-activity";
 import type { TutorialData } from "@/app/mission/use-tutorial-data";
 import { lunarSiteFor, siteFromDriveParams, timeFromDriveParams } from "@/lib/drive-link";
 import { currentTimeMs, useFreeplay } from "@/lib/freeplay-store";
@@ -30,7 +31,7 @@ function Readout({ label, value, tone = "neutral" }: { label: string; value: str
 }
 
 /** `guided` runs the final Guided Mission lesson at the selected site and mission time. */
-export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, onBack }: { guided?: boolean; tutorial?: TutorialData; startSite?: LunarSite; startUtc?: string; onBack?: () => void }) {
+export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, onBack, onGuidedExit }: { guided?: boolean; tutorial?: TutorialData; startSite?: LunarSite; startUtc?: string; onBack?: () => void; onGuidedExit?: () => void }) {
   // Start at the site and time chosen in Freeplay (URL first, so reloads and shared links work).
   const params = useSearchParams();
   const [start] = useState(() => {
@@ -212,7 +213,8 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
 
     <header className="absolute inset-x-3 top-3 z-20 flex items-center justify-between gap-2 sm:inset-x-5 sm:top-4">
       <div className="flex min-w-0 items-center gap-2 rounded-lg border border-line/80 bg-void/75 p-1.5 shadow-xl backdrop-blur-xl sm:gap-3 sm:p-2">
-  <Link href={guided ? "/" : "/freeplay"} aria-label={guided ? "Exit Guided Mission to Lunaris360 home" : "Exit surface drive back to Open Exploration"} className="grid size-9 shrink-0 place-items-center rounded-md bg-retro-purple/15 text-retro-purple transition hover:bg-retro-purple/25"><ArrowLeft size={17} /></Link>
+  {guided && onGuidedExit ? <button type="button" onClick={onGuidedExit} aria-label="Return to Guided Mission start page" className="grid size-9 shrink-0 place-items-center rounded-md bg-retro-purple/15 text-retro-purple transition hover:bg-retro-purple/25"><ArrowLeft size={17} /></button>
+    : <Link href={guided ? "/mission" : "/freeplay"} aria-label={guided ? "Return to Guided Mission start page" : "Exit surface drive back to Open Exploration"} className="grid size-9 shrink-0 place-items-center rounded-md bg-retro-purple/15 text-retro-purple transition hover:bg-retro-purple/25"><ArrowLeft size={17} /></Link>}
   {guided && <Logo compact showWordmark={false} />}
   <div className="min-w-0 pr-2"><div className="type-data text-[0.6rem] uppercase tracking-[0.16em] text-retro-purple">Lunaris360 / {guided ? "Guided Mission" : "Open Exploration"}</div><div className="truncate text-xs font-medium text-bone">Lunar surface simulation</div></div>
         <span className="hidden h-8 w-px bg-line sm:block" />
@@ -238,14 +240,14 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
         </div>
       </div>)}
 
-    {guided && phase === "explore" && <section aria-live="polite" aria-label="Guided Mission lesson" className="absolute left-3 top-[5rem] z-30 max-h-[calc(100dvh-16rem)] w-[min(390px,calc(100vw-1.5rem))] overflow-y-auto rounded-xl border border-retro-purple/40 bg-[#100e20]/95 p-4 shadow-[0_18px_70px_rgba(4,2,18,.78)] backdrop-blur-xl sm:left-5 sm:top-[5.5rem] sm:p-5">
+    {guided && phase === "explore" && <section aria-live="polite" aria-label="Guided Mission lesson" className="absolute right-3 top-20 z-30 max-h-[calc(100dvh-6rem)] w-[min(370px,calc(100vw-1.5rem))] overflow-y-auto rounded-xl border border-retro-purple/40 bg-[#100e20]/95 p-4 shadow-[0_18px_70px_rgba(4,2,18,.78)] backdrop-blur-xl sm:right-5 sm:top-24 sm:p-5">
       {guidedComplete ? <>
         <div className="type-data text-[.58rem] uppercase tracking-[.17em] text-retro-red">Mission debrief · complete</div>
         <h2 className="type-heading mt-2 text-xl text-bone">You have the flight controls.</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">You picked a site on the globe, followed the Sun and Earth through a mission, compared candidates and stood on the surface. Your selected site is {activeSite.name}. Positions came from stored JPL Horizons ephemerides; check each site&apos;s horizon source before comparing its numbers.</p>
         <Link href="/freeplay" className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg bg-retro-purple px-4 type-data text-[.62rem] font-semibold uppercase tracking-[.12em] text-void hover:bg-[#c2abff]">Explore the Moon <ArrowLeft className="rotate-180" size={14} /></Link>
       </> : <>
-        <LessonCard lesson={SURFACE_LESSON} chapter={chapter} stage={guidedStage} complete={lessonComplete} onPrevious={guidedStage === "story" ? onBack : () => setGuidedStage(guidedStage === "try" ? "example" : "story")} onStageChange={setGuidedStage} onNext={() => setGuidedComplete(true)} nextLabel="Finish Guided Mission">
+        <LessonCard lesson={SURFACE_LESSON} chapter={chapter} stage={guidedStage} complete={lessonComplete} onPrevious={guidedStage === "story" ? onBack : () => setGuidedStage(guidedStage === "try" ? "example" : "story")} onStageChange={setGuidedStage} onNext={() => setGuidedComplete(true)} nextLabel="Finish Guided Mission" exampleContent={<LessonExampleActivity lesson={SURFACE_LESSON} stops={tutorial?.tourStops ?? []} candidates={[]} />}>
           {guidedStage === "try" && <>
             <p className={lessonCheckClass}>Looked {tutorialActions.has("look") ? "✓" : "○"} · Moved {tutorialActions.has("move") ? "✓" : "○"} · Changed camera {tutorialActions.has("camera") ? "✓" : "○"}</p>
             <p className="mt-2 text-xs leading-relaxed text-retro-blue">Terrain source: {dataError ? "unavailable" : metrics?.horizonSource ?? "loading"}{horizonPeak ? ` · Highest ridge ${angle(horizonPeak.elevationDeg)} above the horizon` : horizonPeak === null ? " · No terrain mask; visibility is an upper-bound estimate" : ""}</p>

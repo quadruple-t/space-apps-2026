@@ -16,6 +16,7 @@ const PATH = "#a986ff";
 const MEAN_EARTH_MOON_KM = 384_400;
 const MONTH_MS = 29.530589 * 86_400_000;
 
+
 type Props = {
   series: CartesianSeries;
   site: FreeplaySite;
@@ -133,6 +134,10 @@ export function OrbitDiagram({ series, site, tMs, missionStartMs, missionEndMs, 
   const scrub = (e: PointerEvent<SVGSVGElement>) => { const t = timeAtPointer(e); if (t !== null) onSeek?.(t); };
 
   return <div ref={ref} className="relative h-full w-full">
+    <div className="pointer-events-none absolute left-3 top-3 z-10 max-w-[70%] border border-retro-purple/35 bg-void/80 px-3 py-2 backdrop-blur-sm">
+      <p className="type-data text-[0.6rem] uppercase tracking-[0.14em] text-retro-purple">Orbit view · {site.name}</p>
+      <p className="type-data mt-1 text-[0.56rem] text-bone/60">Scrub mission clock{onSeek ? " or drag the Moon" : ""} · approximate, not a flight plan</p>
+    </div>
     <svg width={W} height={H} role="img" className={`block ${onSeek ? (dragging ? "cursor-grabbing touch-none" : "cursor-grab touch-none") : ""}`}
       onPointerDown={(e) => {
         if (!onSeek || (e.pointerType === "mouse" && e.button !== 0) || !nearOrbit(e)) return;
@@ -143,7 +148,7 @@ export function OrbitDiagram({ series, site, tMs, missionStartMs, missionEndMs, 
       onPointerMove={(e) => { if (dragging) scrub(e); }}
       onPointerUp={(e) => { if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId); setDragging(false); }}
       onPointerCancel={() => setDragging(false)}
-      aria-label={`Orbit diagram, not to scale. Sunlight from the right. Moon ${(distKm / 1000).toFixed(0)} thousand km from Earth, ${ph.name}. Selected site ${sunUp ? "in daylight" : "in darkness"}${earthUp === null ? "" : earthUp ? ", Earth above its horizon" : ", Earth below its horizon"}.${plan ? ` Approximate ${plan.type === "direct" ? "direct" : "low-energy"} transfer path from Earth to where the Moon will be on arrival, ${(plan.transitSeconds / 86_400).toFixed(1)} days.` : ""}`}>
+      aria-label={`Orbit diagram, not to scale.${onSeek ? " Drag the Moon along its orbit to change the mission time." : ""} Sunlight from the right. Moon ${(distKm / 1000).toFixed(0)} thousand km from Earth, ${ph.name}. Selected site ${sunUp ? "in daylight" : "in darkness"}${earthUp === null ? "" : earthUp ? ", Earth above its horizon" : ", Earth below its horizon"}.${plan ? ` Approximate ${plan.type === "direct" ? "direct" : "low-energy"} transfer path from Earth to where the Moon will be on arrival, ${(plan.transitSeconds / 86_400).toFixed(1)} days.` : ""}`}>
       <defs>
         <marker id="fp-arrow-sun" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill={SUN} /></marker>
         <marker id="fp-arrow-orbit" markerWidth="9" markerHeight="9" refX="6" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill={INK} /></marker>
