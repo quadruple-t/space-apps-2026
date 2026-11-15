@@ -39,7 +39,8 @@ type AssistantState = {
   hint: string | null;
   lastUserText: string | null;
   setOpen: (open: boolean) => void;
-  send: (raw: string) => Promise<void>;
+  /** `context` is app-supplied data (for example the surface planner setup) sent to the model with the question but not shown in the chat. */
+  send: (raw: string, context?: string, surfaceSnapshot?: FreeplaySnapshot) => Promise<void>;
   retry: () => void;
   cancel: () => void;
   /** Puts the Freeplay view back as it was before this reply's changes. */
@@ -49,6 +50,8 @@ type AssistantState = {
 
 const limiter = createRateLimiter();
 let controller: AbortController | null = null;
+let lastContext: string | undefined;
+let lastSnapshot: FreeplaySnapshot | undefined;
 let seq = 0;
 const nextId = () => `m${++seq}`;
 const dev = process.env.NODE_ENV !== "production";
@@ -76,7 +79,7 @@ export const useAssistant = create<AssistantState>((set, get) => ({
     if (open) void import("./firebase-ai").then((m) => m.warmUp()).catch(() => undefined);
   },
 
-  send: async (raw) => {
+  send: async (raw, context, surfaceSnapshot) => {
     const text = normalizeInput(raw);
     if (!text || ["thinking", "tool", "streaming"].includes(get().status)) return;
     const decision = limiter.attempt();
@@ -85,6 +88,8 @@ export const useAssistant = create<AssistantState>((set, get) => ({
       set({ hint: decision.reason === "too-fast" ? "One moment before the next question." : `Question limit reached for now. Try again in ${seconds > 90 ? `${Math.ceil(seconds / 60)} minutes` : `${seconds} seconds`}.` });
       return;
     }
+    lastContext = context;
+    lastSnapshot = surfaceSnapshot;
     const history = capHistory(get().messages.filter((m) => m.role === "model" || m.answered).map((m) => ({ role: m.role, text: m.text })));
     const userMessage: UiMessage = { id: nextId(), role: "user", text };
     set((s) => ({ messages: [...s.messages, userMessage], status: "thinking", progress: null, draft: "", error: null, hint: null, lastUserText: text, announce: "Mission Control is thinking." }));
@@ -102,7 +107,7 @@ export const useAssistant = create<AssistantState>((set, get) => ({
       return applyUiPlan(plan, catalog);
     };
     try {
-      const snap = snapshot();
+      const snap = surfaceSnapshot ?? snapshot();
       const { createTurnChat, checkAppCheck } = await import("./firebase-ai");
       await checkAppCheck();
       dbg("app check ready", at());
@@ -110,7 +115,7 @@ export const useAssistant = create<AssistantState>((set, get) => ({
       dbg("sending", { historyMessages: history.length, variables });
       const chat = createTurnChat(history, variables, signal);
       const result = await runTurn({
-        chat, userText: text, ctx: toToolContext(snap), signal, applyUi,
+        chat, userText: context ? `${text}\n\n${context}` : text, ctx: toToolContext(snap), signal, applyUi,
         events: {
           onText: (draft) => { watchdog.poke(); set({ draft, status: draft ? "streaming" : "thinking", progress: null }); },
           onToolStart: (progress) => { watchdog.poke(); dbg("tool start", progress, at()); set({ status: "tool", progress, announce: progress }); },
@@ -149,7 +154,7 @@ export const useAssistant = create<AssistantState>((set, get) => ({
     // Drop the unanswered user message so it is not duplicated.
     const last = messages[messages.length - 1];
     set({ messages: last?.role === "user" && !last.answered ? messages.slice(0, -1) : messages, status: "idle", error: null });
-    void get().send(lastUserText);
+    void get().send(lastUserText, lastContext, lastSnapshot);
   },
 
   cancel: () => controller?.abort(),
@@ -163,6 +168,8 @@ export const useAssistant = create<AssistantState>((set, get) => ({
 
   clear: () => {
     controller?.abort();
+    lastContext = undefined;
+    lastSnapshot = undefined;
     set({ messages: [], status: "idle", progress: null, draft: "", error: null, hint: null, lastUserText: null, announce: "Conversation cleared." });
   },
 }));

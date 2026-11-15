@@ -7,6 +7,12 @@ const STORAGE_KEY = "lunaris360-drive-placements-v1";
 const TYPES = new Set<string>(["solar", "rover", "dome", "modules", "inflatable", "comms"]);
 export const MAX_PLACEMENTS = 200;
 
+/** Solar array assumptions shared by the drive and the graphs: 3 × 6 m tracking panel, 30% efficient. */
+export const SOLAR_ARRAY_AREA_M2 = 18;
+export const SOLAR_ARRAY_EFFICIENCY = 0.3;
+/** Height above the ground (m) of the point whose sky view matters for each kind of hardware. */
+export const OBSERVER_HEIGHT_M: Record<SurfaceObjectType, number> = { solar: 6, comms: 8, rover: 3, dome: 3, modules: 3, inflatable: 3 };
+
 /** Placements belong to a site centre, so they survive radius changes and reloads. */
 export const placementSiteKey = (latDeg: number, lonDeg: number) => `${latDeg.toFixed(4)},${(((lonDeg % 360) + 360) % 360).toFixed(4)}`;
 

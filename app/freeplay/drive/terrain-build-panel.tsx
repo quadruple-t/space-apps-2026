@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { Box, Hammer, Mountain, RotateCcw, RotateCw, Trash2, X } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import Link from "next/link";
+import { Box, Eye, Hammer, LineChart, Mountain, RotateCcw, RotateCw, Trash2, X } from "lucide-react";
+import { useFreeplay } from "@/lib/freeplay-store";
 import type { DemTile } from "@/integrations/terrain/dem-client";
 import type { Placement } from "@/lib/drive-placements";
 import { DEM_MAX_RADIUS_KM, DEM_MIN_RADIUS_KM } from "@/lib/terrain/dem";
@@ -9,7 +11,11 @@ import type { TerrainColorMode } from "@/scenes/lunar/dem-terrain";
 import type { PlacementCheck } from "@/scenes/lunar/dem-scene";
 import { SURFACE_OBJECT_TYPES, SURFACE_OBJECTS, type SurfaceObjectType } from "@/scenes/lunar/surface-objects";
 
-export type PlacementStatus = { sunVisible: number; earthVisible: number; slopeDeg: number; powerKw: number | null };
+/** `daily` covers the simulation's UTC day, hourly, using only terrain inside the loaded walls. */
+export type PlacementStatus = {
+  sunVisible: number; earthVisible: number; slopeDeg: number; powerKw: number | null;
+  daily: { sunHours: number | null; earthHours: number; kwh: number } | null;
+};
 
 const COLOR_MODES: Array<[TerrainColorMode, string]> = [["regolith", "Regolith"], ["elevation", "Elevation"], ["slope", "Slope"]];
 const EXAGGERATIONS = [1, 2, 4];
@@ -17,7 +23,7 @@ const chip = (active: boolean) => `rounded px-2 py-1 type-data text-[.56rem] upp
 const km = (m: number) => m >= 1000 ? `${(m / 1000).toFixed(m >= 10_000 ? 0 : 1)} km` : `${Math.round(m)} m`;
 
 export function TerrainBuildPanel({ radiusKm, onRadius, exaggeration, onExaggeration, colorMode, onColorMode, tile, demLoading, demError,
-  buildType, onBuildType, heading, onHeading, hoverCheck, placements, statusFor, onDelete, onClear, onClose }: {
+  buildType, onBuildType, heading, onHeading, hoverCheck, placements, statusFor, onView, selectedId, onSelect, setupDetails, graphsAvailable, onDelete, onClear, onClose }: {
   radiusKm: number; onRadius: (km: number) => void;
   exaggeration: number; onExaggeration: (value: number) => void;
   colorMode: TerrainColorMode; onColorMode: (mode: TerrainColorMode) => void;
@@ -25,8 +31,17 @@ export function TerrainBuildPanel({ radiusKm, onRadius, exaggeration, onExaggera
   buildType: SurfaceObjectType | null; onBuildType: (type: SurfaceObjectType | null) => void;
   heading: number; onHeading: (deg: number) => void; hoverCheck: PlacementCheck | null;
   placements: Placement[]; statusFor: (placement: Placement) => PlacementStatus | null;
+  /** Go and look at a placed object (first person stands in front of it; bird's eye centres on it). */
+  onView: (placement: Placement) => void;
+  /** The object clicked in the scene or in this list, and how to select one. */
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  /** The Freeplay graphs are following this same site, so the link can open them. */
+  graphsAvailable: boolean;
+  setupDetails?: ReactNode;
   onDelete: (id: string) => void; onClear: () => void; onClose: () => void;
 }) {
+  const solarKwh = placements.filter((p) => p.type === "solar").reduce((sum, p) => sum + (statusFor(p)?.daily?.kwh ?? 0), 0);
   const [radiusText, setRadiusText] = useState(String(radiusKm));
   const [syncedRadius, setSyncedRadius] = useState(radiusKm);
   if (syncedRadius !== radiusKm) { setSyncedRadius(radiusKm); setRadiusText(String(radiusKm)); }
@@ -36,7 +51,7 @@ export function TerrainBuildPanel({ radiusKm, onRadius, exaggeration, onExaggera
     else setRadiusText(String(radiusKm));
   };
 
-  return <section data-no-flight-controls aria-label="Terrain and build tools" className="hud-panel flex max-h-full flex-col overflow-hidden">
+  return <section aria-label="Terrain and build tools" className="hud-panel flex max-h-full flex-col overflow-hidden">
     <header className="flex items-center justify-between gap-2 border-b border-line/80 px-3.5 py-2.5">
       <div><div className="type-data text-[.58rem] uppercase tracking-[.14em] text-retro-purple">Surface planner</div><h2 className="type-heading mt-0.5 text-sm text-bone">Terrain &amp; build</h2></div>
       <button type="button" onClick={onClose} aria-label="Close terrain and build panel" className="grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><X size={15} /></button>
@@ -59,6 +74,7 @@ export function TerrainBuildPanel({ radiusKm, onRadius, exaggeration, onExaggera
         <div className="mt-1.5 flex items-center justify-between gap-2 text-[.62rem] text-muted-foreground">Colour
           <div className="flex rounded border border-line/80 p-0.5">{COLOR_MODES.map(([mode, label]) => <button key={mode} type="button" onClick={() => onColorMode(mode)} aria-pressed={colorMode === mode} className={chip(colorMode === mode)}>{label}</button>)}</div>
         </div>
+        {colorMode === "regolith" && <p className="mt-1.5 text-[.54rem] leading-relaxed text-muted-foreground">Stylised colouring from elevation, slope and ridge/rim curvature (dark mare to bright highland). It is not measured albedo.</p>}
         {colorMode === "slope" && <p className="mt-1.5 type-data text-[.54rem] text-muted-foreground"><span className="text-[#7fa58a]">■</span> &lt;5° <span className="text-[#c9c36a]">■</span> 5–10° <span className="text-[#e39a4f]">■</span> 10–15° <span className="text-retro-red">■</span> &gt;15°</p>}
         {colorMode === "elevation" && tile && <div className="mt-1.5"><div className="h-1.5 rounded-full bg-[linear-gradient(90deg,#7a3cff,#2f6bff,#22c7c7,#4fd65a,#f2e93a,#f2902a,#e02424)]" /><div className="mt-0.5 flex justify-between type-data text-[.52rem] text-muted-foreground"><span>{Math.round(tile.minM).toLocaleString()} m</span><span>{Math.round(tile.maxM).toLocaleString()} m</span></div></div>}
         <p className="mt-2 text-[.56rem] leading-relaxed text-muted-foreground">
@@ -88,9 +104,11 @@ export function TerrainBuildPanel({ radiusKm, onRadius, exaggeration, onExaggera
           <p role="status" className={`mt-1.5 type-data text-[.56rem] ${hoverCheck && !hoverCheck.ok ? "text-retro-red" : "text-muted-foreground"}`}>
             {hoverCheck ? hoverCheck.ok ? `Click to place · ground slope ${hoverCheck.slopeDeg.toFixed(1)}°` : hoverCheck.reason : "Point at the ground to preview"}
           </p>
-          <p className="mt-1 text-[.54rem] leading-relaxed text-muted-foreground">Left-click places. Hold the right button to look around. Q / E rotate, Esc stops placing. The Map view is easiest for laying out a base.</p>
+          <p className="mt-1 text-[.54rem] leading-relaxed text-muted-foreground">Left-click places. Drag to rotate the view, right-drag or WASD to pan. Q / E rotate the item, Esc stops placing.</p>
         </div>}
       </div>
+
+      {setupDetails}
 
       <div className="border-t border-line/80 pt-3">
         <div className="flex items-center justify-between gap-2">
@@ -101,8 +119,8 @@ export function TerrainBuildPanel({ radiusKm, onRadius, exaggeration, onExaggera
           : <ul className="mt-1.5 space-y-1">{placements.map((p) => {
             const status = statusFor(p);
             const distance = Math.hypot(p.eastM, p.northM);
-            return <li key={p.id} className="flex items-center justify-between gap-2 rounded border border-line/70 px-2 py-1.5">
-              <div className="min-w-0">
+            return <li key={p.id} aria-current={p.id === selectedId} className={`flex cursor-pointer items-center justify-between gap-2 rounded border px-2 py-1.5 ${p.id === selectedId ? "border-retro-purple/70 bg-retro-purple/10" : "border-line/70 hover:border-retro-purple/40"}`}>
+              <button type="button" onClick={() => onSelect(p.id)} aria-pressed={p.id === selectedId} className="min-w-0 flex-1 text-left">
                 <div className="truncate text-[.64rem] text-bone">{SURFACE_OBJECTS[p.type].label}</div>
                 <div className="type-data text-[.52rem] text-muted-foreground">{km(distance)} from centre · slope {status ? status.slopeDeg.toFixed(1) : "—"}°</div>
                 {status && <div className="type-data text-[.52rem]">
@@ -110,11 +128,17 @@ export function TerrainBuildPanel({ radiusKm, onRadius, exaggeration, onExaggera
                   {p.type === "solar" && status.powerKw !== null && <span className="text-bone"> · ≈{status.powerKw.toFixed(1)} kW</span>}
                   {p.type === "comms" && <span className={status.earthVisible > 0 ? "text-retro-blue" : "text-muted-foreground"}> · {status.earthVisible > 0 ? "Earth in view" : "No Earth line of sight"}</span>}
                 </div>}
+                {status?.daily && <div className="type-data text-[.52rem] text-muted-foreground">Today: {status.daily.sunHours !== null && <span className="text-retro-red">{status.daily.sunHours.toFixed(1)} h sun</span>}{p.type === "solar" && <span className="text-bone"> · ≈{status.daily.kwh.toFixed(0)} kWh</span>}{p.type === "comms" && <span className="text-retro-blue"> · Earth {status.daily.earthHours.toFixed(1)} h</span>}</div>}
+              </button>
+              <div className="flex shrink-0 items-center">
+                <button type="button" aria-label={`Teleport to ${SURFACE_OBJECTS[p.type].label}`} title="Teleport to this object" onClick={(e) => { e.stopPropagation(); onView(p); }} className="grid size-7 place-items-center rounded text-muted-foreground hover:bg-retro-purple/15 hover:text-retro-purple"><Eye size={13} /></button>
+                <button type="button" aria-label={`Remove ${SURFACE_OBJECTS[p.type].label}`} onClick={(e) => { e.stopPropagation(); onDelete(p.id); }} className="grid size-7 place-items-center rounded text-muted-foreground hover:bg-retro-red/15 hover:text-retro-red"><Trash2 size={13} /></button>
               </div>
-              <button type="button" aria-label={`Remove ${SURFACE_OBJECTS[p.type].label}`} onClick={() => onDelete(p.id)} className="grid size-7 shrink-0 place-items-center rounded text-muted-foreground hover:bg-retro-red/15 hover:text-retro-red"><Trash2 size={13} /></button>
             </li>;
           })}</ul>}
-        {placements.some((p) => p.type === "solar") && <p className="mt-1.5 text-[.52rem] leading-relaxed text-muted-foreground">Power assumes an 18 m² sun-tracking panel at 30% efficiency. Light and line of sight use only terrain inside the loaded radius, so they are upper bounds near the edge.</p>}
+        {solarKwh > 0 && <p className="mt-1.5 type-data text-[.56rem] text-bone">Solar today ≈ {solarKwh.toFixed(0)} kWh from {placements.filter((p) => p.type === "solar").length} array{placements.filter((p) => p.type === "solar").length === 1 ? "" : "s"}</p>}
+        {graphsAvailable && placements.some((p) => p.type === "solar" || p.type === "comms") && <Link href="/freeplay" onClick={() => useFreeplay.getState().setView("orbit")} className="mt-2 inline-flex items-center gap-1.5 rounded border border-retro-blue/40 bg-retro-blue/10 px-2.5 py-1.5 type-data text-[.56rem] uppercase tracking-[.1em] text-retro-blue hover:bg-retro-blue/20"><LineChart size={12} />Graphs: generation &amp; comms windows</Link>}
+        {placements.length > 0 && <p className="mt-1.5 text-[.52rem] leading-relaxed text-muted-foreground">Sunlight uses the stored Horizons ephemeris and only the terrain inside the walls, so it is an upper bound near the edge. Power assumes an 18 m² sun-tracking panel at 30% efficiency.</p>}
       </div>
     </div>
   </section>;

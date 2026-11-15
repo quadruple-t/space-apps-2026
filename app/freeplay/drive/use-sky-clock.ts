@@ -37,11 +37,10 @@ export function useEphemerisWindow(timeMs: number): CartesianSeries | null {
   return series && series.covers(timeMs) ? series : null;
 }
 
-/** Sun and Earth seen from the site at `timeMs`, or null when the stored series does not cover it. */
-export function useLocalSky(latDeg: number, lonDeg: number, heightM: number, timeMs: number): LocalSky | null {
-  const series = useEphemerisWindow(timeMs);
+/** Sun and Earth seen from the site at `timeMs`, or null when the series is missing or does not cover it. */
+export function useLocalSky(series: CartesianSeries | null, latDeg: number, lonDeg: number, heightM: number, timeMs: number): LocalSky | null {
   const frame = useMemo(() => siteFrame(latDeg, lonDeg, heightM / 1000), [latDeg, lonDeg, heightM]);
-  if (!series) return null;
+  if (!series || !series.covers(timeMs)) return null;
   const { sun, earth } = series.at(timeMs);
   return { sun: azElFromCartesian(frame, sun), earth: azElFromCartesian(frame, earth), sunRangeAu: Math.hypot(...sun) / AU_KM };
 }

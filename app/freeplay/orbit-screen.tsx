@@ -5,6 +5,7 @@ import { BatteryCharging, Globe2, Sun } from "lucide-react";
 import type { FreeplaySite } from "@/data/sites";
 import { ConditionsReadout } from "@/components/freeplay/conditions-readout";
 import { DailyGraphs, GraphTabs, PanelSettings, YearlyGraphs, type GraphFocus } from "@/components/freeplay/graphs-panel";
+import { HardwareGraphs } from "@/components/freeplay/hardware-graphs";
 import { OrbitDiagram } from "@/components/freeplay/orbit-diagram";
 import { PresetsPanel } from "@/components/freeplay/presets-panel";
 import { TimeControls } from "@/components/freeplay/time-controls";
@@ -77,7 +78,10 @@ function OrbitScreenFor({ site }: { site: FreeplaySite }) {
           {now && samples ? <ConditionsReadout samples={samples} index={index} now={now} focus={activeFocus} />
             : <Status loading={mission.loading} error={mission.error} what={`Sun and Earth positions at ${site.name}`} />}
           {graphTab === "daily"
-            ? samples && <DailyGraphs samples={samples} siteId={site.id} startMs={startMs} tMs={tMs} focus={activeFocus} />
+            ? samples && <>
+                <DailyGraphs samples={samples} siteId={site.id} startMs={startMs} tMs={tMs} endMs={missionEndMs} focus={activeFocus} />
+                <div className="mt-4"><HardwareGraphs site={site} samples={samples} startMs={startMs} tMs={tMs} endMs={missionEndMs} /></div>
+              </>
             : year.data
               ? <YearlyGraphs samples={year.data.samples} siteId={site.id} startMs={startMs} tMs={tMs} missionEndMs={missionEndMs} focus={activeFocus === "earth" ? "earth" : "sunlight"} />
               : <Status loading={year.loading} error={year.error} what="yearly conditions" />}

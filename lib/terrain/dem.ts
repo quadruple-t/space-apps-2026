@@ -168,6 +168,24 @@ export function heightsFromRaster(raster: Float32Array, size: number): Float32Ar
   return out;
 }
 
+/**
+ * The source posting is about 100 m and its heights come in whole-metre steps, so gentle slopes
+ * become flat terraces with straight edges. On a finer grid those show up as fake creases in the
+ * lighting, slope and colour. Smooth with [1 2 1] passes to roughly one source posting; coarser grids
+ * are left alone. Returns the number of passes applied.
+ */
+export function smoothToSourceResolution(heightsM: Float32Array, size: number, spacingM: number): number {
+  const passes = Math.min(60, Math.round(2 * (DEM_NOMINAL_RESOLUTION_M / spacingM) ** 2));
+  if (spacingM >= DEM_NOMINAL_RESOLUTION_M * 0.8 || passes <= 0) return 0;
+  const tmp = new Float32Array(heightsM.length);
+  const clamp = (v: number) => Math.max(0, Math.min(size - 1, v));
+  for (let p = 0; p < passes; p++) {
+    for (let j = 0; j < size; j++) for (let i = 0; i < size; i++) tmp[j * size + i] = (heightsM[j * size + clamp(i - 1)] + 2 * heightsM[j * size + i] + heightsM[j * size + clamp(i + 1)]) / 4;
+    for (let j = 0; j < size; j++) for (let i = 0; i < size; i++) heightsM[j * size + i] = (tmp[clamp(j - 1) * size + i] + 2 * tmp[j * size + i] + tmp[clamp(j + 1) * size + i]) / 4;
+  }
+  return passes;
+}
+
 export function makeGrid(heightsM: Float32Array, size: number, radiusKm: number): DemGrid {
   let minM = Infinity, maxM = -Infinity;
   for (const h of heightsM) { if (h < minM) minM = h; if (h > maxM) maxM = h; }
@@ -263,6 +281,9 @@ export function horizonProfile(grid: DemGrid, eastM: number, northM: number, ste
   for (let az = 0; az < 360; az += stepDeg) out.push(horizonElevationDeg(grid, eastM, northM, az, observerHeightM));
   return out;
 }
+
+/** Earth's angular radius seen from the Moon, degrees. */
+export const EARTH_RADIUS_DEG = 0.95;
 
 /** Sun's angular radius; partial visibility is interpolated across the disc. */
 export const SUN_RADIUS_DEG = 0.267;

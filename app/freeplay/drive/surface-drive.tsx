@@ -5,58 +5,64 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Activity, ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Clock3, Crosshair, Globe2, Hammer, LocateFixed, Map, Pause, Play, RotateCcw, SkipBack, SkipForward, ZoomIn, ZoomOut, X } from "lucide-react";
-import type { CameraMode } from "@/scenes/lunar/camera-rig";
-import type { PlacementCheck, PlayerState } from "@/scenes/lunar/dem-scene";
+import { Activity, ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Clock3, Crosshair, Eye, FastForward, Globe2, Hammer, Map, Pause, Play, RotateCcw, SkipBack, SkipForward, Trash2, ZoomIn, ZoomOut, X } from "lucide-react";
+import type { FocusState, PlacementCheck, ViewMode, ViewTarget } from "@/scenes/lunar/dem-scene";
 import type { TerrainColorMode } from "@/scenes/lunar/dem-terrain";
 import { SURFACE_OBJECTS, type SurfaceObjectType } from "@/scenes/lunar/surface-objects";
 import { apiScienceProvider as scienceProvider } from "@/integrations/science/api-provider";
 import type { CelestialState, LunarSite, MissionMetrics } from "@/integrations/science/types";
 import { interpolateTerrain, MOON_REGIONS, terrainGridForSite, type TerrainSample } from "@/integrations/terrain/moon-samples";
 import { MoonLocationPicker } from "./moon-location-picker";
+import { SetupPerformance } from "./setup-performance";
+import { analyseHardware } from "@/lib/hardware-analysis";
+import { DriveAssistantBubble } from "./assistant-bubble";
+import { buildSetupContext, surfaceAssistantSnapshot } from "@/lib/assistant/setup-context";
+import { keyBelongsToControl } from "@/lib/keyboard";
 import { SkyDial } from "./sky-dial";
 import { TerrainBuildPanel, type PlacementStatus } from "./terrain-build-panel";
 import { useDemTile } from "./use-dem-tile";
-import { useLocalSky } from "./use-sky-clock";
+import { useEphemerisWindow, useLocalSky } from "./use-sky-clock";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
-import { LessonCard, lessonActionClass, lessonCheckClass } from "@/app/mission/lesson-card";
+import { LessonCard, lessonActionClass, lessonCheckClass, type LessonStage } from "@/app/mission/lesson-card";
 import { SURFACE_LESSON } from "@/app/mission/tutorial-content";
 import type { TutorialData } from "@/app/mission/use-tutorial-data";
 import { lunarSiteFor, radiusFromDriveParams, siteFromDriveParams, timeFromDriveParams } from "@/lib/drive-link";
-import { loadPlacements, MAX_PLACEMENTS, placementSiteKey, savePlacements, type Placement } from "@/lib/drive-placements";
+import { loadPlacements, MAX_PLACEMENTS, OBSERVER_HEIGHT_M as OBSERVER_M, placementSiteKey, SOLAR_ARRAY_AREA_M2 as SOLAR_PANEL_M2, SOLAR_ARRAY_EFFICIENCY as SOLAR_EFFICIENCY, savePlacements, type Placement } from "@/lib/drive-placements";
 import { currentTimeMs, useFreeplay } from "@/lib/freeplay-store";
 import { SOLAR_CONSTANT_W_M2 } from "@/lib/illumination";
+import { azElFromCartesian, siteFrame } from "@/lib/ephemeris";
+import { AU_KM } from "@/lib/science/sky";
 import { MAIN_SERIES_END } from "@/lib/lunar-data";
-import { discVisibleFraction, heightAtLocal, horizonElevationDeg, horizonProfile, skyAtLocal, slopeAtLocal } from "@/lib/terrain/dem";
+import { discVisibleFraction, EARTH_RADIUS_DEG, heightAtLocal, horizonElevationDeg, horizonProfile, skyAtLocal, slopeAtLocal } from "@/lib/terrain/dem";
 
 const LunarScene = dynamic(() => import("@/scenes/lunar/lunar-scene"), { ssr: false });
 const DemScene = dynamic(() => import("@/scenes/lunar/dem-scene"), { ssr: false });
 const initialTime = new Date("2026-11-14T12:00:00.000Z");
 const SERIES_END_MS = Date.parse(MAIN_SERIES_END);
 const DEFAULT_RADIUS_KM = 5;
+/** The in-drive location map ("Map & samples") is hidden for now; flip to bring it back. */
+const SHOW_LOCATION_MAP = false;
 /** Simulated hours per real second. 72 h/s plays a full lunar day (~29.5 days) in about ten seconds. */
 const SPEEDS = [{ hps: 1, label: "1 h/s" }, { hps: 6, label: "6 h/s" }, { hps: 24, label: "1 day/s" }, { hps: 72, label: "3 days/s" }] as const;
-const EARTH_RADIUS_DEG = 0.95;
-const SOLAR_PANEL_M2 = 18;
-const SOLAR_EFFICIENCY = 0.3;
 const angle = (n: number) => `${n >= 0 ? "+" : "−"}${Math.abs(n).toFixed(1)}°`;
 const localTime = (date: Date) => `${date.toISOString().slice(0, 10)} · ${date.toISOString().slice(11, 16)} UTC`;
 const distanceLabel = (m: number) => m >= 1000 ? `${(m / 1000).toFixed(2)} km` : `${Math.round(m)} m`;
 
 function Readout({ label, value, tone = "neutral" }: { label: string; value: string; tone?: "neutral" | "red" | "blue" }) {
   const color = tone === "red" ? "text-retro-red" : tone === "blue" ? "text-retro-blue" : "text-bone";
-  return <div className="hud-readout"><div className="hud-label">{label}</div><div className={`type-data mt-1 text-sm ${color}`}>{value}</div></div>;
+  return <div className="hud-readout"><div className="text-xs leading-snug text-muted-foreground">{label}</div><div className={`type-data mt-1 text-base ${color}`}>{value}</div></div>;
 }
 
 /** `guided` runs the Guided Mission's closing activity at the site and mission time chosen in Freeplay. */
-export function SurfaceDrive({ guided = false, tutorial, startSite = MOON_REGIONS[0].site, startUtc, onBack }: { guided?: boolean; tutorial?: TutorialData; startSite?: LunarSite; startUtc?: string; onBack?: () => void }) {
+export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, onBack }: { guided?: boolean; tutorial?: TutorialData; startSite?: LunarSite; startUtc?: string; onBack?: () => void }) {
   // Start at the site, radius and time chosen in Freeplay (URL first, so reloads and shared links work).
   const params = useSearchParams();
   const [start] = useState(() => {
     const fp = useFreeplay.getState();
     return {
-      site: siteFromDriveParams(params) ?? (fp.site ? lunarSiteFor(fp.site) : null),
-      time: timeFromDriveParams(params) ?? (fp.site ? new Date(currentTimeMs(fp)) : initialTime),
+      site: startSite ?? siteFromDriveParams(params) ?? (fp.site ? lunarSiteFor(fp.site) : null),
+      time: (startUtc && !Number.isNaN(Date.parse(startUtc)) ? new Date(startUtc) : null)
+        ?? timeFromDriveParams(params) ?? (fp.site ? new Date(currentTimeMs(fp)) : initialTime),
       radiusKm: radiusFromDriveParams(params) ?? fp.site?.radiusKm ?? DEFAULT_RADIUS_KM,
     };
   });
@@ -67,7 +73,6 @@ export function SurfaceDrive({ guided = false, tutorial, startSite = MOON_REGION
   const [timestamp, setTimestamp] = useState(start.time);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState<number>(24);
-  const [cameraMode, setCameraMode] = useState<CameraMode>(start.site ? "orbit" : "first-person");
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => new Date(Date.UTC(start.time.getUTCFullYear(), start.time.getUTCMonth(), 1)));
   const [zoom, setZoom] = useState(1);
@@ -80,17 +85,23 @@ export function SurfaceDrive({ guided = false, tutorial, startSite = MOON_REGION
   const [tutorialActions, setTutorialActions] = useState<Set<string>>(new Set());
   const [horizon, setHorizon] = useState<{ siteId: string; peak: { elevationDeg: number; azimuthDeg: number } | null } | null>(null);
   const [guidedComplete, setGuidedComplete] = useState(false);
+  const [guidedStage, setGuidedStage] = useState<LessonStage>("story");
   const [lookSensitivity, setLookSensitivity] = useState(1);
   // Measured terrain and the surface planner.
   const [radiusKm, setRadiusKm] = useState(start.radiusKm);
   const [exaggeration, setExaggeration] = useState(1);
   const [colorMode, setColorMode] = useState<TerrainColorMode>("regolith");
   const [plannerOpen, setPlannerOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("first-person");
+  const [viewTarget, setViewTarget] = useState<ViewTarget | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const freeplaySite = useFreeplay((s) => s.site);
   const [buildType, setBuildType] = useState<SurfaceObjectType | null>(null);
   const [buildHeading, setBuildHeading] = useState(0);
+  const [habitatLoadKw, setHabitatLoadKw] = useState(5);
   const [hoverCheck, setHoverCheck] = useState<PlacementCheck | null>(null);
   const [placementState, setPlacementState] = useState<{ key: string; list: Placement[] } | null>(null);
-  const [player, setPlayer] = useState<PlayerState>({ eastM: 0, northM: 0, headingDeg: 0 });
+  const [focus, setFocus] = useState<FocusState>({ eastM: 0, northM: 0 });
   const [recenterKey, setRecenterKey] = useState(0);
   const reducedMotion = useReducedMotion();
   const celestialRequest = useRef(0);
@@ -110,7 +121,8 @@ export function SurfaceDrive({ guided = false, tutorial, startSite = MOON_REGION
   const tile = dem.tile;
 
   // Sun and Earth: the stored Horizons series decoded in the browser, else the science API.
-  const localSky = useLocalSky(environmentSite.latitudeDeg, environmentSite.longitudeDeg, tile?.centerM ?? 0, timestamp.getTime());
+  const series = useEphemerisWindow(timestamp.getTime());
+  const localSky = useLocalSky(series, environmentSite.latitudeDeg, environmentSite.longitudeDeg, tile?.centerM ?? 0, timestamp.getTime());
   const sky = useMemo(() => localSky ? { sun: localSky.sun, earth: localSky.earth } : celestial ? { sun: celestial.sun, earth: celestial.earth } : null, [localSky, celestial]);
   const hasLocalSky = localSky !== null;
 
@@ -119,10 +131,10 @@ export function SurfaceDrive({ guided = false, tutorial, startSite = MOON_REGION
   const scaffoldSlope = environmentSite.provenance === "scientific" && environmentSite.slopeDeg != null ? environmentSite.slopeDeg : activeTerrain.slopeDeg;
   const scaffoldLabel = environmentSite.provenance === "scientific" ? "LOLA DEM" : "Scaffold";
 
-  // Buggy position on the measured grid: elevation, slope and its own view of the sky.
-  const buggy = useMemo(() => {
+  // The ground point the camera orbits: elevation, slope and its own view of the sky.
+  const probe = useMemo(() => {
     if (!tile) return null;
-    const { eastM, northM } = player;
+    const { eastM, northM } = focus;
     const toLocal = (b: { azimuthDeg: number; elevationDeg: number }) => skyAtLocal(tile.center.latDeg, eastM, northM, b.azimuthDeg, b.elevationDeg);
     const sun = sky ? toLocal(sky.sun) : null, earth = sky ? toLocal(sky.earth) : null;
     return {
@@ -133,9 +145,9 @@ export function SurfaceDrive({ guided = false, tutorial, startSite = MOON_REGION
       sunVisible: sun ? discVisibleFraction(sun.elevationDeg, Math.max(0, horizonElevationDeg(tile, eastM, northM, sun.azimuthDeg))) : null,
       earthVisible: earth ? discVisibleFraction(earth.elevationDeg, Math.max(0, horizonElevationDeg(tile, eastM, northM, earth.azimuthDeg)), EARTH_RADIUS_DEG) : null,
     };
-  }, [tile, player, sky]);
-  // The terrain horizon around the buggy changes only when it moves a meaningful distance.
-  const profileEast = tile ? Math.round(player.eastM / (tile.spacingM / 2)) : 0, profileNorth = tile ? Math.round(player.northM / (tile.spacingM / 2)) : 0;
+  }, [tile, focus, sky]);
+  // The terrain horizon around the view centre changes only when it moves a meaningful distance.
+  const profileEast = tile ? Math.round(focus.eastM / (tile.spacingM / 2)) : 0, profileNorth = tile ? Math.round(focus.northM / (tile.spacingM / 2)) : 0;
   const skyProfile = useMemo(() => tile ? horizonProfile(tile, profileEast * tile.spacingM / 2, profileNorth * tile.spacingM / 2, 4) : null, [tile, profileEast, profileNorth]);
 
   // Placements are stored per site centre, independent of the radius.
@@ -153,16 +165,86 @@ export function SurfaceDrive({ guided = false, tutorial, startSite = MOON_REGION
     if (!buildType) return;
     updatePlacements((list) => list.length >= MAX_PLACEMENTS ? list : [...list, { id: `${buildType}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`, type: buildType, eastM: Math.round(eastM * 10) / 10, northM: Math.round(northM * 10) / 10, headingDeg: buildHeading }]);
   }, [buildType, buildHeading, updatePlacements]);
+  const dayStartMs = Date.parse(`${timestamp.toISOString().slice(0, 10)}T00:00:00.000Z`);
+  const setupAnalysis = useMemo(() => {
+    if (!tile || !series || !placements.length) return null;
+    const times = Array.from({ length: 97 }, (_, i) => dayStartMs + i * 900_000);
+    if (!times.every((time) => series.covers(time))) return null;
+    const frame = siteFrame(tile.center.latDeg, tile.center.lonDeg, tile.centerM / 1000);
+    const samples = times.map((t) => {
+      const bodies = series.at(t), sun = azElFromCartesian(frame, bodies.sun), earth = azElFromCartesian(frame, bodies.earth);
+      return { t, sunAz: sun.azimuthDeg, sunEl: sun.elevationDeg, earthAz: earth.azimuthDeg, earthEl: earth.elevationDeg,
+        sunHorizon: 0, earthHorizon: 0, sunRangeAu: Math.hypot(...bodies.sun) / AU_KM };
+    });
+    return analyseHardware(tile, tile.center.latDeg, samples, placements, dayStartMs + 86_400_000);
+  }, [tile, series, placements, dayStartMs]);
+  const dailyById = useMemo(() => {
+    const out = new globalThis.Map<string, { sunHours: number | null; earthHours: number; kwh: number }>();
+    for (const array of setupAnalysis?.solar ?? []) out.set(array.id, { sunHours: array.sunHours, earthHours: 0, kwh: array.energyKWh });
+    for (const mast of setupAnalysis?.comms ?? []) out.set(mast.id, { sunHours: null, earthHours: mast.visibleHours, kwh: 0 });
+    return out;
+  }, [setupAnalysis]);
   const statusFor = useCallback((p: Placement): PlacementStatus | null => {
     if (!tile) return null;
     const toLocal = (b: { azimuthDeg: number; elevationDeg: number }) => skyAtLocal(tile.center.latDeg, p.eastM, p.northM, b.azimuthDeg, b.elevationDeg);
     const sun = sky ? toLocal(sky.sun) : null, earth = sky ? toLocal(sky.earth) : null;
-    const observer = p.type === "solar" ? 6 : p.type === "comms" ? 8 : 3;
+    const observer = OBSERVER_M[p.type];
     const sunVisible = sun ? discVisibleFraction(sun.elevationDeg, Math.max(0, horizonElevationDeg(tile, p.eastM, p.northM, sun.azimuthDeg, observer))) : 0;
     const earthVisible = earth ? discVisibleFraction(earth.elevationDeg, Math.max(0, horizonElevationDeg(tile, p.eastM, p.northM, earth.azimuthDeg, observer)), EARTH_RADIUS_DEG) : 0;
     const flux = localSky ? SOLAR_CONSTANT_W_M2 / localSky.sunRangeAu ** 2 : SOLAR_CONSTANT_W_M2;
-    return { sunVisible, earthVisible, slopeDeg: slopeAtLocal(tile, p.eastM, p.northM), powerKw: sun ? (flux * SOLAR_PANEL_M2 * SOLAR_EFFICIENCY * sunVisible) / 1000 : null };
-  }, [tile, sky, localSky]);
+    return { sunVisible, earthVisible, slopeDeg: slopeAtLocal(tile, p.eastM, p.northM), powerKw: sun ? (flux * SOLAR_PANEL_M2 * SOLAR_EFFICIENCY * sunVisible) / 1000 : null, daily: dailyById.get(p.id) ?? null };
+  }, [tile, sky, localSky, dailyById]);
+  const powerNowKw = !tile || !sky ? null : placements.filter((p) => p.type === "solar").reduce((sum, p) => sum + (statusFor(p)?.powerKw ?? 0), 0);
+  const habitatCount = placements.filter((p) => ["dome", "modules", "inflatable"].includes(p.type)).length;
+  const selected = selectedId ? placements.find((p) => p.id === selectedId) ?? null : null;
+  const selectedStatus = selected ? statusFor(selected) : null;
+  /** Teleports the camera to a placed object (first person stands in front of it; bird's eye centres on it). */
+  const goToObject = (id: string) => {
+    const p = placements.find((q) => q.id === id);
+    if (!p) return;
+    setSelectedId(id);
+    setViewTarget({ eastM: p.eastM, northM: p.northM, footprintM: SURFACE_OBJECTS[p.type].footprintM, key: Date.now() });
+  };
+  const deleteObject = useCallback((id: string) => {
+    updatePlacements((list) => list.filter((p) => p.id !== id));
+    setSelectedId((current) => (current === id ? null : current));
+  }, [updatePlacements]);
+  // Delete / Backspace removes the selected object; Escape deselects it.
+  useEffect(() => {
+    if (!selectedId) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (keyBelongsToControl(event.target, event.key)) return;
+      if (event.key === "Delete" || event.key === "Backspace") { event.preventDefault(); deleteObject(selectedId); }
+      else if (event.key === "Escape") setSelectedId(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selectedId, deleteObject]);
+  // The Mission Control assistant answers about the setup as it is when the question is sent.
+  const assistantContext = useCallback(() => buildSetupContext({
+    siteName: activeSite.name, latDeg: activeSite.latitudeDeg, lonDeg: activeSite.longitudeDeg, radiusKm: tile?.radiusKm ?? radiusKm,
+    utcDay: timestamp.toISOString().slice(0, 10), viewMode: viewMode === "first-person" ? "first person" : "bird's eye", solarAreaM2: SOLAR_PANEL_M2, solarEfficiency: SOLAR_EFFICIENCY,
+    objects: placements.map((p) => {
+      const status = statusFor(p);
+      const sameType = placements.filter((q) => q.type === p.type);
+      return {
+        label: `${SURFACE_OBJECTS[p.type].label} ${sameType.indexOf(p) + 1}`, eastM: p.eastM, northM: p.northM,
+        slopeDeg: status?.slopeDeg ?? null, sunVisibleNow: sky ? status?.sunVisible ?? null : null, earthVisibleNow: sky ? status?.earthVisible ?? null : null,
+        sunHoursToday: status?.daily?.sunHours ?? null, kwhToday: status?.daily?.kwh ?? null, earthHoursToday: status?.daily?.earthHours ?? null,
+        isSolar: p.type === "solar", isComms: p.type === "comms",
+      };
+    }),
+  }) + `\nHabitat power budget: ${habitatCount} habitats; editable assumed continuous demand ${habitatLoadKw} kW per habitat; solar generation now ${powerNowKw === null ? "unavailable" : `${powerNowKw.toFixed(2)} kW`}. Shared power bus assumed; batteries, radio link budgets and equipment reliability are not modeled.`, [activeSite, tile, radiusKm, timestamp, viewMode, placements, statusFor, sky, habitatCount, habitatLoadKw, powerNowKw]);
+  const assistantSnapshot = useCallback(() => surfaceAssistantSnapshot(useFreeplay.getState(), {
+    site: activeSite, timeMs: timestamp.getTime(), radiusKm, playing,
+    solarAreaM2: SOLAR_PANEL_M2, solarEfficiency: SOLAR_EFFICIENCY,
+  }), [activeSite, timestamp, radiusKm, playing]);
+  // "This site" for the assistant is the Freeplay site; when the drive was opened directly by link, adopt the drive's site.
+  useEffect(() => {
+    if (phase === "choose" || useFreeplay.getState().site) return;
+    const catalog = activeSite.provenance === "scientific";
+    useFreeplay.getState().selectSite({ ...activeSite, radiusKm, kind: catalog ? "catalog" : "custom", ...(catalog ? { catalogId: activeSite.id, catalogPointVerified: true } : {}) }, false);
+  }, [phase, activeSite, radiusKm]);
 
   const utcDay = timestamp.toISOString().slice(0, 10);
   const updateCelestial = useCallback(async (selectedSite: LunarSite, date: Date) => {
@@ -238,14 +320,15 @@ export function SurfaceDrive({ guided = false, tutorial, startSite = MOON_REGION
     return () => window.cancelAnimationFrame(frame);
   }, [playing, speed, reducedMotion]);
   const stepTime = (hours: number) => setTimestamp((t) => new Date(t.getTime() + hours * 3_600_000));
+  const advanceDay = () => { setPlaying(false); stepTime(24); };
 
   useEffect(() => {
     if (phase === "transfer") {
-      const timer = window.setTimeout(() => { setCameraMode("first-person"); setPhase("descent"); }, 1450);
+      const timer = window.setTimeout(() => setPhase("descent"), 1450);
       return () => window.clearTimeout(timer);
     }
     if (phase === "descent") {
-      const timer = window.setTimeout(() => { setCameraMode("first-person"); setPhase("explore"); }, 1150);
+      const timer = window.setTimeout(() => setPhase("explore"), 1150);
       return () => window.clearTimeout(timer);
     }
   }, [phase]);
@@ -268,9 +351,6 @@ export function SurfaceDrive({ guided = false, tutorial, startSite = MOON_REGION
     setSite(target);
     setActiveSite(target);
     setBuildType(null);
-    // Changing the active site rebuilds the scene's first-person spawn at
-    // the selected coordinates, so map and world nodes navigate identically.
-    setCameraMode("first-person");
     setPhase("explore");
     setMapOpen(false);
   }, []);
@@ -288,7 +368,6 @@ export function SurfaceDrive({ guided = false, tutorial, startSite = MOON_REGION
   const beginDescent = () => {
     setPlaying(false);
     setActiveSite(site);
-    setCameraMode(reducedMotion ? "first-person" : "orbit");
     setPhase(reducedMotion ? "explore" : "transfer");
   };
   const dayMinute = timestamp.getUTCHours() * 60 + timestamp.getUTCMinutes();
@@ -315,9 +394,9 @@ export function SurfaceDrive({ guided = false, tutorial, startSite = MOON_REGION
   }, [datePickerOpen]);
 
   const measured = phase !== "choose" && tile !== null;
-  const elevationReadout = measured && buggy ? { label: "Elevation · GLD100", value: `${Math.round(buggy.elevationM).toLocaleString()} m` } : { label: `Elevation · ${scaffoldLabel}`, value: `${Math.round(scaffoldElevation).toLocaleString()} m` };
-  const slopeReadout = measured && buggy ? { label: `Slope · ~${Math.round(tile.spacingM)} m baseline`, value: `${buggy.slopeDeg.toFixed(1)}°` } : { label: `Slope · ${scaffoldLabel}`, value: `${scaffoldSlope.toFixed(1)}°` };
-  const sunStatus = buggy?.sunVisible == null ? null : buggy.sunVisible > 0.99 ? "In view" : buggy.sunVisible > 0 ? "Partly hidden" : buggy.sun && buggy.sun.elevationDeg < 0 ? "Below horizon" : "Behind terrain";
+  const elevationReadout = measured && probe ? { label: "Elevation · GLD100", value: `${Math.round(probe.elevationM).toLocaleString()} m` } : { label: `Elevation · ${scaffoldLabel}`, value: `${Math.round(scaffoldElevation).toLocaleString()} m` };
+  const slopeReadout = measured && probe ? { label: `Slope · ~${Math.round(tile.spacingM)} m baseline`, value: `${probe.slopeDeg.toFixed(1)}°` } : { label: `Slope · ${scaffoldLabel}`, value: `${scaffoldSlope.toFixed(1)}°` };
+  const sunStatus = probe?.sunVisible == null ? null : probe.sunVisible > 0.99 ? "In view" : probe.sunVisible > 0 ? "Partly hidden" : probe.sun && probe.sun.elevationDeg < 0 ? "Below horizon" : "Behind terrain";
   const terrainSourceText = measured ? `Terrain: LROC GLD100 heights (Lunaserv) · ${tile.radiusKm} km radius` : dem.loading ? "Loading measured terrain…" : "Procedural terrain (illustrative)";
   const skySourceText = hasLocalSky ? "Sky: JPL Horizons (stored)" : "Sky: JPL Horizons via API";
   const togglePlanner = () => setPlannerOpen((open) => { if (open) setBuildType(null); else { setMapOpen(false); setMobileTelemetryOpen(false); setDatePickerOpen(false); } return !open; });
@@ -326,11 +405,11 @@ export function SurfaceDrive({ guided = false, tutorial, startSite = MOON_REGION
     <div className="absolute inset-0 z-0">
       {measured
         ? <DemScene grid={tile} radiusM={tile.radiusKm * 1000} exaggeration={exaggeration} colorMode={colorMode} detail={deviceTier} still={reducedMotion}
-            cameraMode={cameraMode} zoom={zoom} lookSensitivity={lookSensitivity}
+            viewMode={viewMode} viewTarget={viewTarget} selectedId={selectedId} onSelectObject={setSelectedId} onViewObject={(id) => goToObject(id)} zoom={zoom} lookSensitivity={lookSensitivity} autoLight={!playing}
             sunAzimuthDeg={sky?.sun.azimuthDeg ?? 120} sunElevationDeg={sky?.sun.elevationDeg ?? 8} earthAzimuthDeg={sky?.earth.azimuthDeg ?? 200} earthElevationDeg={sky?.earth.elevationDeg ?? 20}
             placements={placements} buildType={buildType} buildHeadingDeg={buildHeading} onPlace={placeObject} onHoverCheck={setHoverCheck}
-            onPlayer={setPlayer} onTutorialAction={guided ? recordTutorialAction : undefined} recenterKey={recenterKey} />
-        : <LunarScene variant="preview" active detail={deviceTier} still={reducedMotion} freeplay={phase !== "choose"} cameraMode={cameraMode} lookSensitivity={lookSensitivity} landingActive={phase === "descent"} zoom={zoom} onTutorialAction={guided ? recordTutorialAction : undefined}
+            onFocus={setFocus} onTutorialAction={guided ? recordTutorialAction : undefined} recenterKey={recenterKey} />
+        : <LunarScene variant="preview" active detail={deviceTier} still={reducedMotion} freeplay={phase !== "choose"} cameraMode={viewMode === "first-person" ? "first-person" : "orbit"} hideRover lookSensitivity={lookSensitivity} landingActive={phase === "descent"} zoom={zoom} onTutorialAction={guided ? recordTutorialAction : undefined}
             selectedSite={activeSite} dataPoints={activeTerrain.corners} onSelectDataPoint={selectDataPoint}
             sunAzimuthDeg={sky?.sun.azimuthDeg} sunElevationDeg={sky?.sun.elevationDeg}
             earthAzimuthDeg={sky?.earth.azimuthDeg} earthElevationDeg={sky?.earth.elevationDeg} />}
@@ -340,10 +419,10 @@ export function SurfaceDrive({ guided = false, tutorial, startSite = MOON_REGION
 
     <header className="absolute inset-x-3 top-3 z-20 flex items-center justify-between gap-2 sm:inset-x-5 sm:top-4">
       <div className="flex min-w-0 items-center gap-2 rounded-lg border border-line/80 bg-void/75 p-1.5 shadow-xl backdrop-blur-xl sm:gap-3 sm:p-2">
-        <Link href={guided ? "/" : "/freeplay"} aria-label={guided ? "Exit Guided Mission to Lunaris360 home" : "Exit surface drive back to Freeplay"} className="grid size-9 shrink-0 place-items-center rounded-md bg-retro-purple/15 text-retro-purple transition hover:bg-retro-purple/25"><ArrowLeft size={17} /></Link>
-        <div className="min-w-0 pr-2"><div className="type-data text-[0.6rem] uppercase tracking-[0.16em] text-retro-purple">Lunaris360 / {guided ? "Guided Mission" : "Freeplay"}</div><div className="truncate text-xs font-medium text-bone">{phase === "explore" ? activeSite.name : "Lunar surface simulation"}</div></div>
+        <Link href={guided ? "/" : "/freeplay"} aria-label={guided ? "Exit Guided Mission to Lunaris360 home" : "Exit surface drive back to Open Exploration"} className="grid size-9 shrink-0 place-items-center rounded-md bg-retro-purple/15 text-retro-purple transition hover:bg-retro-purple/25"><ArrowLeft size={17} /></Link>
+        <div className="min-w-0 pr-2"><div className="type-data text-[0.6rem] uppercase tracking-[0.16em] text-retro-purple">Lunaris360 / {guided ? "Guided Mission" : "Open Exploration"}</div><div className="truncate text-xs font-medium text-bone">{phase === "explore" ? activeSite.name : "Lunar surface simulation"}</div></div>
         <span className="hidden h-8 w-px bg-line sm:block" />
-        {phase === "explore" && <button type="button" onClick={() => setMapOpen((open) => { if (!open) { setMobileTelemetryOpen(false); setDatePickerOpen(false); setPlannerOpen(false); setBuildType(null); } return !open; })} aria-expanded={mapOpen} className="inline-flex items-center gap-2 rounded-md border border-line px-2.5 py-2 text-[0.65rem] uppercase tracking-[0.1em] text-muted-foreground hover:border-retro-purple/60 hover:text-bone sm:px-3"><Map size={14} className="text-retro-purple" /><span className="hidden sm:inline">{mapOpen ? "Hide map" : "Map & samples"}</span></button>}
+        {SHOW_LOCATION_MAP && phase === "explore" && <button type="button" onClick={() => setMapOpen((open) => { if (!open) { setMobileTelemetryOpen(false); setDatePickerOpen(false); setPlannerOpen(false); setBuildType(null); } return !open; })} aria-expanded={mapOpen} className="inline-flex items-center gap-2 rounded-md border border-line px-2.5 py-2 text-[0.65rem] uppercase tracking-[0.1em] text-muted-foreground hover:border-retro-purple/60 hover:text-bone sm:px-3"><Map size={14} className="text-retro-purple" /><span className="hidden sm:inline">{mapOpen ? "Hide map" : "Map & samples"}</span></button>}
         {phase === "explore" && <button type="button" onClick={togglePlanner} aria-expanded={plannerOpen} className={`inline-flex items-center gap-2 rounded-md border px-2.5 py-2 text-[0.65rem] uppercase tracking-[0.1em] sm:px-3 ${plannerOpen ? "border-retro-red/60 text-bone" : "border-line text-muted-foreground hover:border-retro-purple/60 hover:text-bone"}`}><Hammer size={14} className="text-retro-red" /><span className="hidden sm:inline">Terrain &amp; build</span></button>}
       </div>
       <div className="flex min-w-0 items-center gap-2 rounded-lg border border-line/80 bg-void/75 px-3 py-2 shadow-xl backdrop-blur-xl sm:px-4">
@@ -366,24 +445,26 @@ export function SurfaceDrive({ guided = false, tutorial, startSite = MOON_REGION
         </div>
       </div>)}
 
-    {guided && phase === "explore" && !plannerOpen && <section aria-live="polite" aria-label="Guided mission lesson" className="absolute left-3 top-[5rem] z-30 max-h-[calc(100dvh-16rem)] w-[min(390px,calc(100vw-1.5rem))] overflow-y-auto rounded-xl border border-retro-purple/40 bg-[#100e20]/95 p-4 shadow-[0_18px_70px_rgba(4,2,18,.78)] backdrop-blur-xl sm:left-5 sm:top-[5.5rem] sm:p-5">
+    {guided && phase === "explore" && !plannerOpen && <section aria-live="polite" aria-label="Guided Mission lesson" className="absolute left-3 top-[5rem] z-30 max-h-[calc(100dvh-16rem)] w-[min(390px,calc(100vw-1.5rem))] overflow-y-auto rounded-xl border border-retro-purple/40 bg-[#100e20]/95 p-4 shadow-[0_18px_70px_rgba(4,2,18,.78)] backdrop-blur-xl sm:left-5 sm:top-[5.5rem] sm:p-5">
       {guidedComplete ? <>
         <div className="type-data text-[.58rem] uppercase tracking-[.17em] text-retro-red">Mission debrief · complete</div>
         <h2 className="type-heading mt-2 text-xl text-bone">You have the flight controls.</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">You picked a site on the globe, followed the Sun and Earth through a mission, compared candidates and stood on the surface. Your selected site is {activeSite.name}. Positions came from stored JPL Horizons ephemerides; check each site&apos;s horizon source before comparing its numbers.</p>
-        <Link href="/freeplay" className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg bg-retro-purple px-4 type-data text-[.62rem] font-semibold uppercase tracking-[.12em] text-void hover:bg-[#c2abff]">Enter Freeplay <ArrowLeft className="rotate-180" size={14} /></Link>
+        <Link href="/freeplay" className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg bg-retro-purple px-4 type-data text-[.62rem] font-semibold uppercase tracking-[.12em] text-void hover:bg-[#c2abff]">Explore the Moon <ArrowLeft className="rotate-180" size={14} /></Link>
       </> : <>
-        <LessonCard lesson={SURFACE_LESSON} chapter={chapter} complete={lessonComplete} onPrevious={onBack} onNext={() => setGuidedComplete(true)} nextLabel="Complete mission">
-          <p className={lessonCheckClass}>LOOK {tutorialActions.has("look") ? "✓" : "○"} · MOVE {tutorialActions.has("move") ? "✓" : "○"} · CAMERA {tutorialActions.has("camera") ? "✓" : "○"}{sky ? ` · SUN EL ${angle(sky.sun.elevationDeg)}` : ""}</p>
-          <p className="mt-2 type-data text-[.54rem] leading-relaxed text-retro-blue">HORIZON · {dataError ? "DATA UNAVAILABLE" : metrics?.horizonSource ?? "LOADING"}{horizonPeak ? ` · HIGHEST OBSTRUCTION ${angle(horizonPeak.elevationDeg)} TOWARD AZ ${horizonPeak.azimuthDeg.toFixed(0)}°` : horizonPeak === null ? " · NO TERRAIN MASK, VISIBILITY SHARES ARE UPPER BOUNDS" : ""}</p>
-          <button type="button" onClick={() => recordTutorialAction("horizon")} className={lessonActionClass}>{tutorialActions.has("horizon") ? "Horizon inspected ✓" : "I inspected the terrain horizon"}</button>
+        <LessonCard lesson={SURFACE_LESSON} chapter={chapter} stage={guidedStage} complete={lessonComplete} onPrevious={guidedStage === "story" ? onBack : () => setGuidedStage(guidedStage === "try" ? "example" : "story")} onStageChange={setGuidedStage} onNext={() => setGuidedComplete(true)} nextLabel="Finish Guided Mission">
+          {guidedStage === "try" && <>
+            <p className={lessonCheckClass}>Looked {tutorialActions.has("look") ? "✓" : "○"} · Moved {tutorialActions.has("move") ? "✓" : "○"} · Changed camera {tutorialActions.has("camera") ? "✓" : "○"}</p>
+            <p className="mt-2 text-xs leading-relaxed text-retro-blue">Terrain source: {dataError ? "unavailable" : metrics?.horizonSource ?? "loading"}{horizonPeak ? ` · Highest ridge ${angle(horizonPeak.elevationDeg)} above the horizon` : horizonPeak === null ? " · No terrain mask; visibility is an upper-bound estimate" : ""}</p>
+            <button type="button" onClick={() => recordTutorialAction("horizon")} className={lessonActionClass}>{tutorialActions.has("horizon") ? "Horizon checked ✓" : "I checked the horizon"}</button>
+          </>}
         </LessonCard>
       </>}
     </section>}
 
     {(phase === "transfer" || phase === "descent") && <div className="pointer-events-none absolute inset-0 z-30 grid place-items-center bg-void/15 px-5 backdrop-blur-[1px]">
       <div className="w-full max-w-sm rounded-xl border border-retro-purple/40 bg-void/85 p-5 text-center shadow-[0_0_80px_rgba(169,134,255,0.16)] backdrop-blur-xl sm:p-7">
-        <div className="type-data text-[0.62rem] uppercase tracking-[0.18em] text-retro-purple">{guided ? "Guided mission · arrival" : "Freeplay setup · step 2 of 2"}</div>
+        <div className="type-data text-[0.62rem] uppercase tracking-[0.18em] text-retro-purple">{guided ? "Guided Mission · arrival" : "Open Exploration · step 2 of 2"}</div>
         <h2 className="type-heading mt-3 text-xl text-bone">{phase === "transfer" ? "Transferring to lunar orbit" : "Descending to surface"}</h2>
         <p className="mt-2 text-sm text-muted-foreground">{activeSite.name} · {activeSite.latitudeDeg.toFixed(2)}° / {activeSite.longitudeDeg.toFixed(2)}° E</p>
         <p className="mt-1 type-data text-[0.58rem] uppercase tracking-[0.12em] text-retro-blue">{dem.loading ? `Loading ${radiusKm} km of measured terrain…` : tile ? "Measured terrain ready" : dem.error ? "Elevation unavailable · procedural terrain" : ""}</p>
@@ -391,6 +472,7 @@ export function SurfaceDrive({ guided = false, tutorial, startSite = MOON_REGION
       </div>
     </div>}
 
+    {phase === "explore" && measured && viewMode === "birds-eye" && !buildType && <p className="pointer-events-none absolute left-1/2 top-[5.25rem] z-20 -translate-x-1/2 rounded-full border border-retro-purple/40 bg-void/85 px-3 py-1.5 text-center text-[.6rem] text-bone">Your location · drag the center marker to move</p>}
     {phase === "explore" && dem.loading && <div role="status" className="pointer-events-none absolute left-1/2 top-[5.4rem] z-20 -translate-x-1/2 rounded-full border border-retro-blue/40 bg-void/85 px-3 py-1.5 type-data text-[0.58rem] uppercase tracking-[0.12em] text-retro-blue backdrop-blur">Loading {radiusKm} km of measured terrain…</div>}
     {phase === "explore" && dem.error && !plannerOpen && <div role="status" className="absolute left-1/2 top-[5.4rem] z-20 max-w-[min(520px,calc(100vw-2rem))] -translate-x-1/2 rounded-lg border border-retro-red/40 bg-void/90 px-3 py-2 text-center text-[0.62rem] text-muted-foreground backdrop-blur">
       <span className="text-retro-red">Measured elevation unavailable</span> ({dem.error}). This view is procedural, illustrative terrain. Try a smaller radius or reload later.
@@ -399,37 +481,41 @@ export function SurfaceDrive({ guided = false, tutorial, startSite = MOON_REGION
     {phase === "explore" && plannerOpen && <div className="absolute bottom-[12.5rem] left-3 top-[5rem] z-30 w-[min(340px,calc(100vw-1.5rem))] sm:left-5 sm:top-[5.5rem]">
       <TerrainBuildPanel radiusKm={radiusKm} onRadius={(km) => { setRadiusKm(km); setBuildType(null); }} exaggeration={exaggeration} onExaggeration={setExaggeration} colorMode={colorMode} onColorMode={setColorMode}
         tile={tile} demLoading={dem.loading} demError={dem.error}
-        buildType={buildType} onBuildType={(type) => { setBuildType(type); setHoverCheck(null); if (type && cameraMode === "first-person") setCameraMode("overhead"); }}
+        buildType={buildType} onBuildType={(type) => { setBuildType(type); setHoverCheck(null); }}
         heading={buildHeading} onHeading={(deg) => setBuildHeading(((deg % 360) + 360) % 360)} hoverCheck={hoverCheck}
         placements={placements} statusFor={statusFor}
-        onDelete={(id) => updatePlacements((list) => list.filter((p) => p.id !== id))} onClear={() => updatePlacements(() => [])}
+        onView={(p) => goToObject(p.id)} selectedId={selectedId} onSelect={setSelectedId}
+        setupDetails={<SetupPerformance analysis={setupAnalysis} powerNowKw={powerNowKw} nowMs={timestamp.getTime()} startMs={dayStartMs}
+          habitatCount={habitatCount} mastCount={placements.filter((p) => p.type === "comms").length} solarCount={placements.filter((p) => p.type === "solar").length} loadKw={habitatLoadKw} onLoad={setHabitatLoadKw} />}
+        graphsAvailable={!!freeplaySite && freeplaySite.latitudeDeg.toFixed(4) === activeSite.latitudeDeg.toFixed(4) && freeplaySite.longitudeDeg.toFixed(4) === activeSite.longitudeDeg.toFixed(4)}
+        onDelete={deleteObject} onClear={() => { updatePlacements(() => []); setSelectedId(null); }}
         onClose={() => { setPlannerOpen(false); setBuildType(null); }} />
     </div>}
 
-    {phase === "explore" && mapOpen && <div className="fixed inset-0 z-[45] grid place-items-center bg-void/65 px-3 py-8 backdrop-blur-sm" onMouseDown={(event) => { if (event.target === event.currentTarget) setMapOpen(false); }}>
+    {SHOW_LOCATION_MAP && phase === "explore" && mapOpen && <div className="fixed inset-0 z-[45] grid place-items-center bg-void/65 px-3 py-8 backdrop-blur-sm" onMouseDown={(event) => { if (event.target === event.currentTarget) setMapOpen(false); }}>
       <div className="h-[min(86dvh,760px)] w-[min(820px,calc(100vw-1.5rem))]" onMouseDown={(event) => event.stopPropagation()}>
         <MoonLocationPicker mode="hud" selectedSite={site} onSelect={setSite} onNavigate={navigateToSite} onClose={() => setMapOpen(false)} onContinue={() => { setMapOpen(false); beginDescent(); }} sunAzimuthDeg={sky?.sun.azimuthDeg} sunElevationDeg={sky?.sun.elevationDeg} />
       </div>
     </div>}
 
-    {phase === "explore" && !mapOpen && !datePickerOpen && <aside className="absolute right-4 top-[5.5rem] z-10 hidden w-[276px] space-y-2.5 xl:block">
-      <section className="hud-panel p-3.5">
-        <div className="flex items-center justify-between"><div><div className="type-data text-[0.58rem] uppercase tracking-[0.14em] text-retro-blue">Telemetry</div><h2 className="type-heading mt-1 text-sm text-bone">{measured ? "At the buggy" : "Local conditions"}</h2></div><Activity size={15} className="text-retro-blue" /></div>
+    {phase === "explore" && !mapOpen && !datePickerOpen && <aside className="absolute right-4 top-[5.5rem] z-10 hidden w-[320px] space-y-3 xl:block">
+      <section className="hud-panel p-4">
+        <div className="flex items-center justify-between"><div><div className="type-data text-[0.58rem] uppercase tracking-[0.14em] text-retro-blue">Telemetry</div><h2 className="type-heading mt-1 text-sm text-bone">{measured ? (viewMode === "first-person" ? "At your position" : "At the view centre") : "Local conditions"}</h2></div><Activity size={15} className="text-retro-blue" /></div>
         <div className="mt-3 grid grid-cols-2 gap-1.5">
-          <Readout label="Sun elevation" value={buggy?.sun ? angle(buggy.sun.elevationDeg) : sky ? angle(sky.sun.elevationDeg) : "—"} tone="red" />
-          <Readout label="Sun azimuth" value={buggy?.sun ? `${buggy.sun.azimuthDeg.toFixed(1)}°` : sky ? `${sky.sun.azimuthDeg.toFixed(1)}°` : "—"} tone="red" />
-          <Readout label="Earth elevation" value={buggy?.earth ? angle(buggy.earth.elevationDeg) : sky ? angle(sky.earth.elevationDeg) : "—"} tone="blue" />
-          <Readout label="Earth azimuth" value={buggy?.earth ? `${buggy.earth.azimuthDeg.toFixed(1)}°` : sky ? `${sky.earth.azimuthDeg.toFixed(1)}°` : "—"} tone="blue" />
+          <Readout label="Sun elevation" value={probe?.sun ? angle(probe.sun.elevationDeg) : sky ? angle(sky.sun.elevationDeg) : "—"} tone="red" />
+          <Readout label="Sun azimuth" value={probe?.sun ? `${probe.sun.azimuthDeg.toFixed(1)}°` : sky ? `${sky.sun.azimuthDeg.toFixed(1)}°` : "—"} tone="red" />
+          <Readout label="Earth elevation" value={probe?.earth ? angle(probe.earth.elevationDeg) : sky ? angle(sky.earth.elevationDeg) : "—"} tone="blue" />
+          <Readout label="Earth azimuth" value={probe?.earth ? `${probe.earth.azimuthDeg.toFixed(1)}°` : sky ? `${sky.earth.azimuthDeg.toFixed(1)}°` : "—"} tone="blue" />
           <Readout label={elevationReadout.label} value={elevationReadout.value} />
           <Readout label={slopeReadout.label} value={slopeReadout.value} />
-          {measured && buggy && <>
-            <Readout label="From site centre" value={distanceLabel(buggy.distanceM)} />
+          {measured && probe && <>
+            <Readout label="From site centre" value={distanceLabel(probe.distanceM)} />
             <Readout label="Sun · local terrain" value={sunStatus ?? "—"} tone="red" />
           </>}
         </div>
         <div className="mt-3 border-t border-line/80 pt-2 text-[0.58rem] leading-relaxed text-muted-foreground">{dataError && !hasLocalSky ? "Science provider unavailable" : `${skySourceText} · ${terrainSourceText}`}{measured ? ". Local sun status uses only terrain inside the loaded radius." : ""}</div>
       </section>
-      <section className="hud-panel p-3.5">
+      <section className="hud-panel p-4">
         <div className="flex items-center justify-between"><div className="type-data text-[0.58rem] uppercase tracking-[0.14em] text-retro-purple">Mission window · 24 h</div><span className="type-data rounded border border-retro-red/35 px-1.5 py-0.5 text-[0.5rem] uppercase text-retro-red">{playing ? "Paused while playing" : metrics?.provenance === "scientific" ? "Computed" : "Unavailable"}</span></div>
         <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2">
           <Readout label="Sunlit duration" value={metrics ? `${metrics.sunlightHours} h` : "—"} tone="red" />
@@ -444,39 +530,35 @@ export function SurfaceDrive({ guided = false, tutorial, startSite = MOON_REGION
     {phase === "explore" && <button type="button" onClick={() => setMobileTelemetryOpen((open) => { if (!open) { setMapOpen(false); setDatePickerOpen(false); } return !open; })} aria-expanded={mobileTelemetryOpen} className="absolute right-3 top-[4.9rem] z-20 grid size-10 place-items-center rounded-lg border border-line bg-void/75 text-retro-blue shadow-xl backdrop-blur-xl xl:hidden" aria-label="Toggle telemetry"><Activity size={17} /></button>}
     {phase === "explore" && mobileTelemetryOpen && <div className="fixed inset-0 z-[45] grid place-items-center bg-void/65 px-4 py-8 backdrop-blur-sm xl:hidden" onMouseDown={(event) => { if (event.target === event.currentTarget) setMobileTelemetryOpen(false); }}>
       <aside role="dialog" aria-label="Local lunar conditions" aria-modal="true" className="hud-panel w-[min(340px,calc(100vw-2rem))] space-y-3 p-4">
-        <div className="flex items-center justify-between"><div><div className="type-data text-[0.58rem] uppercase tracking-[0.14em] text-retro-blue">Telemetry</div><h2 className="type-heading mt-1 text-sm text-bone">{measured ? "At the buggy" : "Local conditions"}</h2></div><button type="button" aria-label="Close telemetry" onClick={() => setMobileTelemetryOpen(false)} className="grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><X size={15} /></button></div>
+        <div className="flex items-center justify-between"><div><div className="type-data text-[0.58rem] uppercase tracking-[0.14em] text-retro-blue">Telemetry</div><h2 className="type-heading mt-1 text-sm text-bone">{measured ? (viewMode === "first-person" ? "At your position" : "At the view centre") : "Local conditions"}</h2></div><button type="button" aria-label="Close telemetry" onClick={() => setMobileTelemetryOpen(false)} className="grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><X size={15} /></button></div>
         <div className="grid grid-cols-2 gap-1.5">
-          <Readout label="Sun elevation" value={buggy?.sun ? angle(buggy.sun.elevationDeg) : sky ? angle(sky.sun.elevationDeg) : "—"} tone="red" />
-          <Readout label="Sun azimuth" value={buggy?.sun ? `${buggy.sun.azimuthDeg.toFixed(1)}°` : sky ? `${sky.sun.azimuthDeg.toFixed(1)}°` : "—"} tone="red" />
-          <Readout label="Earth elevation" value={buggy?.earth ? angle(buggy.earth.elevationDeg) : sky ? angle(sky.earth.elevationDeg) : "—"} tone="blue" />
+          <Readout label="Sun elevation" value={probe?.sun ? angle(probe.sun.elevationDeg) : sky ? angle(sky.sun.elevationDeg) : "—"} tone="red" />
+          <Readout label="Sun azimuth" value={probe?.sun ? `${probe.sun.azimuthDeg.toFixed(1)}°` : sky ? `${sky.sun.azimuthDeg.toFixed(1)}°` : "—"} tone="red" />
+          <Readout label="Earth elevation" value={probe?.earth ? angle(probe.earth.elevationDeg) : sky ? angle(sky.earth.elevationDeg) : "—"} tone="blue" />
           <Readout label={elevationReadout.label} value={elevationReadout.value} />
-          {measured && buggy && <><Readout label={slopeReadout.label} value={slopeReadout.value} /><Readout label="Sun · local terrain" value={sunStatus ?? "—"} tone="red" /></>}
+          {measured && probe && <><Readout label={slopeReadout.label} value={slopeReadout.value} /><Readout label="Sun · local terrain" value={sunStatus ?? "—"} tone="red" /></>}
         </div>
         <p className="text-[0.56rem] leading-relaxed text-muted-foreground">{skySourceText} · {terrainSourceText}</p>
       </aside>
     </div>}
 
-    {phase === "explore" && !buildType && <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 z-[2] hidden -translate-x-1/2 -translate-y-1/2 sm:block">
-      <div className="relative size-7"><span className="absolute left-1/2 top-0 h-2 -translate-x-1/2 border-l border-retro-purple/70" /><span className="absolute bottom-0 left-1/2 h-2 -translate-x-1/2 border-l border-retro-purple/70" /><span className="absolute left-0 top-1/2 w-2 -translate-y-1/2 border-t border-retro-purple/70" /><span className="absolute right-0 top-1/2 w-2 -translate-y-1/2 border-t border-retro-purple/70" /><span className="absolute left-1/2 top-1/2 size-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-retro-red shadow-[0_0_12px_3px_rgba(255,99,125,0.5)]" /></div>
-    </div>}
-    {phase === "explore" && <div className="pointer-events-none absolute bottom-[12.6rem] right-5 z-[2] hidden items-center gap-2 rounded border border-line/70 bg-void/45 px-2.5 py-1.5 text-[0.58rem] uppercase tracking-[0.12em] text-muted-foreground backdrop-blur sm:flex"><Crosshair size={13} className="text-retro-purple" />{measured ? buildType ? `Placing ${SURFACE_OBJECTS[buildType].short} · click ground · Q / E rotate · Esc done` : "WASD to drive · Shift boosts · mouse to look · double-click the map to jump" : "WASD / arrows to move · move cursor to look · click grid nodes"}</div>}
+    {phase === "explore" && <div className="pointer-events-none absolute bottom-[12.6rem] right-5 z-[2] hidden items-center gap-2 rounded border border-line/70 bg-void/45 px-2.5 py-1.5 text-[0.58rem] uppercase tracking-[0.12em] text-muted-foreground backdrop-blur sm:flex"><Crosshair size={13} className="text-retro-purple" />{measured ? buildType ? `Placing ${SURFACE_OBJECTS[buildType].short} · click ground · Q / E rotate item · Esc done` : `${viewMode === "first-person" ? "Drag to look · WASD to walk · Shift to hurry · scroll to zoom the view" : "Drag your location marker to move · drag ground to rotate · right-drag or WASD to pan · scroll to zoom"} · ${playing ? "true Sun lighting" : "auto-lit (Play sky for true lighting)"}` : "Drag to look · click grid nodes"}</div>}
 
     {phase === "explore" && <section aria-label="Simulation controls" className="absolute inset-x-3 bottom-3 z-20 rounded-xl border border-retro-purple/25 bg-void/88 px-3 py-2.5 shadow-[0_20px_90px_rgba(4,2,18,0.65)] backdrop-blur-2xl sm:inset-x-auto sm:left-1/2 sm:w-[min(780px,calc(100vw-2.5rem))] sm:-translate-x-1/2 sm:px-4 sm:py-3">
       <div className="flex gap-3">
         <div className="hidden w-[104px] shrink-0 flex-col items-center sm:flex">
-          <div className="size-[104px]"><SkyDial horizonDeg={skyProfile} stepDeg={4} sun={buggy?.sun ?? sky?.sun ?? null} earth={buggy?.earth ?? sky?.earth ?? null} sunVisible={buggy?.sunVisible ?? null} earthVisible={buggy?.earthVisible ?? null} /></div>
-          <span className="type-data mt-0.5 text-[0.5rem] uppercase tracking-[0.1em] text-muted-foreground">Sky from buggy</span>
+          <div className="size-[104px]"><SkyDial horizonDeg={skyProfile} stepDeg={4} sun={probe?.sun ?? sky?.sun ?? null} earth={probe?.earth ?? sky?.earth ?? null} sunVisible={probe?.sunVisible ?? null} earthVisible={probe?.earthVisible ?? null} /></div>
+          <span className="type-data mt-0.5 text-[0.5rem] uppercase tracking-[0.1em] text-muted-foreground">Sky from {viewMode === "first-person" ? "your position" : "view centre"}</span>
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-            <div className="flex items-center gap-1 rounded-lg border border-line/80 bg-void/60 p-1">
-              {([["first-person", measured ? "Drive" : "First person"], ["orbit", "Orbit"], ["overhead", "Map"]] as const).map(([mode, label]) => <button key={mode} type="button" onClick={() => { setCameraMode(mode); recordTutorialAction("camera"); }} aria-pressed={cameraMode === mode} className={`rounded-md px-3 py-1.5 text-[0.62rem] uppercase tracking-[0.08em] transition ${cameraMode === mode ? "bg-retro-purple/20 text-retro-purple" : "text-muted-foreground hover:text-bone"}`}>{label}</button>)}
+            <div role="radiogroup" aria-label="View" className="flex items-center gap-1 rounded-lg border border-line/80 bg-void/60 p-1">
+              {([["first-person", "First person"], ["birds-eye", "Bird's eye"]] as const).map(([mode, label]) => <button key={mode} type="button" role="radio" aria-checked={viewMode === mode} onClick={() => { setViewMode(mode); recordTutorialAction("camera"); }} className={`rounded-md px-3 py-1.5 text-[0.62rem] uppercase tracking-[0.08em] transition ${viewMode === mode ? "bg-retro-purple/20 text-retro-purple" : "text-muted-foreground hover:text-bone"}`}>{label}</button>)}
             </div>
             <div className="flex items-center gap-1 rounded-lg border border-line/80 bg-void/60 p-1">
-              <button type="button" aria-label="Zoom out" onClick={() => setZoom((value) => Math.min(1.8, value + 0.12))} className="rounded p-1.5 text-bone hover:bg-white/10"><ZoomOut size={15} /></button>
-              <button type="button" aria-label="Reset view" onClick={() => { setZoom(1); setCameraMode("first-person"); }} className="rounded p-1.5 text-bone hover:bg-white/10"><RotateCcw size={14} /></button>
-              <button type="button" aria-label="Zoom in" onClick={() => setZoom((value) => Math.max(0.5, value - 0.12))} className="rounded p-1.5 text-bone hover:bg-white/10"><ZoomIn size={15} /></button>
-              {measured && <button type="button" aria-label="Return the buggy to the site centre" title="Return to site centre" onClick={() => setRecenterKey((k) => k + 1)} className="rounded p-1.5 text-bone hover:bg-white/10"><LocateFixed size={14} /></button>}
+              <button type="button" aria-label="Zoom out" onClick={() => { setZoom((value) => Math.min(1.8, value + 0.12)); recordTutorialAction("camera"); }} className="rounded p-1.5 text-bone hover:bg-white/10"><ZoomOut size={15} /></button>
+              <button type="button" aria-label="Reset view" title="Reset the view to the site centre" onClick={() => { setZoom(1); setRecenterKey((k) => k + 1); recordTutorialAction("camera"); }} className="rounded p-1.5 text-bone hover:bg-white/10"><RotateCcw size={14} /></button>
+              <button type="button" aria-label="Zoom in" onClick={() => { setZoom((value) => Math.max(0.5, value - 0.12)); recordTutorialAction("camera"); }} className="rounded p-1.5 text-bone hover:bg-white/10"><ZoomIn size={15} /></button>
             </div>
             <div className="type-data flex items-center gap-2 text-[0.62rem] text-muted-foreground sm:ml-auto"><Clock3 size={14} className="text-retro-red" /><span>{localTime(timestamp)}</span></div>
           </div>
@@ -488,6 +570,7 @@ export function SurfaceDrive({ guided = false, tutorial, startSite = MOON_REGION
             <button type="button" aria-label="Back 6 hours" onClick={() => stepTime(-6)} className="hidden rounded p-1.5 text-bone hover:bg-white/10 sm:block"><SkipBack size={14} /></button>
             <input aria-label="Simulation time of day in UTC" type="range" min={0} max={1439} value={dayMinute} onChange={(event) => { setTimestamp((date) => { const next = new Date(date); next.setUTCHours(0, Number(event.target.value), 0, 0); return next; }); }} className="h-1.5 min-w-0 flex-1 cursor-pointer accent-[#ff5364]" />
             <button type="button" aria-label="Forward 6 hours" onClick={() => stepTime(6)} className="hidden rounded p-1.5 text-bone hover:bg-white/10 sm:block"><SkipForward size={14} /></button>
+            <button type="button" onClick={advanceDay} aria-label="Advance one day" title="Fast-forward one day to see the sunlight change" className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-retro-red/40 px-2.5 text-[0.62rem] text-retro-red transition hover:bg-retro-red/10"><FastForward size={14} /><span className="hidden sm:inline">1 day</span></button>
             <div className="relative">
               <button type="button" id="simulation-date-trigger" aria-haspopup="dialog" aria-expanded={datePickerOpen} onClick={() => { if (!datePickerOpen) { setMapOpen(false); setMobileTelemetryOpen(false); setCalendarMonth(new Date(Date.UTC(timestamp.getUTCFullYear(), timestamp.getUTCMonth(), 1))); } setDatePickerOpen((open) => !open); }} className="inline-flex h-9 items-center gap-2 rounded-lg border border-line bg-void px-2.5 text-[0.58rem] text-bone transition hover:border-retro-purple/60 hover:bg-retro-purple/10"><CalendarDays size={14} className="text-retro-purple" /><span>{chosenDateLabel}</span></button>
               {datePickerOpen && createPortal(<div className="fixed inset-0 z-[60] grid place-items-center bg-void/70 p-4 backdrop-blur-sm" onMouseDown={(event) => { if (event.target === event.currentTarget) setDatePickerOpen(false); }}><div role="dialog" data-no-flight-controls aria-label="Choose simulation date and UTC time" aria-modal="true" className="w-[min(380px,calc(100vw-2rem))] rounded-xl border border-retro-purple/40 bg-[#100e20]/[.98] p-4 shadow-[0_18px_70px_rgba(4,2,18,0.9)] backdrop-blur-2xl">
@@ -511,5 +594,24 @@ export function SurfaceDrive({ guided = false, tutorial, startSite = MOON_REGION
         </div>
       </div>
     </section>}
+
+    {phase === "explore" && selected && !buildType && <div data-no-flight-controls role="group" aria-label={`${SURFACE_OBJECTS[selected.type].label} selected`} className="absolute left-1/2 top-[5.25rem] z-30 w-[min(360px,calc(100vw-1.5rem))] -translate-x-1/2 rounded-xl border border-retro-purple/50 bg-void/90 p-3 shadow-[0_18px_70px_rgba(4,2,18,.7)] backdrop-blur-xl">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="type-data text-[.56rem] uppercase tracking-[.14em] text-retro-purple">Selected</div>
+          <div className="truncate text-sm text-bone">{SURFACE_OBJECTS[selected.type].label}</div>
+          <div className="type-data mt-0.5 text-[.58rem] text-muted-foreground">{distanceLabel(Math.hypot(selected.eastM, selected.northM))} from centre{selectedStatus ? ` · slope ${selectedStatus.slopeDeg.toFixed(1)}° · ${selectedStatus.sunVisible > 0.99 ? "sunlit" : selectedStatus.sunVisible > 0 ? "partly lit" : "in shadow"}` : ""}</div>
+          {selectedStatus?.daily && <div className="type-data text-[.58rem] text-muted-foreground">Today: {selectedStatus.daily.sunHours !== null && <span className="text-retro-red">{selectedStatus.daily.sunHours.toFixed(1)} h sun</span>}{selected.type === "solar" && <span className="text-bone"> · ≈{selectedStatus.daily.kwh.toFixed(0)} kWh</span>}{selected.type === "comms" && <span className="text-retro-blue"> · Earth {selectedStatus.daily.earthHours.toFixed(1)} h</span>}</div>}
+        </div>
+        <button type="button" aria-label="Deselect" onClick={() => setSelectedId(null)} className="grid size-7 shrink-0 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><X size={14} /></button>
+      </div>
+      <div className="mt-2.5 flex gap-2">
+        <button type="button" onClick={() => goToObject(selected.id)} className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-retro-purple/50 bg-retro-purple/10 type-data text-[.6rem] uppercase tracking-[.1em] text-retro-purple hover:bg-retro-purple/20"><Eye size={14} />Teleport here</button>
+        <button type="button" onClick={() => deleteObject(selected.id)} className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-retro-red/50 bg-retro-red/10 type-data text-[.6rem] uppercase tracking-[.1em] text-retro-red hover:bg-retro-red/20"><Trash2 size={14} />Delete</button>
+      </div>
+      <p className="mt-2 text-[.54rem] text-muted-foreground">Click an object to select it, double-click to go to it, Delete key to remove it.</p>
+    </div>}
+
+    {!guided && phase === "explore" && <DriveAssistantBubble contextLabel={`${activeSite.name} · ${utcDay}${placements.length ? ` · ${placements.length} placed` : ""}`} getContext={assistantContext} getSnapshot={assistantSnapshot} />}
   </main>;
 }

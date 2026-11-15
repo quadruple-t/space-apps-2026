@@ -1,7 +1,7 @@
 "use client";
 
 import { base64ToU8 } from "@/lib/bytes";
-import { decodeHeights, type DemGrid } from "@/lib/terrain/dem";
+import { decodeHeights, smoothToSourceResolution, type DemGrid } from "@/lib/terrain/dem";
 
 export type DemTile = DemGrid & {
   center: { latDeg: number; lonDeg: number };
@@ -31,7 +31,9 @@ export function loadDemTile(latDeg: number, lonDeg: number, radiusKm: number, si
       if (!response.ok) throw new Error(body.error?.message ?? `Elevation API returned ${response.status}`);
       if (body.heights.encoding !== "int16le-base64") throw new Error("Unsupported height encoding");
       const { heights, ...rest } = body;
-      return { ...rest, heightsM: decodeHeights(base64ToU8(heights.data), body.size * body.size) };
+      const heightsM = decodeHeights(base64ToU8(heights.data), body.size * body.size);
+      smoothToSourceResolution(heightsM, body.size, body.spacingM);
+      return { ...rest, heightsM };
     });
     pending.catch(() => tiles.delete(key));
     tiles.set(key, pending);

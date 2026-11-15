@@ -6,7 +6,7 @@ const MIN_EL = -15;
 const R = 46;
 
 /**
- * Local sky seen from the buggy: zenith at the centre, horizon on the dashed ring, terrain
+ * Local sky seen from the view centre: zenith at the centre, horizon on the dashed ring, terrain
  * horizon (from the loaded elevation grid) as the filled silhouette. North up, east right.
  */
 export function SkyDial({ horizonDeg, stepDeg, sun, earth, sunVisible, earthVisible }: {
@@ -31,7 +31,7 @@ export function SkyDial({ horizonDeg, stepDeg, sun, earth, sunVisible, earthVisi
   };
   const sunText = sun ? `Sun ${sun.elevationDeg.toFixed(1)}° elevation, ${sunVisible === null ? "" : sunVisible > 0.99 ? "in view" : sunVisible > 0 ? "partly behind terrain" : "below the terrain horizon"}` : "Sun position unavailable";
   const earthText = earth ? `Earth ${earth.elevationDeg.toFixed(1)}° elevation, ${earthVisible === null ? "" : earthVisible > 0 ? "in view" : "hidden"}` : "";
-  return <svg viewBox="0 0 100 100" role="img" aria-label={`Sky from the buggy. ${sunText}. ${earthText}.`} className="size-full">
+  return <svg viewBox="0 0 100 100" role="img" aria-label={`Sky from the view centre. ${sunText}. ${earthText}.`} className="size-full">
     <circle cx="50" cy="50" r={R} fill="#0d0b1c" stroke="#2c2846" />
     <circle cx="50" cy="50" r={radius(0)} fill="none" stroke="#6f6a8c" strokeDasharray="2 2" strokeWidth=".6" />
     <circle cx="50" cy="50" r={radius(45)} fill="none" stroke="#2c2846" strokeWidth=".5" />

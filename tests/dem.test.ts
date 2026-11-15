@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 import * as THREE from "three"
 import {
   curvatureDropM, decodeFloat32Tiff, decodeHeights, demRequestUrl, discVisibleFraction, encodeHeights, heightAtLocal,
-  heightsFromRaster, horizonElevationDeg, makeGrid, parseDemQuery, skyAtLocal, slopeAtLocal, tangentPlaneHeight,
+  heightsFromRaster, horizonElevationDeg, makeGrid, parseDemQuery, skyAtLocal, slopeAtLocal, smoothToSourceResolution, tangentPlaneHeight,
 } from "@/lib/terrain/dem"
 import { buildDemSurface, computeSunVisibility, groundY } from "@/scenes/lunar/dem-terrain"
 import { radiusFromDriveParams } from "@/lib/drive-link"
@@ -96,6 +96,22 @@ function gridFrom(size: number, radiusKm: number, f: (e: number, n: number) => n
   for (let j = 0; j < size; j++) for (let i = 0; i < size; i++) h[j * size + i] = f(-half + i * spacing, half - j * spacing)
   return makeGrid(h, size, radiusKm)
 }
+
+describe("display smoothing", () => {
+  it("turns whole-metre terraces into a ramp on a fine grid and leaves coarse grids alone", () => {
+    const size = 65
+    // A 0.5° slope quantised to whole metres: flat steps with abrupt edges.
+    const terraced = Float32Array.from({ length: size * size }, (_, k) => Math.round(((k % size) * 20 * Math.tan((0.5 * Math.PI) / 180))))
+    const stepAt = (h: Float32Array) => Math.max(...Array.from({ length: size - 3 }, (_, i) => Math.abs(h[30 * size + i + 2] - h[30 * size + i + 1])))
+    const before = stepAt(terraced)
+    expect(smoothToSourceResolution(terraced, size, 20)).toBeGreaterThan(0)
+    expect(stepAt(terraced)).toBeLessThan(before)
+    const coarse = new Float32Array(size * size).map((_, k) => k % 7)
+    const copy = Float32Array.from(coarse)
+    expect(smoothToSourceResolution(coarse, size, 100)).toBe(0)
+    expect(Array.from(coarse)).toEqual(Array.from(copy))
+  })
+})
 
 describe("grid sampling", () => {
   it("interpolates heights and measures slope on a tilted plane", () => {
