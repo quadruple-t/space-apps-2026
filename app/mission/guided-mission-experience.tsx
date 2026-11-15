@@ -54,7 +54,7 @@ export function GuidedMissionExperience() {
   if (lessonIndex !== null) return <GuidedPlanner tutorial={tutorial} lessonIndex={lessonIndex} onLessonChange={changeLesson} />;
 
   return <>
-      <PageIntro beforeTitle={<Logo compact />} index="01" title="Guided Mission" lede="Start with Apollo 11 in 1969. Hear the story, see an example, then try each mission decision yourself." status={`${GUIDED_LESSONS.length} short lessons`}>
+      <PageIntro beforeTitle={<Logo compact />} index="02" title="Guided Mission" lede="Start with Apollo 11 in 1969. Hear the story, see an example, then try each mission decision yourself." status={`${GUIDED_LESSONS.length} short lessons`}>
         <div className="flex flex-wrap gap-3">
           <Button size="lg" disabled={tutorial.status === "loading"} onClick={start}>
             <Play fill="currentColor" />

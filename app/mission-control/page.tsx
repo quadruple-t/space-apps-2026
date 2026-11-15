@@ -42,7 +42,7 @@ const GLOSSARY = [
 export function MissionControlContent() {
   return (
     <>
-      <PageIntro index="02" title="Debrief" lede="Understand the science behind lunar exploration." status="Learning library">
+      <PageIntro index="01" title="Debrief" lede="Understand the science behind lunar exploration." status="Learning library">
         <p>
           Space travel depends on getting the fundamentals right: where energy comes from, how spacecraft orient
           themselves, and how crews stay connected to Earth. Learning these concepts helps turn exploration into
