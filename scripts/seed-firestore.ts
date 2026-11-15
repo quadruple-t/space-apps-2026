@@ -6,16 +6,18 @@
  *   npx tsx scripts/seed-firestore.ts --dry-run          (validate + size table, no target)
  *
  * --emulator  FIRESTORE_EMULATOR_HOST defaults to 127.0.0.1:8080; project shadowline-2t12.
- * --prod      Application Default Credentials (gcloud auth application-default login);
- *             project must resolve from .firebaserc and --yes is required.
+ * --prod      FIREBASE_SERVICE_ACCOUNT_JSON (from the environment or .env.local) when set, otherwise
+ *             Application Default Credentials (gcloud auth application-default login). The project
+ *             must resolve from .firebaserc, a service account must belong to it, and --yes is required.
  * --only      comma-separated top-level collections (sub-collections come with their parent).
  *
  * Validates everything before writing; aborts on any error. Idempotent (set() overwrites).
  * Batches are <= 500 writes and <= ~9 MB. Never writes users/*.
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { applicationDefault, initializeApp, type AppOptions } from "firebase-admin/app";
+import { parseEnv } from "node:util";
+import { applicationDefault, cert, initializeApp, type AppOptions } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { loadSeedDocs, type SeedDoc } from "./seed/load";
 import { documentSize } from "./seed/size";
@@ -26,6 +28,31 @@ const SEED_DIR = path.join(ROOT, "data", "seed");
 const EMULATOR_PROJECT = "shadowline-2t12";
 const MAX_BATCH_OPS = 500;
 const MAX_BATCH_BYTES = 9 * 1024 * 1024;
+
+type ServiceAccount = { project_id?: string; client_email: string; private_key: string };
+
+/**
+ * The same FIREBASE_SERVICE_ACCOUNT_JSON the API uses (lib/firebase/admin.ts), read from the environment
+ * or, failing that, from .env.local. Only this one key is read from the file, so no other local setting
+ * (such as an emulator host) leaks into a production seed. Exits on a value that is set but malformed.
+ */
+function serviceAccountFromEnv(): ServiceAccount | null {
+  let raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  let from = "the environment";
+  const envFile = path.join(ROOT, ".env.local");
+  if (!raw && existsSync(envFile)) {
+    raw = parseEnv(readFileSync(envFile, "utf8")).FIREBASE_SERVICE_ACCOUNT_JSON;
+    from = ".env.local";
+  }
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as Partial<ServiceAccount> | null;
+    if (parsed && typeof parsed.client_email === "string" && typeof parsed.private_key === "string") return parsed as ServiceAccount;
+  } catch {
+    // fall through to the error below
+  }
+  fail(`FIREBASE_SERVICE_ACCOUNT_JSON in ${from} must be the full service-account JSON object (client_email and private_key).`);
+}
 
 interface Args {
   emulator: boolean;
@@ -139,8 +166,15 @@ async function main(): Promise<void> {
     const projectId = projectFromFirebaserc();
     if (!projectId) fail("Could not resolve the project id from .firebaserc (projects.default); refusing --prod.");
     options.projectId = projectId;
-    options.credential = applicationDefault();
-    console.log(`\nTarget: PRODUCTION Firestore, project ${projectId} (Application Default Credentials)`);
+    const account = serviceAccountFromEnv();
+    if (account) {
+      if (account.project_id && account.project_id !== projectId) fail(`The service account belongs to project ${account.project_id}, but .firebaserc targets ${projectId}; refusing --prod.`);
+      options.credential = cert({ projectId: account.project_id, clientEmail: account.client_email, privateKey: account.private_key.replace(/\\n/g, "\n") });
+      console.log(`\nTarget: PRODUCTION Firestore, project ${projectId} (service account ${account.client_email})`);
+    } else {
+      options.credential = applicationDefault();
+      console.log(`\nTarget: PRODUCTION Firestore, project ${projectId} (Application Default Credentials)`);
+    }
   }
 
   const db = getFirestore(initializeApp(options, "seed"));
