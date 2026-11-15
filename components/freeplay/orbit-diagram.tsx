@@ -12,6 +12,12 @@ const INK = "#f0ebf7";
 const MUTED = "#b2abc4";
 const MEAN_EARTH_MOON_KM = 384_400;
 const MONTH_MS = 29.530589 * 86_400_000;
+const TRANSFER_MS = 72 * 3_600_000;
+
+function quadraticPoint(a: { x: number; y: number }, b: { x: number; y: number }, c: { x: number; y: number }, t: number) {
+  const u = 1 - t;
+  return { x: u * u * a.x + 2 * u * t * b.x + t * t * c.x, y: u * u * a.y + 2 * u * t * b.y + t * t * c.y };
+}
 
 type Props = {
   series: CartesianSeries;
@@ -67,6 +73,21 @@ export function OrbitDiagram({ series, site, tMs, missionStartMs, missionEndMs, 
   if (!g) return <div ref={ref} className="h-full w-full" />;
   const moon = g.moon;
   const M = toScreen(moon);
+  const arrivalGeometry = geomAt(missionStartMs + TRANSFER_MS);
+  const arrivalMoon = arrivalGeometry ? toScreen(arrivalGeometry.moon) : M;
+  const arrivalDx = arrivalMoon.x - cx;
+  const arrivalDy = arrivalMoon.y - cy;
+  const arrivalLength = Math.hypot(arrivalDx, arrivalDy) || 1;
+  const transferStart = { x: cx + (arrivalDx / arrivalLength) * (earthR + 4), y: cy + (arrivalDy / arrivalLength) * (earthR + 4) };
+  const transferEnd = arrivalMoon;
+  const transferControl = {
+    x: (transferStart.x + transferEnd.x) / 2 - (arrivalDy / arrivalLength) * orbitR * 0.24,
+    y: (transferStart.y + transferEnd.y) / 2 + (arrivalDx / arrivalLength) * orbitR * 0.24,
+  };
+  const flightProgress = Math.max(0, Math.min(1, (tMs - missionStartMs) / TRANSFER_MS));
+  const rocket = quadraticPoint(transferStart, transferControl, transferEnd, flightProgress);
+  const rocketAhead = quadraticPoint(transferStart, transferControl, transferEnd, Math.min(1, flightProgress + 0.002));
+  const rocketAngle = Math.atan2(rocketAhead.y - rocket.y, rocketAhead.x - rocket.x) * 180 / Math.PI;
   // Motion arrow from real positions ahead of the Moon; at the end of the data, from behind it.
   const ahead = geomAt(tMs + 10 * 3_600_000), ahead2 = geomAt(tMs + 30 * 3_600_000), behind = geomAt(tMs - 20 * 3_600_000);
   const [A1, A2] = ahead && ahead2 ? [toScreen(ahead.moon), toScreen(ahead2.moon)] : behind ? [toScreen(behind.moon), M] : [M, M];
@@ -113,6 +134,10 @@ export function OrbitDiagram({ series, site, tMs, missionStartMs, missionEndMs, 
   const scrub = (e: PointerEvent<SVGSVGElement>) => { const t = timeAtPointer(e); if (t !== null) onSeek?.(t); };
 
   return <div ref={ref} className="relative h-full w-full">
+    <div className="pointer-events-none absolute left-3 top-3 z-10 max-w-[70%] border border-retro-purple/35 bg-void/80 px-3 py-2 backdrop-blur-sm">
+      <p className="type-data text-[0.6rem] uppercase tracking-[0.14em] text-retro-purple">Concept 72h transfer · {site.name}</p>
+      <p className="type-data mt-1 text-[0.56rem] text-bone/60">{Math.round(flightProgress * 100)}% in flight · scrub mission clock{onSeek ? " or drag the Moon" : ""} · illustrative, not a flight plan</p>
+    </div>
     <svg width={W} height={H} role="img" className={`block ${onSeek ? (dragging ? "cursor-grabbing touch-none" : "cursor-grab touch-none") : ""}`}
       onPointerDown={(e) => {
         if (!onSeek || (e.pointerType === "mouse" && e.button !== 0) || !nearOrbit(e)) return;
@@ -123,7 +148,7 @@ export function OrbitDiagram({ series, site, tMs, missionStartMs, missionEndMs, 
       onPointerMove={(e) => { if (dragging) scrub(e); }}
       onPointerUp={(e) => { if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId); setDragging(false); }}
       onPointerCancel={() => setDragging(false)}
-      aria-label={`Orbit diagram, not to scale. Sunlight from the right. Moon ${(distKm / 1000).toFixed(0)} thousand km from Earth, ${ph.name}. Selected site ${sunUp ? "in daylight" : "in darkness"}${earthUp === null ? "" : earthUp ? ", Earth above its horizon" : ", Earth below its horizon"}.`}>
+      aria-label={`Earth-Moon orbit diagram, not to scale. A conceptual 72-hour rocket transfer is ${Math.round(flightProgress * 100)} percent complete.${onSeek ? " Drag the Moon along its orbit to change the mission time." : ""} Sunlight from the right. Moon ${(distKm / 1000).toFixed(0)} thousand km from Earth, ${ph.name}. Selected site ${sunUp ? "in daylight" : "in darkness"}${earthUp === null ? "" : earthUp ? ", Earth above its horizon" : ", Earth below its horizon"}.`}>
       <defs>
         <marker id="fp-arrow-sun" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill={SUN} /></marker>
         <marker id="fp-arrow-orbit" markerWidth="9" markerHeight="9" refX="6" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill={INK} /></marker>
@@ -139,6 +164,17 @@ export function OrbitDiagram({ series, site, tMs, missionStartMs, missionEndMs, 
       <circle cx={cx} cy={cy} r={orbitR} fill="none" stroke={MUTED} strokeOpacity="0.25" strokeDasharray="3 6" />
       {trace && <polyline points={trace} fill="none" stroke={INK} strokeOpacity="0.55" strokeWidth="1.5" />}
       {(A1.x !== M.x || A1.y !== M.y) && <path d={`M${A1.x.toFixed(1)},${A1.y.toFixed(1)}L${A2.x.toFixed(1)},${A2.y.toFixed(1)}`} stroke={INK} strokeWidth="1.5" markerEnd="url(#fp-arrow-orbit)" />}
+
+      {/* Conceptual Earth-to-Moon transfer. The timeline advances the vehicle along a 72-hour arc. */}
+      <path d={`M${transferStart.x},${transferStart.y} Q${transferControl.x},${transferControl.y} ${transferEnd.x},${transferEnd.y}`} fill="none" stroke="#b99aff" strokeOpacity="0.85" strokeWidth="2" strokeDasharray="5 5" />
+      <path d={`M${transferStart.x},${transferStart.y} Q${transferControl.x},${transferControl.y} ${rocket.x},${rocket.y}`} fill="none" stroke="#ff5364" strokeOpacity="0.9" strokeWidth="2.5" />
+      <g transform={`translate(${rocket.x} ${rocket.y}) rotate(${rocketAngle})`} aria-hidden="true">
+        <circle r="8" fill="#100c1a" stroke="#ff5364" strokeWidth="1.5" />
+        <path d="M-4 0 L2 -3.5 L5 0 L2 3.5 Z M-4 -2 L-7 -4 L-6 0 M-4 2 L-7 4 L-6 0" fill="#f0ebf7" stroke="#ff5364" strokeWidth="0.8" />
+        <path d="M-7 -1.5 L-10 0 L-7 1.5" fill="none" stroke="#ff9a66" strokeWidth="1.5" />
+      </g>
+      <text x={transferStart.x} y={transferStart.y + 17} textAnchor="middle" fill={INK} fontSize="8" letterSpacing="1" fontFamily="var(--font-plex-mono), monospace">DEPART</text>
+      <text x={transferEnd.x} y={transferEnd.y - moonR - 18} textAnchor="middle" fill={INK} fontSize="8" letterSpacing="1" fontFamily="var(--font-plex-mono), monospace">ARRIVAL</text>
 
       {/* Earth: lit half faces the Sun */}
       <circle cx={cx} cy={cy} r={earthR} fill="#13254a" />
