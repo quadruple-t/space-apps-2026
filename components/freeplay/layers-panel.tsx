@@ -2,6 +2,8 @@
 
 import { LAYERS, LAYER_CATEGORIES } from "@/scenes/cesium/moon-layers";
 import { useFreeplay, type LayerId } from "@/lib/freeplay-store";
+import { useLayerLoad } from "@/lib/layer-load-store";
+import { LoadingIndicator } from "./loading-indicator";
 import { MeteorStreamsPanel } from "./meteor-streams-panel";
 
 type Props = {
@@ -16,6 +18,7 @@ export function LayersPanel({ className = "", showBaseImagery = true, showCatalo
   const setLayer = useFreeplay((s) => s.setLayer);
   const catalogEnabled = useFreeplay((s) => s.showCatalog);
   const setShowCatalog = useFreeplay((s) => s.setShowCatalog);
+  const statuses = useLayerLoad((s) => s.statuses);
   const visibleLayers = layerIds ? LAYERS.filter((layer) => layerIds.includes(layer.id)) : LAYERS;
 
   return <section aria-label="Layers" className={`flex flex-col gap-2 overflow-y-auto p-3 ${className}`}>
@@ -29,7 +32,7 @@ export function LayersPanel({ className = "", showBaseImagery = true, showCatalo
         </div>
         <p className="mt-0.5 text-[0.56rem] text-muted-foreground">LRO WAC global mosaic · NASA Moon Trek snapshot</p>
       </div>
-      <p className="text-[0.56rem] leading-snug text-muted-foreground">Stored map snapshots show overview resolution; zooming in does not add source detail.</p>
+      <p className="text-[0.56rem] leading-snug text-muted-foreground">Fast overview images cover the whole map. The original, higher-resolution snapshots remain stored in Firebase; zooming does not add detail.</p>
       <a download href="/api/v1/globe/assets/collected-data" className="text-[0.56rem] text-retro-purple underline">Download collected scientific data</a>
     </>}
 
@@ -43,6 +46,8 @@ export function LayersPanel({ className = "", showBaseImagery = true, showCatalo
         </button>
       </div>
       <p className="mt-0.5 text-[0.56rem] leading-snug text-muted-foreground">Past landings and Artemis III candidates from the Lunaris360 catalog. Their LOLA terrain horizon is used for sunlight and Earth visibility.</p>
+      {catalogEnabled && statuses.catalog?.state === "loading" && <LoadingIndicator label="catalog sites" className="mt-1" />}
+      {catalogEnabled && statuses.catalog?.state === "error" && <p role="alert" className="mt-1 text-xs text-destructive">{statuses.catalog.message}</p>}
       <div className="type-data mt-1.5 flex items-center gap-1.5 text-[0.54rem] text-muted-foreground"><span aria-hidden className="text-bone">★</span>catalog site</div>
     </div>}
 
@@ -68,6 +73,8 @@ export function LayersPanel({ className = "", showBaseImagery = true, showCatalo
                 </button>
               </div>
               <p className="mt-0.5 text-[0.56rem] leading-snug text-muted-foreground">{def.description}</p>
+              {state.on && statuses[def.id]?.state === "loading" && <LoadingIndicator label={def.label} className="mt-1" />}
+              {state.on && statuses[def.id]?.state === "error" && <p role="alert" className="mt-1 text-xs text-destructive">{statuses[def.id]?.message}</p>}
 
               {def.id === "meteorStreams" && state.on && <MeteorStreamsPanel />}
               <div className="mt-1.5">

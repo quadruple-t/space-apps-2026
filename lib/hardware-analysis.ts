@@ -1,0 +1,112 @@
+import { windowsFrom, type VisibilityWindow } from "./visibility-windows";
+export { windowsFrom } from "./visibility-windows";
+import { type Sample, SOLAR_CONSTANT_W_M2 } from "@/lib/illumination";
+import { OBSERVER_HEIGHT_M, SOLAR_ARRAY_AREA_M2, SOLAR_ARRAY_EFFICIENCY, type Placement } from "@/lib/drive-placements";
+import { discVisibleFraction, EARTH_RADIUS_DEG, horizonProfile, skyAtLocal, type DemGrid } from "@/lib/terrain/dem";
+import { maskAt } from "@/lib/terrain/mask";
+
+/**
+ * Generation and communication windows for the hardware a user placed in the surface drive.
+ * Each object sees the site's Sun and Earth positions re-expressed in its own horizon frame (the Moon's
+ * curvature tilts the local vertical away from the site centre), tested against the terrain inside the
+ * loaded elevation grid at the height of the panel or dish. Terrain outside the grid is not seen, so
+ * results are upper bounds near its edge. Objects outside the grid are skipped and listed in
+ * `outside` rather than reported as having a clear horizon.
+ */
+
+const BIN_DEG = 3;
+
+/** Whether a point is inside the loaded elevation grid; outside it no terrain is tested at all. */
+export const insideGrid = (grid: DemGrid, eastM: number, northM: number) => Math.abs(eastM) <= grid.halfExtentM && Math.abs(northM) <= grid.halfExtentM;
+
+// Profiles depend only on the grid, the position and the mast height, so adding one object
+// costs one profile instead of re-marching every placed object.
+const profileCache = new WeakMap<DemGrid, Map<string, number[]>>();
+export function cachedHorizonProfile(grid: DemGrid, eastM: number, northM: number, type: Placement["type"]): number[] {
+  let perGrid = profileCache.get(grid);
+  if (!perGrid) { perGrid = new Map(); profileCache.set(grid, perGrid); }
+  const key = `${eastM}|${northM}|${type}`;
+  let profile = perGrid.get(key);
+  if (!profile) {
+    profile = horizonProfile(grid, eastM, northM, BIN_DEG, OBSERVER_HEIGHT_M[type]);
+    perGrid.set(key, profile);
+    if (perGrid.size > 400) perGrid.delete(perGrid.keys().next().value!);
+  }
+  return profile;
+}
+
+export type CommWindow = VisibilityWindow;
+
+export type SolarArrayResult = {
+  id: string; label: string; eastM: number; northM: number;
+  /** Generated power (kW) at each sample; a tracking panel always faces the Sun, so only blocking matters. */
+  kw: Float64Array;
+  peakKw: number; energyKWh: number; sunHours: number;
+  /** Each sample: any part of the Sun's disc visible. */
+  sunOn: boolean[];
+  /** Continuous daylight periods, and the longest day and longest night inside the analysed period. */
+  windows: CommWindow[]; longestDayHours: number; longestNightHours: number;
+};
+
+export type CommsResult = {
+  id: string; label: string; eastM: number; northM: number;
+  /** Earth's elevation in this mast's own frame, and the terrain horizon toward it (degrees). */
+  earthEl: Float64Array; horizon: Float64Array;
+  on: boolean[]; windows: CommWindow[]; visibleHours: number;
+  /** Longest contact window and longest gap without Earth inside the analysed period. */
+  longestWindowHours: number; longestGapHours: number;
+};
+
+export type HardwareAnalysis = { xs: Float64Array; stepHours: number; solar: SolarArrayResult[]; comms: CommsResult[]; outside: string[] };
+
+export function analyseHardware(grid: DemGrid, centerLatDeg: number, samples: Sample[], placements: Placement[], endMs?: number): HardwareAnalysis {
+  const n = samples.length;
+  const xs = Float64Array.from(samples, (s) => s.t);
+  const stepMs = n > 1 ? xs[1] - xs[0] : 3_600_000;
+  const stepHours = stepMs / 3_600_000;
+  const solar: SolarArrayResult[] = [], comms: CommsResult[] = [], outside: string[] = [];
+
+  for (const p of placements) {
+    if (p.type !== "solar" && p.type !== "comms") continue;
+    if (!insideGrid(grid, p.eastM, p.northM)) { outside.push(p.id); continue; }
+    const profile = cachedHorizonProfile(grid, p.eastM, p.northM, p.type);
+    if (p.type === "solar") {
+      const kw = new Float64Array(n), sunOn: boolean[] = [];
+      let peakKw = 0, energyKWh = 0, sunHours = 0;
+      for (let i = 0; i < n; i++) {
+        const s = samples[i];
+        const sun = skyAtLocal(centerLatDeg, p.eastM, p.northM, s.sunAz, s.sunEl);
+        const visible = sun.elevationDeg < -0.5 ? 0 : discVisibleFraction(sun.elevationDeg, Math.max(0, maskAt(profile, BIN_DEG, sun.azimuthDeg)));
+        kw[i] = (SOLAR_CONSTANT_W_M2 / (s.sunRangeAu * s.sunRangeAu)) * SOLAR_ARRAY_AREA_M2 * SOLAR_ARRAY_EFFICIENCY * visible / 1000;
+        peakKw = Math.max(peakKw, kw[i]);
+        const intervalHours = Math.max(0, Math.min(s.t + stepMs, endMs ?? Infinity) - s.t) / 3_600_000;
+        energyKWh += kw[i] * intervalHours;
+        sunHours += visible * intervalHours;
+        sunOn.push(visible > 0);
+      }
+      const windows = windowsFrom(xs, sunOn, stepMs, endMs);
+      solar.push({
+        id: p.id, label: `Solar array ${solar.length + 1}`, eastM: p.eastM, northM: p.northM, kw, peakKw, energyKWh, sunHours, sunOn, windows,
+        longestDayHours: windows.reduce((m, w) => Math.max(m, w.hours), 0),
+        longestNightHours: windowsFrom(xs, sunOn.map((v) => !v), stepMs, endMs).reduce((m, w) => Math.max(m, w.hours), 0),
+      });
+    } else {
+      const earthEl = new Float64Array(n), horizon = new Float64Array(n), on: boolean[] = [];
+      for (let i = 0; i < n; i++) {
+        const s = samples[i];
+        const earth = skyAtLocal(centerLatDeg, p.eastM, p.northM, s.earthAz, s.earthEl);
+        const h = Math.max(0, maskAt(profile, BIN_DEG, earth.azimuthDeg));
+        earthEl[i] = earth.elevationDeg;
+        horizon[i] = h;
+        on.push(discVisibleFraction(earth.elevationDeg, h, EARTH_RADIUS_DEG) > 0);
+      }
+      const windows = windowsFrom(xs, on, stepMs, endMs);
+      comms.push({
+        id: p.id, label: `Comms mast ${comms.length + 1}`, eastM: p.eastM, northM: p.northM, earthEl, horizon, on, windows, visibleHours: windows.reduce((sum, w) => sum + w.hours, 0),
+        longestWindowHours: windows.reduce((m, w) => Math.max(m, w.hours), 0),
+        longestGapHours: windowsFrom(xs, on.map((v) => !v), stepMs, endMs).reduce((m, w) => Math.max(m, w.hours), 0),
+      });
+    }
+  }
+  return { xs, stepHours, solar, comms, outside };
+}

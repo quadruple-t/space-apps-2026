@@ -1,11 +1,19 @@
 "use client";
 
 import { Layers3, Plus, RotateCcw, X } from "lucide-react";
-import { formatDelta, formatValue, GROUP_LABELS, METRICS, metricValue, winnerFor, type MetricDef, type MetricGroup, type MetricKey, type SiteValues } from "@/lib/comparison";
+import { formatDelta, formatValue, GROUP_LABELS, METRICS, metricValue, OXIDE_BY_METRIC, winnerFor, type MetricDef, type MetricGroup, type MetricKey, type MetricValue, type SiteValues } from "@/lib/comparison";
 
 export type Side = { name: string; color: string; values: SiteValues };
 
-const GROUPS: MetricGroup[] = ["layers", "sun", "earth"];
+const GROUPS: MetricGroup[] = ["layers", "resources", "weather", "sun", "earth"];
+
+function valueTitle(def: MetricDef, value: MetricValue, values: SiteValues) {
+  if (value === null) return def.noData;
+  const oxide = OXIDE_BY_METRIC[def.key];
+  if (!oxide || !values.composition) return undefined;
+  const { oxidesWtPct, sigmaWtPct } = values.composition;
+  return `${oxidesWtPct[oxide].toFixed(2)} ± ${sigmaWtPct[oxide].toFixed(2)} wt% (1σ); regional Lunar Prospector estimate${value === "low-confidence" ? ", below twice its uncertainty" : ""}.`;
+}
 
 function LayerTag({ def }: { def: MetricDef }) {
   if (!def.layer) return null;
@@ -46,8 +54,8 @@ export function MetricsTable({ a, b, selected, onAdd, onRemove, onReset }: {
                     className="grid size-6 shrink-0 place-items-center rounded text-muted-foreground hover:bg-retro-red/15 hover:text-retro-red"><X size={13} /></button>
                 </span>
               </th>
-              <td className={cell("a", va)} title={va === null ? def.noData : undefined} style={winner === "a" ? { boxShadow: `inset 3px 0 0 ${a.color}` } : undefined}>{formatValue(def, va)}</td>
-              <td className={cell("b", vb)} title={vb === null ? def.noData : undefined} style={winner === "b" ? { boxShadow: `inset 3px 0 0 ${b.color}` } : undefined}>{formatValue(def, vb)}</td>
+              <td className={cell("a", va)} title={valueTitle(def, va, a.values)} style={winner === "a" ? { boxShadow: `inset 3px 0 0 ${a.color}` } : undefined}>{formatValue(def, va)}</td>
+              <td className={cell("b", vb)} title={valueTitle(def, vb, b.values)} style={winner === "b" ? { boxShadow: `inset 3px 0 0 ${b.color}` } : undefined}>{formatValue(def, vb)}</td>
               <td className="type-data px-4 py-2.5 tabular-nums text-muted-foreground">{formatDelta(def, va, vb)}</td>
               <td className="type-data px-4 py-2.5 text-xs text-muted-foreground">{winner === "none" ? "—" : winner === "tie" ? "Tie" : winner === "a" ? "A" : "B"}</td>
             </tr>;

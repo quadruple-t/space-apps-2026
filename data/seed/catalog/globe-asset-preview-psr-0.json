@@ -1,0 +1,33 @@
+{
+ "id": "preview-psr-0",
+ "kind": "globe-asset",
+ "contentType": "image/webp",
+ "bytes": 1366,
+ "sha256": "5221cf077cfa80cef903c33df42c061b7b959ebf0b5b105e9917106a2a6e88e3",
+ "chunks": [
+  "globe-chunk-preview-psr-0-5221cf077cfa80ce-0"
+ ],
+ "layerId": "psr",
+ "sourceIndex": 0,
+ "width": 1024,
+ "height": 512,
+ "rectangle": [
+  -180,
+  -90,
+  180,
+  90
+ ],
+ "source": {
+  "originalId": "psr-0",
+  "originalSha256": "bcfdc25371e3aabf095e788700f6d19363bc3103166ee1e4b861596560a8595a",
+  "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+  "originalSource": {
+   "kind": "wms",
+   "layers": "luna_psr_81s",
+   "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_psr_81s&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+   "requestedWidth": 2048,
+   "requestedHeight": 1024,
+   "retrievedAt": "2026-11-15T04:13:30.669Z"
+  }
+ }
+}

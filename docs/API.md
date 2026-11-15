@@ -1,6 +1,6 @@
 # Lunaris360 data API
 
-The versioned REST API is served by the Next.js catch-all route at `/api/v1`. It reads the seeded Firestore catalog and computes science results from cached ephemeris and terrain data. Interactive requests do not call NASA/JPL. Public JSON responses are cached for 60 seconds with stale-while-revalidate for 5 minutes; owner data responses and errors use `Cache-Control: no-store`.
+The versioned REST API is served by the Next.js catch-all route at `/api/v1`. It reads the seeded Firestore catalog and computes science results from cached ephemeris and terrain data. Interactive requests do not call NASA/JPL; the single documented exception is `GET /api/v1/terrain/dem` (below), which fetches display elevation from LROC Lunaserv on first request. Public JSON responses are cached for 60 seconds with stale-while-revalidate for 5 minutes; owner data responses and errors use `Cache-Control: no-store`.
 
 ## Endpoint index
 
@@ -198,6 +198,32 @@ Send JSON to the sessions route. Session IDs are generated for collection POSTs;
 
 `POST /api/v1/users/{uid}/progress` accepts `{ "chaptersCompleted": [...], "unlockedTools": [...], "expertMode": false, "stepAnswers": {} }`. Completed chapters must follow this order: `ch1-first-landing`, `ch2-robotic-explorer`, `ch3-lunar-base`. Unlocked tools must follow `horizon-dial`, `power-simulator`, `base-scoring`; expert mode unlocks all three. `stepAnswers` must be an object with at most 100 keys.
 
+### Surface-drive terrain
+
+| Method and route | Description |
+| --- | --- |
+| `GET /api/v1/terrain/dem` | Site-centred elevation grid for the surface drive's 3D terrain |
+
+Arbitrary points and radii cannot be pre-archived, so this route requests LROC Lunaserv's numeric GLD100 layer (`luna_wac_dtm_numeric`) in a site-centred orthographic projection (`IAU2000:30166`), decodes the float32 GeoTIFF server-side, fills isolated no-data samples from neighbours and caches the result in process (48 grids) and over HTTP (`Cache-Control: public, max-age=86400, s-maxage=2592000`). At most 4 upstream fetches run at once per process; further new grids get `503` with `Retry-After`. Nothing is written to Firestore. The grid is for display and in-browser line of sight only; science routes keep using the stored LOLA masks.
+
+| Parameter | Default and constraints |
+| --- | --- |
+| `lat`, `lon` | Required. Planetocentric degrees; latitude -90…90, longitude -180…360 (normalised to -180…180). Snapped to 0.001° (about 30 m) |
+| `radiusKm` | Default 5; 0.1 to 500. Half-width of the square grid; rounded up to the next of 0.1, 0.25, 0.5, 1, 2, 5, 10, 25, 50, 100, 250, 500 |
+| `size` | Default 257; odd integer 33…257 samples per side |
+
+```json
+{
+  "center": { "latDeg": 0.6742, "lonDeg": 23.4731 }, "radiusKm": 5, "size": 129,
+  "halfExtentM": 5000, "spacingM": 78.125, "minM": -2000, "maxM": -1813, "centerM": -1929,
+  "heights": { "encoding": "int16le-base64", "unit": "m", "rowOrder": "north-to-south, west-to-east", "data": "..." },
+  "source": { "product": "LROC WAC GLD100 global DTM (Lunaserv numeric layer)", "layer": "luna_wac_dtm_numeric", "nominalResolutionM": 100, "datum": "Heights above the 1737.4 km reference sphere", "projection": "Orthographic, centred on the site (IAU2000:30166)", "retrievedAt": "..." },
+  "notes": ["..."]
+}
+```
+
+Sample `(i, j)` is at east `-halfExtentM + i·spacingM`, north `halfExtentM - j·spacingM` on the site's tangent plane. Invalid parameters return 400; an unreachable, slow (25 s) or erroring upstream returns 503, and the drive then shows its labelled procedural terrain. Spot checks against the pipeline's PGDA/LOLA site elevations: Apollo 11 -1,929 m vs -1,926 m, IM-2 5,318 m vs 5,321 m, IM-1 2,572 m vs 2,580 m.
+
 ## Errors and status codes
 
 Errors have the shape `{ "error": { "message": "..." } }` and are not cached.
@@ -209,7 +235,7 @@ Errors have the shape `{ "error": { "message": "..." } }` and are not cached.
 | 403 | Token UID does not match the UID in the route |
 | 404 | Unknown route/resource, or requested catalog/user document not found |
 | 422 | Science request outside stored ephemeris coverage, or `siteId` names a catalog site without a verified point coordinate (unverified coordinates, or an Artemis region reference outside `rank` and `composition`). Use `lat`/`lon` for a custom point instead |
-| 503 | Firebase/Admin configuration or required stored science data unavailable |
+| 503 | Firebase/Admin configuration or required stored science data unavailable, or the elevation service behind `/terrain/dem` failed |
 
 ## Calculation paths
 

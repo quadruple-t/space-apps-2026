@@ -1,7 +1,11 @@
 import { createHash } from "node:crypto";
 import { GLOBE_CHUNK_BYTES, globeAssetPath, validateGlobeAsset, type GlobeAsset } from "./globe-archive";
 
-type ReadDb = { doc(path: string): { get(): Promise<{ exists: boolean; data(): Record<string, unknown> | undefined }> } };
+type Snapshot = { exists: boolean; data(): Record<string, unknown> | undefined };
+type ReadDb = {
+  doc(path: string): { get(): Promise<Snapshot> };
+  readCatalogBatch?(paths: string[]): Promise<Snapshot[]>;
+};
 export class GlobeAssetNotFound extends Error {}
 function bytes(value: unknown): Buffer {
   if (value instanceof Uint8Array) return Buffer.from(value);
@@ -16,11 +20,20 @@ export async function readGlobeAsset(db: ReadDb, id: string, requestedHash?: str
   const asset = validateGlobeAsset(snapshot.data(), id);
   if (requestedHash && requestedHash !== asset.sha256) throw new GlobeAssetNotFound("This globe snapshot version is unavailable");
   const buffers: Buffer[] = [];
-  // Bounded reads; paths are validated against this asset's content hash.
-  for (let offset = 0; offset < asset.chunks.length; offset += 8) {
-    const chunks = await Promise.all(asset.chunks.slice(offset, offset + 8).map((chunk) => db.doc(`catalog/${chunk}`).get()));
+  // Read up to 40 chunks at a time, in four bounded queries. Paths and order
+  // are checked against the asset's content hash before any reads happen.
+  const batchSize = db.readCatalogBatch ? 10 : 8;
+  const concurrent = db.readCatalogBatch ? 4 : 1;
+  for (let offset = 0; offset < asset.chunks.length; offset += batchSize * concurrent) {
+    const batches = Array.from({ length: concurrent }, (_, batch) => {
+      const start = offset + batch * batchSize;
+      const paths = asset.chunks.slice(start, start + batchSize).map((chunk) => `catalog/${chunk}`);
+      if (!paths.length) return Promise.resolve([]);
+      return db.readCatalogBatch ? db.readCatalogBatch(paths) : Promise.all(paths.map((path) => db.doc(path).get()));
+    });
+    const chunks = (await Promise.all(batches)).flat();
     for (let i = 0; i < chunks.length; i++) {
-      const record = chunks[i].data();
+      const record = chunks[i]?.data();
       const index = offset + i;
       if (!record || record.assetId !== id || record.sha256 !== asset.sha256 || record.index !== index) throw new Error("Missing or mismatched globe chunk");
       const buffer = bytes(record.data);
