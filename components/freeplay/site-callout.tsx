@@ -32,6 +32,26 @@ function CalloutBody({ site, guided }: { site: FreeplaySite; guided: boolean }) 
   const [naming, setNaming] = useState(false);
   const [name, setName] = useState("");
 
+  useEffect(() => {
+    const dismiss = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element) || box.current?.contains(target)) return;
+      // Globe clicks are handled by Cesium, which can distinguish selecting
+      // another pin from dismissing a draft on empty ground.
+      if (target.closest(".cesium-viewer")) return;
+      useFreeplay.getState().setCalloutOpen(false);
+    };
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !naming) useFreeplay.getState().setCalloutOpen(false);
+    };
+    document.addEventListener("pointerdown", dismiss, true);
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("pointerdown", dismiss, true);
+      document.removeEventListener("keydown", escape);
+    };
+  }, [naming]);
+
   useEffect(() => subscribeAnchor((a) => {
     const w = wrap.current, b = box.current, l = line.current, d = dot.current;
     if (!w || !b || !l || !d) return;
@@ -86,7 +106,7 @@ function CalloutBody({ site, guided }: { site: FreeplaySite; guided: boolean }) 
                 onKeyDown={(e) => { if (e.key === "Escape") setNaming(false); }} />
             </label>
             <div className="mt-1.5 grid grid-cols-2 gap-1.5">
-              <button type="button" onClick={() => setNaming(false)} className="rounded border border-line px-2 py-1.5 text-[0.58rem] uppercase tracking-[0.08em] text-muted-foreground hover:text-bone">Cancel</button>
+              <button type="button" onClick={() => site.kind === "custom" ? setCalloutOpen(false) : setNaming(false)} className="rounded border border-line px-2 py-1.5 text-[0.58rem] uppercase tracking-[0.08em] text-muted-foreground hover:text-bone">Cancel</button>
               <button type="submit" disabled={!name.trim()} className="flex items-center justify-center gap-1 rounded bg-retro-purple px-2 py-1.5 text-[0.58rem] font-semibold uppercase tracking-[0.08em] text-void hover:bg-[#c2aaff] disabled:opacity-40">
                 <Check size={12} />Save
               </button>

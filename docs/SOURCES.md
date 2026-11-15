@@ -187,6 +187,15 @@ reassembles and verifies lengths and SHA-256 before serving data. Existing catal
 rules permit public reads and deny browser writes. Only the offline importer writes.
 The app keeps source imagery separate from numerical analysis inputs.
 
+For responsive display, `catalog/globe-display-v1` points to separate complete-area
+overviews derived from the archived images by nearest-neighbor half-resolution
+sampling and lossless WebP encoding. Preview documents record the original asset
+and SHA-256 and use the same source citations as that asset. The original snapshots
+are retained unchanged. Preview pixels are checked against the sampled original
+before upload, and their Firebase chunks are checksum-verified before the display
+manifest is published. The globe falls back to the original when a preview is
+absent or derived from a different snapshot. Downsampling can omit small features.
+
 Most stored maps cover the globe at 2048 × 1024. The south-pole slope image covers
 its source tile bounds at 4096 × 256. Unmapped source areas remain unmapped;
 these snapshots do not add coverage or precision. The selected scope excludes

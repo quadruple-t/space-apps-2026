@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, type ReactNode } from "react";
 import { ArrowLeft, Bot, Car, GitCompareArrows, Globe2, Orbit } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
+import { LoadingIndicator } from "@/components/freeplay/loading-indicator";
 import { AssistantPanel, LAUNCHER_ID, PANEL_ID } from "@/components/freeplay/assistant-panel";
 import { usePlaybackClock } from "@/components/freeplay/time-controls";
 import type { FreeplaySite } from "@/data/sites";
@@ -13,7 +14,7 @@ import { driveHref } from "@/lib/drive-link";
 import { currentTimeMs, useFreeplay, type FreeplayView, type LayerId } from "@/lib/freeplay-store";
 
 const Loading = ({ label }: { label: string }) =>
-  <div className="grid h-full place-items-center"><span className="type-data animate-pulse text-[0.65rem] uppercase tracking-[0.14em] text-muted-foreground">Loading {label}…</span></div>;
+  <div className="grid h-full place-items-center"><LoadingIndicator label={label} /></div>;
 
 const GlobeScreen = dynamic(() => import("./globe-screen").then((m) => m.GlobeScreen), { ssr: false, loading: () => <Loading label="Moon globe" /> });
 const OrbitScreen = dynamic(() => import("./orbit-screen").then((m) => m.OrbitScreen), { ssr: false, loading: () => <Loading label="orbit view" /> });

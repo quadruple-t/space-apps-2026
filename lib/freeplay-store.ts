@@ -46,6 +46,8 @@ type FreeplayState = {
   view: FreeplayView
   /** null until the user picks a point on the globe or one of their saved sites */
   site: FreeplaySite | null
+  /** A newly clicked point is temporary until saved or opened in orbit. */
+  siteDraft: boolean
   calloutOpen: boolean
   savedSites: FreeplaySite[]
   hydrated: boolean
@@ -108,6 +110,7 @@ export const useFreeplay = create<FreeplayState>((set, get) => {
   return {
     view: "globe",
     site: null,
+    siteDraft: false,
     calloutOpen: false,
     savedSites: [],
     hydrated: false,
@@ -152,12 +155,13 @@ export const useFreeplay = create<FreeplayState>((set, get) => {
     focusNonce: 0,
     requestFocus: () => set((s) => ({ focusNonce: s.focusNonce + 1 })),
 
-    setView: (view) => set({ view }),
-    selectSite: (site, openCallout = true) => set({ site, calloutOpen: openCallout }),
+    setView: (view) => set((s) => ({ view, ...(view !== "globe" && s.siteDraft ? { siteDraft: false, calloutOpen: false } : {}) })),
+    selectSite: (site, openCallout = true) => set((s) => ({ site, calloutOpen: openCallout, siteDraft: !!(openCallout && s.siteDraft && s.site?.id === site.id) })),
     selectCustom: (latitudeDeg, longitudeDeg) => {
       const lat = round(latitudeDeg), lon = round(((longitudeDeg % 360) + 360) % 360)
       set({
         calloutOpen: true,
+        siteDraft: true,
         site: {
           id: `custom-${lat}-${lon}`, name: "Custom site", latitudeDeg: lat, longitudeDeg: lon,
           radiusKm: get().site?.radiusKm ?? DEFAULT_RADIUS_KM, coordinateReference: COORD_REF,
@@ -173,7 +177,13 @@ export const useFreeplay = create<FreeplayState>((set, get) => {
       set({ site })
       if (site.kind === "saved") get().setSavedRadius(site.id, radiusKm)
     },
-    setCalloutOpen: (calloutOpen) => set({ calloutOpen }),
+    // An unsaved point is only a draft until it is saved or used. Dismissing its
+    // card must also remove the selected marker; saved and catalog sites remain.
+    setCalloutOpen: (calloutOpen) => set((s) => ({
+      calloutOpen,
+      site: !calloutOpen && s.siteDraft ? null : s.site,
+      siteDraft: !calloutOpen ? false : s.siteDraft,
+    })),
     saveCurrentSite: (name) => {
       const { site, savedSites } = get()
       if (!site) return
@@ -182,7 +192,7 @@ export const useFreeplay = create<FreeplayState>((set, get) => {
         id: `saved-${Date.now().toString(36)}`,
         name: name.trim() || `Site ${savedSites.length + 1}`,
       }
-      set({ savedSites: [...savedSites, saved], site: saved })
+      set({ savedSites: [...savedSites, saved], site: saved, siteDraft: false })
       persist()
     },
     renameSaved: (id, name) => {

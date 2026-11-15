@@ -2,9 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import type * as CesiumNS from "cesium";
+import { LoadingIndicator } from "@/components/freeplay/loading-indicator";
 import { catalogToFreeplay, type CatalogSite, type FreeplaySite } from "@/data/sites";
 import { fetchCatalogSites } from "@/lib/lunar-data";
 import { useFreeplay } from "@/lib/freeplay-store";
+import { useLayerLoad } from "@/lib/layer-load-store";
 import { listZones } from "@/lib/firestore/zonesService";
 import type { ProtectionZone } from "@/lib/model/types";
 import { getFactSheet } from "@/lib/firestore/factsService";
@@ -12,7 +14,7 @@ import { meteorStreamsFromFacts, streamIncidence } from "@/lib/science/meteor-st
 import { publishAnchor } from "./anchor";
 import { loadCesium, type Cesium } from "./load-cesium";
 import { LAYERS } from "./moon-layers";
-import { globeAssetUrl, type GlobeArchive } from "@/lib/globe-archive";
+import { globeAssetUrl, globeDisplayAsset, type GlobeArchive } from "@/lib/globe-archive";
 
 
 const starImage = (fill: string, stroke: string, size = 28) => {
@@ -25,6 +27,20 @@ const starImage = (fill: string, stroke: string, size = 28) => {
 };
 
 const EMPTY_SITES: FreeplaySite[] = [];
+
+// React Strict Mode and returning to the map can otherwise request the same
+// manifest several times before the first request finishes.
+let manifestPromise: Promise<GlobeArchive> | null = null;
+function loadManifest(): Promise<GlobeArchive> {
+  if (!manifestPromise) {
+    manifestPromise = fetch("/api/v1/globe/manifest").then(async (response) => {
+      if (!response.ok) throw new Error("Firebase globe snapshots are unavailable. Check the connection and try again.");
+      return await response.json() as GlobeArchive;
+    });
+    manifestPromise.catch(() => { manifestPromise = null; });
+  }
+  return manifestPromise;
+}
 
 /** Pins float slightly above the ellipsoid so the globe doesn't depth-clip them. */
 const PIN_HEIGHT_M = 1500;
@@ -46,29 +62,33 @@ export default function MoonGlobe({ guidedSites }: { guidedSites?: FreeplaySite[
   const viewerRef = useRef<CesiumNS.Viewer | null>(null);
   const cesiumRef = useRef<Cesium | null>(null);
   const overlayRefs = useRef(new Map<string, CesiumNS.ImageryLayer[]>());
+  const archiveRef = useRef<GlobeArchive | null>(null);
   const meteorOverlayRef = useRef<CesiumNS.ImageryLayer | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const [baseLoading, setBaseLoading] = useState(true);
 
   const site = useFreeplay((s) => s.site);
   const savedSites = useFreeplay((s) => s.savedSites);
   const showCatalog = useFreeplay((s) => s.showCatalog);
   const layers = useFreeplay((s) => s.layers);
+  const statuses = useLayerLoad((s) => s.statuses);
   const needsCatalog = showCatalog || layers.landings.on || layers.impacts.on || layers.artemis.on;
   const [catalogEntries, setCatalogEntries] = useState<CatalogSite[]>([]);
-  const [dataError, setDataError] = useState<string | null>(null);
   const [catalogSites, setCatalogSites] = useState<FreeplaySite[]>([]);
   const catalogRef = useRef<FreeplaySite[]>([]);
   useEffect(() => {
     if (!needsCatalog || catalogRef.current.length) return;
     let alive = true;
+    const setStatus = useLayerLoad.getState().setStatus;
+    for (const id of ["catalog", "landings", "impacts", "artemis"] as const) setStatus(id, { state: "loading" });
     fetchCatalogSites().then((list) => {
       if (!alive) return;
       setCatalogEntries(list);
-      setDataError(null);
       catalogRef.current = list.map((c) => catalogToFreeplay(c));
       setCatalogSites(catalogRef.current);
-    }).catch(() => { if (alive) setDataError("Catalog layers could not load. Toggle a layer to retry."); });
+      for (const id of ["catalog", "landings", "impacts", "artemis"] as const) setStatus(id, { state: "ready" });
+    }).catch(() => { if (alive) for (const id of ["catalog", "landings", "impacts", "artemis"] as const) setStatus(id, { state: "error", message: "Catalog could not load. Turn the layer off and on to retry." }); });
     return () => { alive = false; };
   }, [needsCatalog]);
   const shownCatalog = needsCatalog ? catalogSites.filter((_, i) => {
@@ -81,8 +101,10 @@ export default function MoonGlobe({ guidedSites }: { guidedSites?: FreeplaySite[
   useEffect(() => {
     if (!needsZones) return;
     let alive = true;
-    listZones().then((data) => { if (alive) { setZones(data); setDataError(null); } })
-      .catch(() => { if (alive) setDataError("Region layers could not load. Toggle a layer to retry."); });
+    const setStatus = useLayerLoad.getState().setStatus;
+    for (const id of ["heritage", "coldTraps", "resources"] as const) setStatus(id, { state: "loading" });
+    listZones().then((data) => { if (alive) { setZones(data); for (const id of ["heritage", "coldTraps", "resources"] as const) setStatus(id, { state: "ready" }); } })
+      .catch(() => { if (alive) for (const id of ["heritage", "coldTraps", "resources"] as const) setStatus(id, { state: "error", message: "Regions could not load. Turn the layer off and on to retry." }); });
     return () => { alive = false; };
   }, [needsZones]);
 
@@ -121,6 +143,8 @@ export default function MoonGlobe({ guidedSites }: { guidedSites?: FreeplaySite[
     if (!ready || !C || !viewer || !meteorOn) return;
     let alive = true;
     let overlay: CesiumNS.ImageryLayer | undefined;
+    const setStatus = useLayerLoad.getState().setStatus;
+    setStatus("meteorStreams", { state: "loading" });
     getFactSheet("meteor-streams-2026").then(async (sheet) => {
       if (!alive) return;
       if (!sheet) throw new Error("Missing meteor reference data");
@@ -146,7 +170,8 @@ export default function MoonGlobe({ guidedSites }: { guidedSites?: FreeplaySite[
       overlay = viewer.imageryLayers.addImageryProvider(provider);
       overlay.alpha = useFreeplay.getState().layers.meteorStreams.opacity;
       meteorOverlayRef.current = overlay;
-    }).catch(() => { if (alive) setDataError("Meteor exposure could not load. Check the reference facts in the data API."); });
+      setStatus("meteorStreams", { state: "ready" });
+    }).catch(() => { if (alive) setStatus("meteorStreams", { state: "error", message: "Meteor exposure could not load. Turn the layer off and on to retry." }); });
     return () => {
       alive = false;
       if (overlay && !viewer.isDestroyed()) viewer.imageryLayers.remove(overlay, true);
@@ -166,22 +191,30 @@ export default function MoonGlobe({ guidedSites }: { guidedSites?: FreeplaySite[
     let destroyed = false;
     let cleanup = () => {};
     const overlays = overlayRefs.current;
-    Promise.all([loadCesium(), fetch("/api/v1/globe/manifest").then(async (response) => {
-      if (!response.ok) throw new Error("Firebase globe snapshots are unavailable. Import the collected maps first.");
-      return await response.json() as GlobeArchive;
-    })]).then(([C, archive]) => {
+    Promise.all([loadCesium(), loadManifest()]).then(([C, archive]) => {
       if (destroyed || !containerRef.current) return;
       cesiumRef.current = C;
+      archiveRef.current = archive;
       const moon = C.Ellipsoid.MOON;
       C.Ellipsoid.default = moon;
       C.Ion.defaultAccessToken = "";
 
-      const baseAsset = archive.assets.find((asset) => asset.id === "base");
-      if (!baseAsset) throw new Error("The stored globe base image is missing");
+      const originalBase = archive.assets.find((asset) => asset.id === "base");
+      if (!originalBase) throw new Error("The stored globe base image is missing");
+      const baseAsset = globeDisplayAsset(archive, originalBase);
       const base = new C.SingleTileImageryProvider({
         url: globeAssetUrl(baseAsset), tileWidth: baseAsset.width!, tileHeight: baseAsset.height!,
         rectangle: C.Rectangle.MAX_VALUE, ellipsoid: moon, credit: "NASA Moon Trek · Firebase snapshot",
       });
+      const requestBase = base.requestImage.bind(base);
+      base.requestImage = (...args) => {
+        const result = requestBase(...args);
+        if (!result) return result;
+        return result.then((image) => { if (!destroyed) setBaseLoading(false); return image; }, (failure) => {
+          if (!destroyed) { setBaseLoading(false); setError("The stored Moon image could not load. Check your connection and try again."); }
+          throw failure;
+        });
+      };
       if (destroyed || !containerRef.current) return;
 
       const credit = document.createElement("div");
@@ -222,36 +255,18 @@ export default function MoonGlobe({ guidedSites }: { guidedSites?: FreeplaySite[
       };
       scene.canvas.addEventListener("wheel", onWheel, { passive: false });
 
-      // Overlay layers: created hidden, toggled by the store.
-      for (const def of LAYERS) {
-        const made: CesiumNS.ImageryLayer[] = [];
-        for (let index = 0; index < def.sources.length; index++) {
-          const asset = archive.assets.find((entry) => entry.layerId === def.id && entry.sourceIndex === index);
-          if (!asset?.rectangle) throw new Error(`Stored imagery is missing for ${def.label}`);
-          const provider = new C.SingleTileImageryProvider({
-            url: globeAssetUrl(asset), tileWidth: asset.width!, tileHeight: asset.height!,
-            rectangle: C.Rectangle.fromDegrees(...asset.rectangle), ellipsoid: moon, credit: def.credit,
-          });
-          provider.errorEvent.addEventListener(() => setDataError(`Stored imagery could not load: ${def.label}`));
-          if (destroyed) return;
-          const layer = viewer.imageryLayers.addImageryProvider(provider);
-          layer.show = false;
-          made.push(layer);
-        }
-        overlays.set(def.id, made);
-      }
-
       // Click: pin → that site; empty ground → custom site.
       const handler = new C.ScreenSpaceEventHandler(scene.canvas);
       handler.setInputAction((e: { position: CesiumNS.Cartesian2 }) => {
         const picked = scene.pick(e.position);
         const id = picked?.id instanceof C.Entity ? picked.id.id : null;
-        const { savedSites, selectSite, selectCustom, site: current } = useFreeplay.getState();
+        const { savedSites, selectSite, selectCustom, setCalloutOpen, calloutOpen, siteDraft, site: current } = useFreeplay.getState();
         if (id && id !== "radius") {
           const hit = savedSites.find((s) => s.id === id) ?? guidedSites?.find((s) => s.id === id) ?? (current?.id === id ? current : null)
-            ?? (useFreeplay.getState().showCatalog ? catalogRef.current.find((s) => s.id === id) : undefined);
+            ?? catalogRef.current.find((s) => s.id === id);
           if (hit) { selectSite(hit, true); return; }
         }
+        if (calloutOpen && siteDraft) { setCalloutOpen(false); return; }
         const cart = viewer.camera.pickEllipsoid(e.position, moon);
         if (!cart) return;
         const c = moon.cartesianToCartographic(cart);
@@ -276,7 +291,7 @@ export default function MoonGlobe({ guidedSites }: { guidedSites?: FreeplaySite[
       setReady(true);
       cleanup = () => { scene.canvas.removeEventListener("wheel", onWheel); removePostRender(); handler.destroy(); if (!viewer.isDestroyed()) viewer.destroy(); };
     }).catch((e: unknown) => { if (!destroyed) setError(e instanceof Error ? e.message : String(e)); });
-    return () => { destroyed = true; cleanup(); viewerRef.current = null; overlays.clear(); };
+    return () => { destroyed = true; cleanup(); viewerRef.current = null; archiveRef.current = null; overlays.clear(); useLayerLoad.getState().reset(); };
   }, [guidedSites]);
 
   // ── Pins and radius circle ────────────────────────────────────────────────
@@ -359,21 +374,76 @@ export default function MoonGlobe({ guidedSites }: { guidedSites?: FreeplaySite[
     });
   }, [ready, focusNonce]);
 
-  // ── Overlay visibility and opacity ────────────────────────────────────────
+  // ── Load imagery only when selected; removing it lets a failed layer retry. ──
   useEffect(() => {
-    const viewer = viewerRef.current;
-    if (!ready || !viewer) return;
+    const viewer = viewerRef.current, C = cesiumRef.current, archive = archiveRef.current;
+    if (!ready || !viewer || !C || !archive) return;
+    const setStatus = useLayerLoad.getState().setStatus;
     for (const def of LAYERS) {
+      if (def.sources.length === 0) continue;
       const state = layers[def.id];
-      for (const layer of overlayRefs.current.get(def.id) ?? []) { layer.show = state.on; layer.alpha = state.opacity; }
+      let made = overlayRefs.current.get(def.id);
+      if (!state.on) {
+        if (made) {
+          overlayRefs.current.delete(def.id);
+          for (const layer of made) viewer.imageryLayers.remove(layer, true);
+        }
+        setStatus(def.id, null);
+        continue;
+      }
+      if (!made) {
+        const assets = def.sources.map((_, index) => {
+          const original = archive.assets.find((entry) => entry.layerId === def.id && entry.sourceIndex === index);
+          return original && globeDisplayAsset(archive, original);
+        });
+        if (assets.some((asset) => !asset?.rectangle || !asset.width || !asset.height)) {
+          setStatus(def.id, { state: "error", message: "This stored map is unavailable." });
+          continue;
+        }
+        made = [];
+        const group = made;
+        let pending = 0, failed = false;
+        overlayRefs.current.set(def.id, group);
+        setStatus(def.id, { state: "loading" });
+        for (const asset of assets) {
+          const provider = new C.SingleTileImageryProvider({
+            url: globeAssetUrl(asset!), tileWidth: asset!.width!, tileHeight: asset!.height!,
+            rectangle: C.Rectangle.fromDegrees(...asset!.rectangle!), ellipsoid: C.Ellipsoid.MOON, credit: def.credit,
+          });
+          const requestImage = provider.requestImage.bind(provider);
+          provider.requestImage = (...args) => {
+            const result = requestImage(...args);
+            if (!result) return result;
+            pending++;
+            if (overlayRefs.current.get(def.id) === group) setStatus(def.id, { state: "loading" });
+            return result.then((image) => {
+              pending--;
+              if (!failed && pending === 0 && overlayRefs.current.get(def.id) === group) setStatus(def.id, { state: "ready" });
+              return image;
+            }, (failure) => {
+              pending--; failed = true;
+              if (overlayRefs.current.get(def.id) === group) setStatus(def.id, { state: "error", message: "Map image could not load. Turn the layer off and on to retry." });
+              throw failure;
+            });
+          };
+          const layer = viewer.imageryLayers.addImageryProvider(provider);
+          layer.alpha = state.opacity;
+          group.push(layer);
+        }
+      }
+      for (const layer of made) layer.alpha = state.opacity;
     }
     viewer.scene.requestRender();
   }, [ready, layers]);
 
+  const loadingLayers = Object.entries(statuses).some(([id, status]) => status?.state === "loading" && (id === "catalog" ? showCatalog : layers[id as keyof typeof layers]?.on));
+  const layerError = Object.entries(statuses).find(([id, status]) => status?.state === "error" && (id === "catalog" ? showCatalog : layers[id as keyof typeof layers]?.on))?.[1];
+
   return <div className="absolute inset-0">
     <div ref={containerRef} className="absolute inset-0 [&_.cesium-viewer-bottom]:hidden" />
-    {!ready && !error && <div className="absolute inset-0 grid place-items-center bg-void"><span className="type-data animate-pulse text-[0.65rem] uppercase tracking-[0.14em] text-muted-foreground">Loading Moon globe…</span></div>}
-    {dataError && <p role="alert" className="absolute left-3 top-12 rounded bg-void/90 p-2 text-xs text-destructive">{dataError}</p>}
-    {error && <div role="alert" className="absolute inset-0 grid place-items-center bg-void p-6 text-center text-xs text-destructive">{error}</div>}
+    {!ready && !error && <div className="absolute inset-0 grid place-items-center bg-void"><LoadingIndicator label="Moon globe" /></div>}
+    {ready && (baseLoading || loadingLayers) && <div className="pointer-events-none absolute left-3 top-12 rounded bg-void/90 px-3 py-2"><LoadingIndicator label={baseLoading ? "Moon imagery" : "map layers"} /></div>}
+    {layerError && <p role="alert" className="absolute left-3 top-20 rounded bg-void/90 p-2 text-xs text-destructive">{layerError.message}</p>}
+    {error && <div role="alert" className="absolute inset-0 grid place-items-center bg-void p-6 text-center text-xs text-destructive"><div>{error}<button type="button" onClick={() => window.location.reload()} className="ml-2 underline">Try again</button></div></div>}
   </div>;
 }

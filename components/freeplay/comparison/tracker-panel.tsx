@@ -8,8 +8,10 @@ import type { SlotMetrics } from "@/lib/comparison";
 import { MAX_SNAPSHOTS, pairKey, useComparison, type Snapshot } from "@/lib/comparison-store";
 import { useFreeplay } from "@/lib/freeplay-store";
 import type { TerrainStats } from "@/lib/terrain-stats";
+import { COMPOSITION_OXIDES, lowConfidenceOxides } from "@/lib/science/composition";
+import type { CompositionStats } from "@/lib/use-composition";
 
-export type TrackedSide = { site: FreeplaySite | null; metrics: SlotMetrics | null; terrain: string | null; layers: TerrainStats | null; color: string };
+export type TrackedSide = { site: FreeplaySite | null; metrics: SlotMetrics | null; terrain: string | null; layers: TerrainStats | null; composition: CompositionStats | null; meteor: Snapshot["a"]["meteor"] | null; loading: boolean; color: string };
 
 const noteClass = "hud-input mt-1.5 min-h-20 resize-y text-sm leading-relaxed text-bone placeholder:text-muted-foreground/60";
 const fmtWindow = (s: Snapshot) => `${s.startIso.slice(0, 10)} · ${s.durationHours < 48 ? `${s.durationHours} h` : `${+(s.durationHours / 24).toFixed(1)} d`}`;
@@ -34,8 +36,15 @@ function exportLog(log: Snapshot[]) {
     x.metrics.earthPct.toFixed(2), x.metrics.longestBlackoutHours.toFixed(1), x.metrics.peakSunEl.toFixed(2), x.metrics.energyKWh.toFixed(3),
     // Blank = the data has nothing for this site (or the entry predates these columns).
     x.layers?.slopeDeg?.toFixed(2) ?? "", x.layers?.elevationM?.toFixed(1) ?? "", x.layers?.insidePsr == null ? "" : x.layers.insidePsr ? "yes" : "no",
+    ...COMPOSITION_OXIDES.flatMap((oxide) => {
+      const comp = x.composition;
+      if (!comp) return ["", "", ""];
+      const low = lowConfidenceOxides(comp.oxidesWtPct, comp.sigmaWtPct).includes(oxide);
+      return [low ? "" : comp.oxidesWtPct[oxide].toFixed(2), comp.sigmaWtPct[oxide].toFixed(2), low ? "low confidence" : "reported"];
+    }),
+    x.composition?.resolutionKm ?? "", x.meteor?.name ?? "", x.meteor?.referenceUtc ?? "", x.meteor?.exposurePct.toFixed(1) ?? "",
   ];
-  const cols = ["name", "lat_deg", "lon_east_deg", "terrain", "sunlit_pct", "sunlit_hours", "longest_dark_h", "earth_pct", "longest_blackout_h", "peak_sun_el_deg", "energy_kwh", "slope_deg", "elevation_m", "inside_psr"];
+  const cols = ["name", "lat_deg", "lon_east_deg", "terrain", "sunlit_pct", "sunlit_hours", "longest_dark_h", "earth_pct", "longest_blackout_h", "peak_sun_el_deg", "energy_kwh", "slope_deg", "elevation_m", "inside_psr", ...COMPOSITION_OXIDES.flatMap((oxide) => [`${oxide}_wt_pct`, `${oxide}_sigma_wt_pct`, `${oxide}_status`]), "composition_resolution_km", "meteor_stream", "meteor_reference_utc", "meteor_geometric_exposure_pct"];
   // Free text can contain commas, quotes and newlines, so quote every text field. A leading = + - @ would
   // run as a formula when the file is opened in a spreadsheet, so those get a leading apostrophe.
   const q = (v: string | number) => {
@@ -62,14 +71,14 @@ export function TrackerPanel({ a, b }: { a: TrackedSide; b: TrackedSide }) {
   const [label, setLabel] = useState("");
 
   const key = pairKey(a.site, b.site);
-  const canLog = !!(a.site && b.site && a.metrics && b.metrics && a.terrain && b.terrain);
+  const canLog = !!(a.site && b.site && a.metrics && b.metrics && a.terrain && b.terrain && !a.loading && !b.loading);
   const logIt = (event: FormEvent) => {
     event.preventDefault();
     if (!canLog || !a.site || !b.site || !a.metrics || !b.metrics || !a.terrain || !b.terrain) return;
     addSnapshot({
       label: label.trim(), startIso, durationHours, panelAreaM2, panelEfficiency,
-      a: { site: a.site, terrain: a.terrain, metrics: a.metrics, ...(a.layers ? { layers: a.layers } : {}) },
-      b: { site: b.site, terrain: b.terrain, metrics: b.metrics, ...(b.layers ? { layers: b.layers } : {}) },
+      a: { site: a.site, terrain: a.terrain, metrics: a.metrics, ...(a.layers ? { layers: a.layers } : {}), ...(a.composition ? { composition: a.composition } : {}), ...(a.meteor ? { meteor: a.meteor } : {}) },
+      b: { site: b.site, terrain: b.terrain, metrics: b.metrics, ...(b.layers ? { layers: b.layers } : {}), ...(b.composition ? { composition: b.composition } : {}), ...(b.meteor ? { meteor: b.meteor } : {}) },
     });
     setLabel("");
   };

@@ -1,0 +1,35 @@
+{
+ "id": "preview-olivine-0",
+ "kind": "globe-asset",
+ "contentType": "image/webp",
+ "bytes": 549602,
+ "sha256": "8c8352401a7fc7adeb183042c422f8aac1c2aff7d5d3acc4ca2d2f7cfd3bbdc3",
+ "chunks": [
+  "globe-chunk-preview-olivine-0-8c8352401a7fc7ad-0",
+  "globe-chunk-preview-olivine-0-8c8352401a7fc7ad-1",
+  "globe-chunk-preview-olivine-0-8c8352401a7fc7ad-2"
+ ],
+ "layerId": "olivine",
+ "sourceIndex": 0,
+ "width": 1024,
+ "height": 512,
+ "rectangle": [
+  -180,
+  -90,
+  180,
+  90
+ ],
+ "source": {
+  "originalId": "olivine-0",
+  "originalSha256": "265dcf9c980076d394a53ebb53726bccbf06d5358cd3f370b5b139a6fe495332",
+  "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+  "originalSource": {
+   "kind": "wms",
+   "layers": "luna_kaguya_olivine",
+   "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_kaguya_olivine&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+   "requestedWidth": 2048,
+   "requestedHeight": 1024,
+   "retrievedAt": "2026-11-15T04:13:30.669Z"
+  }
+ }
+}

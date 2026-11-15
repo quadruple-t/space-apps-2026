@@ -215,6 +215,14 @@ data**, not the upstream full-resolution scientific archives. Most images are
 bounds. Zooming does not increase their detail. The globe fetches imagery only
 from this app's Firebase-backed API, with no live Moon Trek/Lunaserv fallback.
 
+For faster loading, the map uses separate half-resolution overview images (usually
+1024 × 512) derived from those stored originals. Nearest-neighbor downsampling
+retains the original sampled colors, and the WebP encoding is lossless; small
+features may be omitted at this display resolution. The complete 2048 × 1024
+originals and all collected source data remain in Firestore. A preview is used
+only when its recorded original SHA-256 matches the current snapshot; otherwise
+the app falls back to the original. The same upstream source credits apply.
+
 `catalog/globe-assets-v1` lists the stored assets. `catalog/globe-asset-*` documents
 hold manifests; `catalog/globe-chunk-*` documents hold their binary payloads.
 The `collected-data` asset is a gzipped JSON bundle containing the original static
@@ -226,12 +234,19 @@ and checksum. Private credentials and user records are excluded.
 npm run archive:globe                 # prepare snapshots and seed files; no cloud writes
 npm run archive:globe -- --upload     # validate and sync static data, then verify readback
 npm run archive:globe -- --verify     # read every stored asset back and check its checksum
+npm run archive:globe-previews        # prepare faster overviews from those verified snapshots
+npm run archive:globe-previews -- --upload --yes  # write and verify only the preview documents
 ```
 
 Import provenance is retained in `scripts/data-pipeline/globe-archive.lock.json`;
 generated Firestore documents remain under `data/seed/catalog/`. The original
 source credits above and [complete inventory](docs/SOURCES.md) also apply to the
 stored copies. The globe sidebar includes a collected-data download link.
+Mission comparison uses Lunar Prospector's regional oxide measurements from
+the composition API; the iron and titanium imagery use different instruments and
+are not point-for-point numerical equivalents. Meteor exposure in comparisons is
+the same relative 2026 reference geometry shown by the meteor layer, not an impact
+forecast. Sources and limitations are documented in [the data inventory](docs/SOURCES.md).
 
 The app is an educational planning and visualization tool, not an operational mission system. Data coverage and assumptions are exposed in Freeplay; the procedural display terrain should not be interpreted as measured topography.
 

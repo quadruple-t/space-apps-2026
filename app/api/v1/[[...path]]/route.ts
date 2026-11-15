@@ -1,4 +1,4 @@
-import { GLOBE_ARCHIVE_DOC } from "@/lib/globe-archive";
+import { GLOBE_ARCHIVE_DOC, GLOBE_DISPLAY_DOC } from "@/lib/globe-archive";
 import { FieldPath, FieldValue } from "firebase-admin/firestore";
 import { adminCredentialsRequired, adminDb, hasAdminCredentials, verifyFirebaseToken } from "@/lib/firebase/admin";
 import { publicReadDb } from "@/lib/firebase/public-read-db";
@@ -40,8 +40,13 @@ export async function GET(request: Request, context: { params: Promise<{ path?: 
     // catalog/science reads depend on a local service-account key or ADC configuration.
     const db = root === "users" ? adminDb() : publicReadDb();
     if (root === "globe" && id === "manifest" && !child) {
-      const snap = await db.doc(GLOBE_ARCHIVE_DOC).get();
-      return snap.exists ? json(serialize(snap.data())) : errorJson("Globe snapshots have not been imported", 404);
+      const [snap, display] = await Promise.all([
+        db.doc(GLOBE_ARCHIVE_DOC).get(),
+        db.doc(GLOBE_DISPLAY_DOC).get().catch(() => null),
+      ]);
+      if (!snap.exists) return errorJson("Globe snapshots have not been imported", 404);
+      const previews = display?.exists && Array.isArray(display.data()?.assets) ? display.data()!.assets : [];
+      return json(serialize({ ...snap.data(), displayAssets: previews }));
     }
     if (root === "catalog") {
       if (id === "sites" && !child) {

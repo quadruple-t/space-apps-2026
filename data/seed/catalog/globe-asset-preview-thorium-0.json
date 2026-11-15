@@ -1,0 +1,33 @@
+{
+ "id": "preview-thorium-0",
+ "kind": "globe-asset",
+ "contentType": "image/webp",
+ "bytes": 65396,
+ "sha256": "875f3e0ae7d422b3d6945d68ef3966a22a139e4ad7429338d9830d5b88df1493",
+ "chunks": [
+  "globe-chunk-preview-thorium-0-875f3e0ae7d422b3-0"
+ ],
+ "layerId": "thorium",
+ "sourceIndex": 0,
+ "width": 1024,
+ "height": 512,
+ "rectangle": [
+  -180,
+  -90,
+  180,
+  90
+ ],
+ "source": {
+  "originalId": "thorium-0",
+  "originalSha256": "f2c1df087d99e32626e34faffeedebd173f85ec25952f2e6224c2bedd262b66e",
+  "method": "Nearest-neighbor half-resolution overview, lossless WebP encoding",
+  "originalSource": {
+   "kind": "wms",
+   "layers": "luna_lp_deconvolved_thorium",
+   "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_lp_deconvolved_thorium&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+   "requestedWidth": 2048,
+   "requestedHeight": 1024,
+   "retrievedAt": "2026-11-15T04:13:30.669Z"
+  }
+ }
+}

@@ -16,8 +16,6 @@ export type TerrainStats = {
   insidePsr: boolean | null
 }
 
-const NONE: TerrainStats = { slopeDeg: null, elevationM: null, insidePsr: null }
-
 type MetricsBody = { slopeDeg?: number; elevationMeters?: number; insidePsr?: boolean; error?: { message?: string } }
 
 async function request(params: URLSearchParams): Promise<TerrainStats> {
@@ -36,32 +34,36 @@ async function request(params: URLSearchParams): Promise<TerrainStats> {
 
 const cache = new Map<string, Promise<TerrainStats>>()
 
-/** Catalog sites are asked for by id (their own DEM mask); others, and catalog sites the API refuses, by coordinates. Never rejects. */
+/** Catalog sites use their own DEM mask; others, and catalog sites the API refuses, use coordinates. */
 export function fetchTerrainStats(site: SiteRef): Promise<TerrainStats> {
   const key = `${site.catalogId ?? ""}|${site.latitudeDeg}|${site.longitudeDeg}`
   let p = cache.get(key)
   if (!p) {
     const byPoint = () => request(new URLSearchParams({ lat: String(site.latitudeDeg), lon: String(site.longitudeDeg) }))
-    p = (site.catalogId ? request(new URLSearchParams({ siteId: site.catalogId })).catch(byPoint) : byPoint()).catch(() => NONE)
+    p = site.catalogId ? request(new URLSearchParams({ siteId: site.catalogId })).catch(byPoint) : byPoint()
     cache.set(key, p)
+    p.catch(() => { if (cache.get(key) === p) cache.delete(key) })
   }
   return p
 }
 
-type State = { key: string | null; data: TerrainStats | null }
+type State = { key: string | null; data: TerrainStats | null; error: string | null }
 
 /** Terrain stats for a site; `loading` is true until the first answer. */
 export function useTerrainStats(site: SiteRef | null) {
   const key = site ? `${site.catalogId ?? ""}|${site.latitudeDeg}|${site.longitudeDeg}` : null
-  const [state, setState] = useState<State>({ key: null, data: null })
+  const [attempt, setAttempt] = useState(0)
+  const tag = key ? `${key}|${attempt}` : null
+  const [state, setState] = useState<State>({ key: null, data: null, error: null })
   useEffect(() => {
-    if (!key || !site) return
+    if (!tag || !site) return
     let alive = true
-    void fetchTerrainStats(site).then((data) => { if (alive) setState({ key, data }) })
+    void fetchTerrainStats(site).then((data) => { if (alive) setState({ key: tag, data, error: null }) })
+      .catch((error: unknown) => { if (alive) setState({ key: tag, data: null, error: error instanceof Error ? error.message : "Terrain data unavailable" }) })
     return () => { alive = false }
-    // `site` is folded into `key`.
+    // `site` and retry count are folded into `tag`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key])
-  if (state.key !== key) return { data: null, loading: !!key }
-  return { data: state.data, loading: false }
+  }, [tag])
+  if (state.key !== tag) return { data: null, loading: !!tag, error: null, retry: () => setAttempt((n) => n + 1) }
+  return { data: tag ? state.data : null, loading: false, error: tag ? state.error : null, retry: () => setAttempt((n) => n + 1) }
 }

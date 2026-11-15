@@ -157,13 +157,19 @@ function sampleWindow(series: CartesianSeries, latDeg: number, lonDeg: number, p
 }
 
 let compositionCache: { grid: CompositionGrid; loadedAt: number } | null = null;
+let compositionPending: Promise<CompositionGrid | null> | null = null;
 async function loadComposition(db: Db): Promise<CompositionGrid | null> {
   if (compositionCache && Date.now() - compositionCache.loadedAt < 10 * 60_000) return compositionCache.grid;
-  const snap = await db.doc(COMPOSITION_DOC).get();
-  if (!snap.exists) return null;
-  const grid = decodeCompositionGrid(snap.data()!, binary);
-  compositionCache = { grid, loadedAt: Date.now() };
-  return grid;
+  if (compositionPending) return compositionPending;
+  compositionPending = (async () => {
+    const snap = await db.doc(COMPOSITION_DOC).get();
+    if (!snap.exists) return null;
+    const grid = decodeCompositionGrid(snap.data()!, binary);
+    compositionCache = { grid, loadedAt: Date.now() };
+    return grid;
+  })();
+  try { return await compositionPending; }
+  finally { compositionPending = null; }
 }
 
 function coverageError() { return errorJson(`Stored JPL Horizons ephemeris covers ${MAIN_SERIES_START} through ${MAIN_SERIES_END}`, 422); }
@@ -205,11 +211,16 @@ export async function scienceGet(db: Db, id: string | undefined, url: URL): Prom
   const located = await resolveLocation(db, url, false);
   if (!located.ok) return located.response;
   const { latDeg: latitude, lonDeg: longitude, siteSnap } = located;
-  const series = await loadSeries(db, startMs, availableEndMs);
-  if (!series) return errorJson("Ephemeris data unavailable for this interval", 503);
-  const terrainSnap = siteId ? await db.doc(`sites/${siteId}/terrain/v1`).get() : null;
+  // A terrain horizon is independent of ephemeris. For other requests, fetch
+  // the series and the site's terrain at the same time.
+  const [series, terrainSnap] = await Promise.all([
+    id === "horizon" ? Promise.resolve(null) : loadSeries(db, startMs, availableEndMs),
+    siteId ? db.doc(`sites/${siteId}/terrain/v1`).get() : Promise.resolve(null),
+  ]);
   const { mask, horizonSource, slopeDeg, fromSiteMask, insidePsr } = await loadHorizon(db, terrainSnap, latitude, longitude, id === "metrics");
   const elevationMeters: number | null = fromSiteMask ? siteSnap?.get("coordinates.elevationM") ?? null : null;
+  if (id === "horizon") return mask.source === "none" ? json({ horizon: null, source: horizonSource, provenance: "scientific" }) : json({ horizon: { azimuthStepDeg: mask.binDeg, elevationsDeg: Array.from({ length: Math.round(360 / mask.binDeg) }, (_, i) => maskAt(mask.maskElevationDeg, mask.binDeg, i * mask.binDeg)), provenance: "scientific" }, source: horizonSource, provenance: "scientific" });
+  if (!series) return errorJson("Ephemeris data unavailable for this interval", 503);
   const frame = siteFrame(latitude, longitude);
   // Shared with the client graphs: lib/science/sky.ts holds the one visibility implementation.
   const profile = profileOf(mask);
@@ -218,7 +229,6 @@ export async function scienceGet(db: Db, id: string | undefined, url: URL): Prom
     sun: { azimuthDeg: p.sunAz, elevationDeg: p.sunEl, visible: p.sunVisible },
     earth: { azimuthDeg: p.earthAz, elevationDeg: p.earthEl, visible: p.earthVisible },
   });
-  if (id === "horizon") return mask.source === "none" ? json({ horizon: null, source: horizonSource, provenance: "scientific" }) : json({ horizon: { azimuthStepDeg: mask.binDeg, elevationsDeg: Array.from({ length: Math.round(360 / mask.binDeg) }, (_, i) => maskAt(mask.maskElevationDeg, mask.binDeg, i * mask.binDeg)), provenance: "scientific" }, source: horizonSource, provenance: "scientific" });
   if (id === "celestial") return json({ timestamp: fromIso, ...bodies(sky(startMs)), horizonSource, provenance: "scientific" });
   if (id === "timeline") {
     const samples = skySamples(series, frame, profile, startMs, availableEndMs, stepMinutes).map((p) => ({ timestamp: new Date(p.t).toISOString(), ...bodies(p) }));

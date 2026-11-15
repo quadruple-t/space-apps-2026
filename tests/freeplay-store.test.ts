@@ -26,6 +26,33 @@ describe("freeplay store", () => {
     expect(calloutOpen).toBe(true)
   })
 
+  test("dismissing a custom draft removes the selection without saving it", () => {
+    const s = useFreeplay.getState()
+    s.selectCustom(-85, 10)
+    s.setCalloutOpen(false)
+    expect(useFreeplay.getState().site).toBeNull()
+    expect(useFreeplay.getState().savedSites).toHaveLength(0)
+  })
+
+  test("closing a saved site's card preserves its marker and preset", () => {
+    const s = useFreeplay.getState()
+    s.selectCustom(-85, 10)
+    s.saveCurrentSite("Ridge")
+    const savedId = useFreeplay.getState().site!.id
+    s.setCalloutOpen(false)
+    expect(useFreeplay.getState().site?.id).toBe(savedId)
+    expect(useFreeplay.getState().savedSites).toHaveLength(1)
+  })
+
+  test("opening an unsaved point in orbit commits it for the current session", () => {
+    const s = useFreeplay.getState()
+    s.selectCustom(-85, 10)
+    s.setView("orbit")
+    expect(useFreeplay.getState().siteDraft).toBe(false)
+    expect(useFreeplay.getState().site?.kind).toBe("custom")
+    expect(useFreeplay.getState().calloutOpen).toBe(false)
+  })
+
   test("elapsed time is clamped to the mission duration", () => {
     const s = useFreeplay.getState()
     s.setDuration(24)

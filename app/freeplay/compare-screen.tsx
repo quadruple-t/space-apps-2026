@@ -3,17 +3,22 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeftRight, BatteryCharging, Globe2, Sun, TriangleAlert } from "lucide-react";
 import { MetricsTable } from "@/components/freeplay/comparison/metrics-table";
+import { LoadingIndicator } from "@/components/freeplay/loading-indicator";
+import { MeteorStreamsPanel } from "@/components/freeplay/meteor-streams-panel";
 import { SitePicker } from "@/components/freeplay/comparison/site-picker";
 import { TrackerPanel } from "@/components/freeplay/comparison/tracker-panel";
 import { TimeSeriesChart, type Band, type Series } from "@/components/freeplay/charts";
 import { PanelSettings, solarPowerW } from "@/components/freeplay/graphs-panel";
 import { TimeControls } from "@/components/freeplay/time-controls";
-import { computeMetrics, type SiteValues } from "@/lib/comparison";
+import { computeMetrics, OXIDE_BY_METRIC, type SiteValues } from "@/lib/comparison";
 import { useComparison } from "@/lib/comparison-store";
 import { currentTimeMs, useFreeplay } from "@/lib/freeplay-store";
 import { earthUp, sampleAt, sunUp, type Sample } from "@/lib/illumination";
 import { useTerrainStats } from "@/lib/terrain-stats";
+import { useComposition } from "@/lib/use-composition";
 import { useLunarWindow } from "@/lib/use-lunar-data";
+import { getFactSheet } from "@/lib/firestore/factsService";
+import { meteorStreamsFromFacts, streamIncidence, type MeteorStream } from "@/lib/science/meteor-streams";
 
 type GraphFocus = "sunlight" | "earth" | "power";
 
@@ -31,7 +36,7 @@ const niceCeil = (v: number) => { const p = 10 ** Math.floor(Math.log10(v)); ret
 /** A smooth horizon ignores terrain, so shares for that site are upper bounds. Say so. */
 function TerrainNote({ source, smooth, loading, error }: { source: string | null; smooth: boolean; loading: boolean; error: string | null }) {
   if (error) return <p role="alert" className="mt-1.5 text-xs text-destructive">Couldn&apos;t load data: {error}</p>;
-  if (loading) return <p className="type-data mt-1.5 animate-pulse text-[0.6rem] uppercase tracking-[0.1em] text-muted-foreground">Loading…</p>;
+  if (loading) return <LoadingIndicator label="site data" className="mt-1.5" />;
   if (!source) return null;
   return smooth
     ? <p className="mt-1.5 flex items-start gap-1.5 text-xs text-amber-300/90"><TriangleAlert size={13} className="mt-0.5 shrink-0" aria-hidden />No terrain data here ({source}). Sunlight and Earth shares are upper bounds.</p>
@@ -51,6 +56,7 @@ export function CompareScreen() {
   const slotA = useComparison((s) => s.slotA);
   const slotB = useComparison((s) => s.slotB);
   const selectedMetrics = useComparison((s) => s.metrics);
+  const selectedStream = useFreeplay((s) => s.meteorStream);
   const { setSlot, swap, addMetric, removeMetric, resetMetrics } = useComparison.getState();
   const [focus, setFocus] = useState<GraphFocus>("sunlight");
   useEffect(() => { hydrate(); }, [hydrate]);
@@ -71,8 +77,26 @@ export function CompareScreen() {
   const metricsB = useMemo(() => samplesB && computeMetrics(samplesB, panelAreaM2, panelEfficiency), [samplesB, panelAreaM2, panelEfficiency]);
   const terrainA = useTerrainStats(a);
   const terrainB = useTerrainStats(b);
-  const valuesA: SiteValues = { window: metricsA, terrain: terrainA.data };
-  const valuesB: SiteValues = { window: metricsB, terrain: terrainB.data };
+  const needsComposition = selectedMetrics.some((key) => !!OXIDE_BY_METRIC[key]);
+  const compositionA = useComposition(a, needsComposition);
+  const compositionB = useComposition(b, needsComposition);
+  const needsMeteor = selectedMetrics.includes("meteorExposure");
+  const [meteorData, setMeteorData] = useState<{ streams: MeteorStream[]; error: boolean } | null>(null);
+  useEffect(() => {
+    if (!needsMeteor || meteorData) return;
+    let alive = true;
+    getFactSheet("meteor-streams-2026").then((sheet) => {
+      if (!sheet) throw new Error("Meteor reference data unavailable");
+      const streams = meteorStreamsFromFacts(sheet);
+      if (!streams.length) throw new Error("Meteor reference data unavailable");
+      if (alive) setMeteorData({ streams, error: false });
+    }).catch(() => { if (alive) setMeteorData({ streams: [], error: true }); });
+    return () => { alive = false; };
+  }, [needsMeteor, meteorData]);
+  const stream = meteorData?.streams.find((item) => item.name === selectedStream);
+  const exposure = (site: typeof a) => !site ? null : !meteorData ? undefined : !stream ? null : streamIncidence(site.latitudeDeg, site.longitudeDeg, stream) * 100;
+  const valuesA: SiteValues = { window: metricsA, terrain: terrainA.data, composition: !a ? null : compositionA.loading ? undefined : compositionA.data, meteorExposure: exposure(a) };
+  const valuesB: SiteValues = { window: metricsB, terrain: terrainB.data, composition: !b ? null : compositionB.loading ? undefined : compositionB.data, meteorExposure: exposure(b) };
 
   const chart = useMemo(() => {
     if (!samplesA?.length || !samplesB?.length) return null;
@@ -136,7 +160,14 @@ export function CompareScreen() {
         <section className="hud-panel p-4 sm:p-5" aria-label="Metrics">
           <MetricsTable a={{ name: a?.name ?? "—", color: COLOR_A, values: valuesA }} b={{ name: b?.name ?? "—", color: COLOR_B, values: valuesB }}
             selected={selectedMetrics} onAdd={addMetric} onRemove={removeMetric} onReset={resetMetrics} />
-          <p className="mt-3 text-xs text-muted-foreground">Sun and Earth numbers come from stored JPL Horizons positions and available LOLA terrain, sampled hourly over the window. Slope, elevation and permanently-shadowed flags are the values behind the map layers. &quot;No data&quot; means the data set has nothing for that place, not zero. Solar energy assumes a flat {panelAreaM2} m² panel at {Math.round(panelEfficiency * 100)}% efficiency.</p>
+          {(terrainA.loading || terrainB.loading || compositionA.loading || compositionB.loading || (needsMeteor && !meteorData)) && <LoadingIndicator label="comparison metrics" className="mt-3" />}
+          {(terrainA.error || terrainB.error) && <p role="alert" className="mt-2 text-xs text-destructive">Couldn&apos;t load terrain metrics. <button type="button" onClick={() => { if (terrainA.error) terrainA.retry(); if (terrainB.error) terrainB.retry(); }} className="underline">Try again</button></p>}
+          {(compositionA.error || compositionB.error) && <p role="alert" className="mt-2 text-xs text-destructive">Couldn&apos;t load regional composition. <button type="button" onClick={() => { if (compositionA.error) compositionA.retry(); if (compositionB.error) compositionB.retry(); }} className="underline">Try again</button></p>}
+          {meteorData?.error && needsMeteor && <p role="alert" className="mt-2 text-xs text-destructive">Couldn&apos;t load meteor reference data. <button type="button" onClick={() => setMeteorData(null)} className="underline">Try again</button></p>}
+          {needsMeteor && <MeteorStreamsPanel />}
+          <p className="mt-3 text-xs text-muted-foreground">Sun and Earth numbers use stored JPL Horizons positions and available LOLA terrain, sampled hourly. Solar energy assumes a flat {panelAreaM2} m² panel at {Math.round(panelEfficiency * 100)}% efficiency. &quot;No data&quot; is not zero.</p>
+          {needsComposition && <p className="mt-2 text-xs text-muted-foreground">Oxides are Lunar Prospector regional averages over roughly 60 km, not measurements at the site or recoverable resources. The iron and titanium maps use different instruments and may differ. Values below twice their uncertainty are marked low confidence; hover over a value for its uncertainty.</p>}
+          {needsMeteor && <p className="mt-2 text-xs text-muted-foreground">Meteor exposure is relative stream-facing geometry for the chosen 2026 reference, not an impact probability, storm frequency, or forecast.</p>}
         </section>
 
         <section className="hud-panel p-4 sm:p-5" aria-label="Comparison over time">
@@ -152,7 +183,7 @@ export function CompareScreen() {
               ? <TimeSeriesChart title={title} xs={chart.xs} series={chart.series} bands={chart.bands} yUnit={focus === "power" ? "W" : "°"} zeroLine={focus !== "power"}
                   yDomain={focus === "power" ? chart.powerDomain : ELEVATION_DOMAIN} cursorX={tMs} onSeek={(x) => setElapsed((x - startMs) / 3_600_000)}
                   formatX={fmtTime} formatTick={durationHours > 72 ? fmtTick : (ms) => new Date(ms).toISOString().slice(11, 16)} height={230} />
-              : <p className="rounded border border-dashed border-line p-6 text-center text-sm text-muted-foreground">{a && b ? "Loading both sites…" : "Choose two presets to draw the comparison."}</p>}
+              : <div className="rounded border border-dashed border-line p-6 text-center text-sm text-muted-foreground">{!a || !b ? "Choose two presets to draw the comparison." : winA.error || winB.error ? "Couldn’t load the comparison graph. Check the site errors above." : <LoadingIndicator label="both sites" />}</div>}
           </div>
           <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
             {([["A", COLOR_A, a, nowA], ["B", COLOR_B, b, nowB]] as const).map(([name, color, site, now]) => <div key={name} className="hud-readout">
@@ -167,8 +198,8 @@ export function CompareScreen() {
       </div>
 
       <TrackerPanel
-        a={{ site: a, metrics: metricsA, terrain: winA.data?.horizon.source ?? null, layers: terrainA.data, color: COLOR_A }}
-        b={{ site: b, metrics: metricsB, terrain: winB.data?.horizon.source ?? null, layers: terrainB.data, color: COLOR_B }} />
+        a={{ site: a, metrics: metricsA, terrain: winA.data?.horizon.source ?? null, layers: terrainA.data, composition: compositionA.data, meteor: needsMeteor && stream && typeof valuesA.meteorExposure === "number" ? { name: stream.name, referenceUtc: stream.referenceUtc, exposurePct: valuesA.meteorExposure } : null, loading: terrainA.loading || compositionA.loading || (needsMeteor && !meteorData), color: COLOR_A }}
+        b={{ site: b, metrics: metricsB, terrain: winB.data?.horizon.source ?? null, layers: terrainB.data, composition: compositionB.data, meteor: needsMeteor && stream && typeof valuesB.meteorExposure === "number" ? { name: stream.name, referenceUtc: stream.referenceUtc, exposurePct: valuesB.meteorExposure } : null, loading: terrainB.loading || compositionB.loading || (needsMeteor && !meteorData), color: COLOR_B }} />
     </div>
   </div>;
 }
