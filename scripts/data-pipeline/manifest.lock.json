@@ -321,6 +321,8 @@
    "url": "https://imbrium.mit.edu/DATA/SLDEM2015/TILES/FLOAT_IMG/",
    "note": "raw float32 tiles (km, offset 1737.4); row-block range reads for \u00b160\u00b0 sites",
    "firstReadAt": "2026-11-14T17:23:53Z"
-  }
+  },
+  "globe/lunaserv-capabilities.xml": {"url": "https://wms.im-ldi.com/?service=WMS&request=GetCapabilities", "bytes": 640090, "sha256": "a29385e5f42259f13d8ae7660bd6ca3f5f5e7036905056ebc4ad4067e41ca47a", "lastModified": null, "etag": null, "retrievedAt": "2026-11-14T23:59:56Z"},
+  "globe/tum-meteor-streams-2026.html": {"url": "https://www.asg.ed.tum.de/en/lpe/forschung/mondeinschlagsblitze/meteoroid-stream-geometry/", "bytes": 52800, "sha256": "f7894cf2e4eb739902acaca94c5df84f1f436a45d6574807d896409063636b1a", "lastModified": null, "etag": null, "retrievedAt": "2026-11-15T00:07:25Z"}
  }
 }

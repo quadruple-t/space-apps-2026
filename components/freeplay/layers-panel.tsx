@@ -1,6 +1,7 @@
 "use client";
 
-import { LAYERS } from "@/scenes/cesium/moon-layers";
+import { LAYERS, LAYER_CATEGORIES } from "@/scenes/cesium/moon-layers";
+import { MeteorStreamsPanel } from "./meteor-streams-panel";
 import { useFreeplay } from "@/lib/freeplay-store";
 
 export function LayersPanel({ className = "" }: { className?: string }) {
@@ -17,8 +18,11 @@ export function LayersPanel({ className = "" }: { className?: string }) {
         <span className="text-[0.66rem] text-bone">Base imagery</span>
         <span className="type-data text-[0.52rem] uppercase text-muted-foreground">always on</span>
       </div>
-      <p className="mt-0.5 text-[0.56rem] text-muted-foreground">LRO WAC global mosaic · NASA Moon Trek</p>
+      <p className="mt-0.5 text-[0.56rem] text-muted-foreground">LRO WAC mosaic · stored Firebase overview</p>
     </div>
+
+    <p className="text-[0.56rem] leading-snug text-muted-foreground">Stored map snapshots at overview resolution. Zooming in does not add source detail.</p>
+    <a download href="/api/v1/globe/assets/collected-data" className="text-[0.56rem] text-retro-purple underline">Download collected scientific data</a>
 
     <div className={`hud-readout transition-colors ${showCatalog ? "border-retro-purple/50" : ""}`}>
       <div className="flex items-center justify-between gap-2">
@@ -33,7 +37,13 @@ export function LayersPanel({ className = "" }: { className?: string }) {
       <div className="type-data mt-1.5 flex items-center gap-1.5 text-[0.54rem] text-muted-foreground"><span aria-hidden className="text-bone">★</span>catalog site</div>
     </div>
 
-    {LAYERS.map((def) => {
+    {LAYER_CATEGORIES.map((category) => <details key={category.id} open className="border-t border-line pt-2">
+      <summary className="cursor-pointer text-[0.7rem] text-bone">{category.label}
+        <span className="type-data ml-2 text-[0.55rem] text-retro-purple">{LAYERS.filter((d) => d.category === category.id && layers[d.id].on).length} active</span>
+      </summary>
+      <p className="my-2 text-[0.56rem] text-muted-foreground">{category.description}</p>
+      <div className="flex flex-col gap-2">
+    {LAYERS.filter((def) => def.category === category.id).map((def) => {
       const state = layers[def.id];
       const inputId = `layer-${def.id}`;
       return <div key={def.id} className={`hud-readout transition-colors ${state.on ? "border-retro-purple/50" : ""}`}>
@@ -47,6 +57,7 @@ export function LayersPanel({ className = "" }: { className?: string }) {
         </div>
         <p className="mt-0.5 text-[0.56rem] leading-snug text-muted-foreground">{def.description}</p>
 
+        {def.id === "meteorStreams" && state.on && <MeteorStreamsPanel />}
         <div className="mt-1.5">
           {def.legend.kind === "ramp"
             ? <>
@@ -65,6 +76,6 @@ export function LayersPanel({ className = "" }: { className?: string }) {
         </label>
         <p className="type-data mt-1 text-[0.5rem] text-muted-foreground/80">{def.credit}</p>
       </div>;
-    })}
+    })}</div></details>)}
   </section>;
 }

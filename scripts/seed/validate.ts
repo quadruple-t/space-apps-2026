@@ -17,6 +17,7 @@ import {
 import { COLLECTIONS, STATIC_COLLECTIONS, TERRAIN_SUBCOLLECTION } from "../../lib/firestore/collections";
 import type { SeedData, SeedDoc, SeedValue } from "./load";
 import { documentSize } from "./size";
+import { GLOBE_CHUNK_BYTES, validateGlobeAsset } from "../../lib/globe-archive";
 
 export const MAX_DOC_BYTES = 500 * 1024;
 
@@ -50,6 +51,7 @@ function docId(path: string): string {
 
 export function validateSeed(docs: SeedDoc[]): string[] {
   const errors: string[] = [];
+  const byPath = new Map(docs.map((doc) => [doc.path, doc]));
   const err = (path: string, msg: string) => errors.push(`${path}: ${msg}`);
   const siteIds = new Set(docs.filter((d) => d.group === COLLECTIONS.sites).map((d) => docId(d.path)));
 
@@ -88,6 +90,22 @@ export function validateSeed(docs: SeedDoc[]): string[] {
     if (size > MAX_DOC_BYTES) err(path, `estimated size ${(size / 1024).toFixed(1)} KB exceeds ${MAX_DOC_BYTES / 1024} KB`);
 
     switch (d.group) {
+      case COLLECTIONS.catalog: {
+        if (data.kind === "globe-asset") {
+          try {
+            const asset = validateGlobeAsset(data, String(data.id));
+            for (let index = 0; index < asset.chunks.length; index++) {
+              const chunk = byPath.get(`catalog/${asset.chunks[index]}`)?.data;
+              const expected = Math.min(GLOBE_CHUNK_BYTES, asset.bytes - index * GLOBE_CHUNK_BYTES);
+              if (!chunk || chunk.assetId !== asset.id || chunk.sha256 !== asset.sha256 || chunk.index !== index
+                || !Buffer.isBuffer(chunk.data) || chunk.data.length !== expected) err(path, `missing or invalid binary chunk ${index}`);
+            }
+          } catch { err(path, "invalid globe asset manifest"); }
+        } else if (data.kind === "globe-asset-chunk" && (!Buffer.isBuffer(data.data) || data.data.length > GLOBE_CHUNK_BYTES)) {
+          err(path, "invalid globe binary chunk");
+        }
+        break;
+      }
       case COLLECTIONS.sites: {
         oneOf(path, data, "family", SITE_FAMILIES);
         oneOf(path, data, "siteKind", SITE_KINDS);

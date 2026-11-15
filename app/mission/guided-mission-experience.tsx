@@ -21,7 +21,7 @@ export function GuidedMissionExperience() {
     useFreeplay.getState().setStart(GUIDED_START_UTC);
     useFreeplay.setState((state) => ({
       view: "globe", site: null, calloutOpen: false, showCatalog: false,
-      layers: { slope: { ...state.layers.slope, on: false }, illumination: { ...state.layers.illumination, on: false }, psr: { ...state.layers.psr, on: false }, elevation: { ...state.layers.elevation, on: false } },
+      layers: Object.fromEntries(Object.entries(state.layers).map(([id, layer]) => [id, { ...layer, on: false }])) as typeof state.layers,
     }));
     setDrive(null);
     setLessonIndex(0);

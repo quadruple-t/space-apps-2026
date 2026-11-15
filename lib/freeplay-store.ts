@@ -4,7 +4,7 @@ import { create } from "zustand"
 import { COORD_REF, type FreeplaySite } from "@/data/sites"
 
 export type FreeplayView = "globe" | "orbit"
-export type LayerId = "slope" | "illumination" | "psr" | "elevation"
+export type LayerId = "slope" | "illumination" | "psr" | "elevation" | "landings" | "impacts" | "heritage" | "coldTraps" | "resources" | "artemis" | "titanium" | "iron" | "thorium" | "olivine" | "plagioclase" | "pyroxene" | "silicates" | "iceDepth" | "temperatureMax" | "temperatureMin" | "impactHistory" | "meteorStreams"
 export type LayerState = { on: boolean; opacity: number }
 export type GraphTab = "daily" | "yearly"
 
@@ -57,6 +57,8 @@ type FreeplayState = {
 
   layers: Record<LayerId, LayerState>
   /** Show the Lunaris360 catalog sites (landings and Artemis candidates) as pins on the globe */
+  meteorStream: string
+  setMeteorStream: (name: string) => void
   showCatalog: boolean
   graphTab: GraphTab
   panelAreaM2: number
@@ -112,11 +114,31 @@ export const useFreeplay = create<FreeplayState>((set, get) => {
     speed: 10,
 
     layers: {
+      landings: { on: false, opacity: 0.8 },
+      impacts: { on: false, opacity: 0.8 },
+      heritage: { on: false, opacity: 0.8 },
+      coldTraps: { on: false, opacity: 0.8 },
+      resources: { on: false, opacity: 0.8 },
+      artemis: { on: false, opacity: 0.8 },
+      titanium: { on: false, opacity: 0.7 },
+      iron: { on: false, opacity: 0.7 },
+      thorium: { on: false, opacity: 0.7 },
+      olivine: { on: false, opacity: 0.7 },
+      plagioclase: { on: false, opacity: 0.7 },
+      pyroxene: { on: false, opacity: 0.7 },
+      silicates: { on: false, opacity: 0.7 },
+      iceDepth: { on: false, opacity: 0.7 },
+      temperatureMax: { on: false, opacity: 0.7 },
+      temperatureMin: { on: false, opacity: 0.7 },
+      impactHistory: { on: false, opacity: 0.7 },
+      meteorStreams: { on: false, opacity: 0.7 },
       slope: { on: false, opacity: 0.7 },
       illumination: { on: false, opacity: 0.75 },
       psr: { on: false, opacity: 0.9 },
       elevation: { on: false, opacity: 0.6 },
     },
+    meteorStream: "Geminids",
+    setMeteorStream: (meteorStream) => set({ meteorStream }),
     showCatalog: false,
     graphTab: "daily",
     panelAreaM2: 1,

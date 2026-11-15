@@ -212,7 +212,7 @@ describe("seed validator", () => {
     const { docs, errors } = loadSeedDocs("data/seed");
     expect(errors).toEqual([]);
     expect(validateSeed(docs)).toEqual([]);
-  });
+  }, 60_000); // Full static dataset includes the binary globe archive.
 
   it("flags bad enums, weights, refs and users/", () => {
     const doc = (p: string, data: Record<string, never> | object) => ({
