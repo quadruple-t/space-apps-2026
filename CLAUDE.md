@@ -14,10 +14,13 @@ npm run build    # production build and type-check
 npm run start    # serve the production build
 npm run lint     # ESLint (Next.js + React Compiler rules)
 npm test         # Vitest unit tests
-npm run test:rules # Firestore security-rules tests (starts emulator)
+npm run test:rules # Firestore security-rules tests (starts emulator; port 8080 must be free)
+npx vitest run tests/illumination.test.ts   # single test file (add -t "name" to filter)
+npm run emulators  # Firebase auth + Firestore emulators (needs Java 21)
+npm run seed:emulator   # validate data/seed/ and write it to the emulator (seed:prod needs -- --yes)
 ```
 
-`npm run build` also type-checks the application. Emulator-backed scripts are documented in README.md.
+`npm run build` also type-checks the application. `dev`/`build` first run `scripts/copy-cesium.mjs` (copies Cesium static assets). Copy `.env.example` to `.env.local`; `NEXT_PUBLIC_USE_FIRESTORE_EMULATOR=true` points the app at the local emulators. See README.md for seed flags, rules deployment and the assistant's one-time Firebase setup.
 
 ## Stack notes
 
@@ -28,8 +31,10 @@ npm run test:rules # Firestore security-rules tests (starts emulator)
 
 ## Architecture
 
-- `app/`: routes `/`, `/mission`, `/explore`, `/compare`, `/science`, plus the versioned `/api/v1/` science and catalog API. `/explore` hosts working Freeplay controls; `/mission` runs the guided tutorial (`app/mission/`: lesson copy in `tutorial-content.ts`, chapter and site records from `/api/v1/chapters` and `/api/v1/catalog/sites` via `use-tutorial-data.ts`) and `/compare` is currently an empty-state shell.
+- `app/`: routes `/`, `/mission`, `/freeplay` (globe, `orbit`, `drive`, `approach` screens; state in `lib/freeplay-store.ts`), `/compare`, `/science`, `/how-it-works`, `/mission-control` (learning content, unrelated to the assistant), plus the versioned `/api/v1/` science and catalog API (single catch-all handler in `app/api/v1/[[...path]]`). `/explore` and `/explore/approach` are redirects to `/freeplay/drive` and `/freeplay/approach` (`next.config.ts`). `/mission` runs the guided tutorial (`app/mission/`: lesson copy in `tutorial-content.ts`, chapter and site records from `/api/v1/chapters` and `/api/v1/catalog/sites` via `use-tutorial-data.ts`) and `/compare` is currently an empty-state shell. `FREEPLAY_INTEGRATION_CONTRACT.md` is an older doc that still refers to `app/explore/freeplay.tsx`; trust the code.
 - Before changing or adding `/api/v1` endpoints, read `docs/API.md`; keep that reference in sync with route behavior, parameters, payloads, and authentication.
+- `scenes/cesium/`: Cesium-based Moon globe used by Freeplay's globe screen (`moon-globe.tsx`, layers, `load-cesium.ts`).
+- `lib/assistant/` + `components/freeplay/mission-control-assistant/`: the Freeplay "Mission Control" AI assistant. It uses Firebase AI Logic (`firebase/ai`) with a server-side prompt template whose source of truth is `docs/ai/prompt-templates/mission-control-v1-1-0.prompt`; editing it requires re-pasting into the Firebase console (see README). `agent-loop.ts` is a manual, capped tool loop (no SDK auto function calling); data tools wrap read-only `/api/v1` calls, and `show_in_freeplay` (applied by `ui-actions.ts`, undoable from the chat) is the only tool that changes UI state, with schemas in `tool-schemas.ts` and validators in `tool-validation.ts`. Keep tool, validator and template changes in sync, and the answers sourced from tools, never model memory. Tests mock the model (`tests/assistant-*.test.ts`).
 - `scenes/lunar/`: the reusable 3D scene. `lunar-scene.tsx` composes `terrain.ts` (height function and mesh builder), `celestial.tsx` (Sun, Earth, stars), `camera-rig.tsx` and `landing-site.tsx`. `lunar-scene-loader.tsx` loads it client-side via `next/dynamic`.
 - `integrations/science/`: client API adapter and provider types. The API performs authoritative science lookups from Firestore; the illustrative mock provider is not Freeplay's live provider.
 - `lib/ephemeris/`, `lib/terrain/`, `lib/firestore/`: decode stored ephemeris and terrain data, compute local sky positions and test visibility against horizon masks.
@@ -46,6 +51,8 @@ npm run test:rules # Firestore security-rules tests (starts emulator)
 - Horizon source priority is site-specific LOLA mask, available LOLA polar grid cell, then smooth-sphere fallback. The fallback must stay labelled and its sunlight/visibility shares must be described as upper bounds.
 - Keep display terrain and science terrain clearly distinct. Procedural geometry is for visual orientation; LOLA masks drive obstruction calculations only where coverage exists.
 - Hero HUD values and landing-page horizon graphics are illustrative and must not be described as live telemetry.
+- Surface composition (`/api/v1/science/composition`, `compositionGrid`) is the Lunar Prospector GRS 2° oxide map: regional averages over about 60 km, never site-scale values or ore grades.
+- `/api/v1/science/rank` and `/science/composition` also accept Artemis candidate regions through their `representativePoint`, labelled `approximate-region`; every other science endpoint still rejects unverified sites with 422.
 
 ## Conventions
 

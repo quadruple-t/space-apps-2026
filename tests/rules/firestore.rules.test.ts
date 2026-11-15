@@ -30,6 +30,7 @@ const STATIC_PATHS = [
   "ephemerisGlobal/2027-01",
   "terrainGrid/tile-1",
   "psrLayer/south-1km2",
+  "compositionGrid/lp-grs-2deg",
   "demo/home",
   "catalog/siteIndex",
 ] as const;

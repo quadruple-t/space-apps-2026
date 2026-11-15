@@ -7,6 +7,8 @@ import { earthUp, SOLAR_CONSTANT_W_M2, summarizeByLunarDay, sunUp, type Sample }
 import { useFreeplay, type GraphTab } from "@/lib/freeplay-store";
 import { EARTH, SUN, TimeSeriesChart } from "./charts";
 
+export type GraphFocus = "sunlight" | "earth" | "power";
+
 const fmtTime = (ms: number) => new Date(ms).toISOString().slice(0, 16).replace("T", " ") + " UTC";
 const fmtDay = (ms: number) => new Date(ms).toISOString().slice(5, 10);
 const niceCeil = (v: number) => { const p = 10 ** Math.floor(Math.log10(v)); return [1, 2, 2.5, 5, 10].map((m) => m * p).find((m) => m >= v * 1.05)!; };
@@ -70,7 +72,7 @@ export function PanelSettings() {
   </Popover.Root>;
 }
 
-export function DailyGraphs({ samples, siteId, startMs, tMs }: { samples: Sample[]; siteId: string; startMs: number; tMs: number }) {
+export function DailyGraphs({ samples, siteId, startMs, tMs, focus }: { samples: Sample[]; siteId: string; startMs: number; tMs: number; focus: GraphFocus }) {
   const area = useFreeplay((s) => s.panelAreaM2);
   const eff = useFreeplay((s) => s.panelEfficiency);
   const setElapsed = useFreeplay((s) => s.setElapsed);
@@ -91,11 +93,9 @@ export function DailyGraphs({ samples, siteId, startMs, tMs }: { samples: Sample
       xs, power, energyKWh: energyWh / 1000,
       litPct: (lit.filter(Boolean).length / n) * 100, seenPct: (seen.filter(Boolean).length / n) * 100,
       // Stable array identities so the charts' cached paths survive playback re-renders.
-      elevation: [
-        { id: "sun", label: "Sun elevation", color: SUN, values: sun, unit: "°", digits: 2 },
-        { id: "earth", label: "Earth elevation", color: EARTH, values: earth, unit: "°", digits: 2 },
-        ...(hasTerrain ? [{ id: "terrain", label: "Terrain under Sun", color: "#8a84a3", values: terrain, unit: "°", digits: 2 }] : []),
-      ],
+      sunSeries: { id: "sun", label: "Sun elevation", color: SUN, values: sun, unit: "°", digits: 2 },
+      earthSeries: { id: "earth", label: "Earth elevation", color: EARTH, values: earth, unit: "°", digits: 2 },
+      ...(hasTerrain ? { terrainSeries: { id: "terrain", label: "Terrain under Sun", color: "#8a84a3", values: terrain, unit: "°", digits: 2 } } : {}),
       bands: [{ label: "DAY", color: SUN, on: lit }, { label: "EARTH", color: EARTH, on: seen }],
       powerSeries: [{ id: "power", label: "Power", color: SUN, values: power, unit: " W", digits: 1, area: true }],
       powerDomain: [0, niceCeil(peak)] as [number, number],
@@ -103,48 +103,45 @@ export function DailyGraphs({ samples, siteId, startMs, tMs }: { samples: Sample
   }, [samples, area, eff]);
   const seek = (x: number) => setElapsed((x - startMs) / 3_600_000);
   const fmtTick = samples.length > 72 ? fmtDay : (ms: number) => new Date(ms).toISOString().slice(11, 16);
+  const series = focus === "earth" ? [d.earthSeries] : focus === "power" ? d.powerSeries : [d.sunSeries];
+  const bands = focus === "earth" ? [d.bands[1]] : focus === "sunlight" ? [d.bands[0]] : [];
+  const title = focus === "earth" ? "Earth above the horizon" : focus === "power" ? "Estimated solar power" : "Sun above the horizon";
+  const summary = focus === "earth" ? `Earth is visible for ${d.seenPct.toFixed(0)}% of this time.`
+    : focus === "power" ? `Estimated energy over this time: ${d.energyKWh.toFixed(1)} kWh.`
+    : `The Sun is up for ${d.litPct.toFixed(0)}% of this time.`;
 
   const exportCsv = () => downloadCsv(`${siteId}_${new Date(startMs).toISOString().slice(0, 10)}_daily.csv`,
     ["time_utc", "sun_azimuth_deg", "sun_elevation_deg", "terrain_at_sun_deg", "earth_azimuth_deg", "earth_elevation_deg", "terrain_at_earth_deg", "solar_power_w"],
     samples.map((s, i) => [new Date(s.t).toISOString(), s.sunAz.toFixed(4), s.sunEl.toFixed(4), s.sunHorizon.toFixed(3), s.earthAz.toFixed(4), s.earthEl.toFixed(4), s.earthHorizon.toFixed(3), d.power[i].toFixed(2)]));
 
   return <div className="flex flex-col gap-3">
-    <div className="flex flex-wrap items-center justify-between gap-2">
-      <p className="type-data text-[0.58rem] text-muted-foreground">
-        Sun up {d.litPct.toFixed(0)}% · Earth visible {d.seenPct.toFixed(0)}% · {d.energyKWh.toFixed(1)} kWh over the mission
-      </p>
-      <button type="button" onClick={exportCsv} className="flex items-center gap-1 rounded border border-line px-2 py-1.5 text-[0.58rem] uppercase tracking-[0.08em] text-muted-foreground hover:text-bone"><Download size={13} />CSV</button>
-    </div>
-    <div>
-      <h3 className="type-heading text-xs text-bone">Sun and Earth elevation at the site</h3>
-      <TimeSeriesChart title="Sun and Earth elevation" xs={d.xs} yUnit="°" zeroLine cursorX={tMs} onSeek={seek} formatX={fmtTime} formatTick={fmtTick}
-        series={d.elevation} bands={d.bands} />
-    </div>
-    <div>
-      <h3 className="type-heading text-xs text-bone">Estimated solar power (W), flat {area} m² panel at {Math.round(eff * 100)}%</h3>
-      <TimeSeriesChart title="Estimated solar power" xs={d.xs} yUnit="W" cursorX={tMs} onSeek={seek} formatX={fmtTime} formatTick={fmtTick} height={150}
-        yDomain={d.powerDomain} series={d.powerSeries} />
-    </div>
+    <p className="text-sm text-bone">{summary}</p>
+    <h3 className="type-heading text-base text-bone">{title}</h3>
+    <TimeSeriesChart title={title} xs={d.xs} yUnit={focus === "power" ? "W" : "°"} zeroLine={focus !== "power"} cursorX={tMs} onSeek={seek} formatX={fmtTime} formatTick={fmtTick}
+      yDomain={focus === "power" ? d.powerDomain : undefined} series={series} bands={bands} />
+    <details className="text-sm text-muted-foreground">
+      <summary className="cursor-pointer hover:text-bone">Download data</summary>
+      <button type="button" onClick={exportCsv} className="mt-2 inline-flex items-center gap-2 rounded border border-line px-3 py-2 text-sm hover:text-bone"><Download size={15} />Download CSV</button>
+      {focus === "power" && <p className="mt-2">Power estimate uses a flat {area} m² panel at {Math.round(eff * 100)}% efficiency.</p>}
+    </details>
   </div>;
 }
 
 /** One point per lunar day across a year from the mission start: shows seasonal change at polar sites. */
-export function YearlyGraphs({ samples, siteId, startMs, tMs, missionEndMs }: { samples: Sample[]; siteId: string; startMs: number; tMs: number; missionEndMs: number }) {
+export function YearlyGraphs({ samples, siteId, startMs, tMs, missionEndMs, focus }: { samples: Sample[]; siteId: string; startMs: number; tMs: number; missionEndMs: number; focus: Exclude<GraphFocus, "power"> }) {
   const setElapsed = useFreeplay((s) => s.setElapsed);
   const days = useMemo(() => summarizeByLunarDay(samples).filter((d) => d.complete), [samples]);
   const c = useMemo(() => {
     const sunlight = Float64Array.from(days, (d) => d.sunlightHours);
-    const maxEl = Float64Array.from(days, (d) => d.maxSunEl);
     const earthPct = Float64Array.from(days, (d) => d.earthVisiblePct);
     return {
-      xs: Float64Array.from(days, (d) => d.startMs), sunlight, maxEl, earthPct,
+      xs: Float64Array.from(days, (d) => d.startMs), sunlight, earthPct,
       sunlightSeries: [{ id: "sun-h", label: "Sunlight", color: SUN, values: sunlight, unit: " h", digits: 0 }],
-      maxElSeries: [{ id: "sun-max", label: "Max Sun elevation", color: SUN, values: maxEl, unit: "°", digits: 2 }],
       earthSeries: [{ id: "earth-pct", label: "Earth visible", color: EARTH, values: earthPct, unit: "%", digits: 0 }],
     };
   }, [days]);
   if (days.length < 2) return <p className="text-xs text-muted-foreground">Not enough data for a yearly view.</p>;
-  const { xs, sunlight, maxEl, earthPct } = c;
+  const { xs, sunlight, earthPct } = c;
 
   const label = (ms: number) => {
     const d = days.find((x) => x.startMs === ms);
@@ -159,26 +156,20 @@ export function YearlyGraphs({ samples, siteId, startMs, tMs, missionEndMs }: { 
     ["lunar_day", "start_utc", "end_utc", "sunlight_hours", "max_sun_elevation_deg", "earth_visible_pct"],
     days.map((d) => [d.index + 1, new Date(d.startMs).toISOString(), new Date(d.endMs).toISOString(), d.sunlightHours, d.maxSunEl.toFixed(3), d.earthVisiblePct.toFixed(1)]));
 
-  const common = { xs, cursorX: tMs, onSeek: seek, formatX: label, formatTick: fmtDay, markers: true, height: 130 } as const;
+  const common = { xs, cursorX: tMs, onSeek: seek, formatX: label, formatTick: fmtDay, markers: true, height: 180 } as const;
+  const series = focus === "earth" ? c.earthSeries : c.sunlightSeries;
+  const title = focus === "earth" ? "Earth visible each lunar day" : "Hours of sunlight each lunar day";
+  const summary = focus === "earth" ? `Earth is visible between ${range(earthPct)}% of each lunar day.`
+    : `Sunlight ranges from ${range(sunlight)} hours per lunar day.`;
   return <div className="flex flex-col gap-3">
-    <div className="flex flex-wrap items-center justify-between gap-2">
-      <p className="type-data text-[0.58rem] text-muted-foreground">{days.length} lunar days from {new Date(startMs).toISOString().slice(0, 10)} · each about {(lunarDayH / 24).toFixed(1)} days</p>
-      <button type="button" onClick={exportCsv} className="flex items-center gap-1 rounded border border-line px-2 py-1.5 text-[0.58rem] uppercase tracking-[0.08em] text-muted-foreground hover:text-bone"><Download size={13} />CSV</button>
-    </div>
-    <div>
-      <h3 className="type-heading text-xs text-bone">Hours of sunlight per lunar day <span className="type-data font-normal text-muted-foreground">({range(sunlight)} of {lunarDayH.toFixed(0)} h)</span></h3>
-      <TimeSeriesChart {...common} title="Hours of sunlight per lunar day" yUnit="h" yDomain={sunlightDomain}
-        series={c.sunlightSeries} />
-    </div>
-    <div>
-      <h3 className="type-heading text-xs text-bone">Highest Sun elevation <span className="type-data font-normal text-muted-foreground">({range(maxEl)}°)</span></h3>
-      <TimeSeriesChart {...common} title="Highest Sun elevation per lunar day" yUnit="°" zeroLine
-        series={c.maxElSeries} />
-    </div>
-    <div>
-      <h3 className="type-heading text-xs text-bone">Time Earth is visible <span className="type-data font-normal text-muted-foreground">({range(earthPct)}%)</span></h3>
-      <TimeSeriesChart {...common} title="Percent of each lunar day Earth is above the horizon" yUnit="%" yDomain={[0, 100]}
-        series={c.earthSeries} />
-    </div>
+    <p className="text-sm text-bone">{summary}</p>
+    <h3 className="type-heading text-base text-bone">{title}</h3>
+    <TimeSeriesChart {...common} title={title} yUnit={focus === "earth" ? "%" : "h"} yDomain={focus === "earth" ? [0, 100] : sunlightDomain}
+      series={series} />
+    <details className="text-sm text-muted-foreground">
+      <summary className="cursor-pointer hover:text-bone">Download data</summary>
+      <button type="button" onClick={exportCsv} className="mt-2 inline-flex items-center gap-2 rounded border border-line px-3 py-2 text-sm hover:text-bone"><Download size={15} />Download CSV</button>
+      <p className="mt-2">Showing {days.length} lunar days. Each is about {(lunarDayH / 24).toFixed(1)} Earth days long.</p>
+    </details>
   </div>;
 }

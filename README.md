@@ -5,7 +5,7 @@ shapes sunlight and direct-to-Earth line of sight at candidate landing sites.
 
 Built for the NASA Space Apps Challenge 2026.
 
-> Freeplay is implemented with stored JPL Horizons ephemerides and available precomputed LOLA horizon masks. Coverage varies by location; unsupported points use a labelled smooth-sphere horizon. The rendered 3D surface is procedural and is not the terrain model used for horizon calculations. The Guided Mission is an interactive tutorial that runs the same simulation at the story chapters' featured catalog sites, and Mission Comparison is an empty layout.
+> Freeplay uses stored JPL Horizons ephemerides and available precomputed LOLA horizon masks. Coverage varies by location; unsupported points use a labelled smooth-sphere horizon. The rendered 3D surface is procedural and is not the terrain model used for horizon calculations. Story Mode runs the simulation at featured catalog sites; Mission Comparison is an empty layout.
 
 ## Getting started
 
@@ -37,12 +37,10 @@ npm run lint       # ESLint (Next.js + React Compiler rules)
 | Route      | Purpose                                                   |
 | ---------- | --------------------------------------------------------- |
 | `/`        | Overview and how to use Lunaris360                         |
-| `/mission` | Guided Mission: six interactive lessons across the First Landing, Robotic Explorer and Lunar Base chapters, run inside Freeplay's globe, Orbit + Graphs and surface drive |
-| `/mission-control` | Mission Control: learning topics, method and data    |
-| `/how-it-works` | How It Works: the surface view and the modelling approach, moved off the landing page |
+| `/mission` | Story Mode: six interactive lessons inside Freeplay |
+| `/how-it-works` | How It Works: lunar science, methods and data sources (`/mission-control` redirects here) |
 | `/freeplay` | Freeplay mission planner: Cesium Moon globe (Moon Trek imagery, LROC overlays, catalog sites, user-named presets) and an orbit + graphs view driven by the stored ephemeris and LOLA horizon masks |
 | `/freeplay/drive` | Freeplay surface drive: site and coordinate selection, time controls, first-person/orbit navigation, JPL Horizons Sun/Earth positions, horizon-aware 24-hour metrics where data is available (`/explore` redirects here). Opens at the site and time selected in Freeplay. |
-| `/freeplay/approach` | Sunlight hours, intensity and Earth contact over a mission of up to a year at one site (`/explore/approach` redirects here) |
 | `/compare` | Mission Comparison shell with an empty state; multi-site comparison is not implemented yet |
 
 ## Project structure
@@ -83,7 +81,7 @@ The landing page preview and Freeplay share the code-driven Three.js scene. Free
 - **Illustrative previews:** `data/hero-scene.ts` configures conceptual hero readouts; `lib/horizon.ts` supplies illustrative horizon examples for landing-page graphics. These values are separate from Freeplay's science API.
 - **Scene configuration:** `data/hero-scene.ts` holds the Sun and Earth angles shared by the 3D scene and
   the conceptual hero HUD.
-- **Freeplay (`/freeplay`, `/freeplay/approach`):** loads the monthly `ephemeris` chunks and `science/horizon` masks from `/api/v1` and evaluates hourly Sun/Earth positions in the browser with `lib/ephemeris` (`lib/lunar-data.ts`). Globe imagery and overlays come from NASA Moon Trek and LROC Lunaserv (see `docs/SOURCES.md` §7).
+- **Freeplay (`/freeplay`):** loads the monthly `ephemeris` chunks and `science/horizon` masks from `/api/v1` and evaluates hourly Sun/Earth positions in the browser with `lib/ephemeris` (`lib/lunar-data.ts`). Globe imagery and categorized overlays are stored Firebase snapshots of NASA Moon Trek and LROC Lunaserv products at the recorded overview resolution (see `docs/SOURCES.md` §7).
 - **Surface drive:** `/freeplay/drive` opens at the Freeplay site, time and preset radius. It loads measured terrain from `/api/v1/terrain/dem`, places the Sun and Earth from the stored Horizons chunks decoded in the browser (so playback can run at up to 3 days per second), and lets you place solar arrays, buggies, comms masts and three habitat concepts with slope checks and per-object sunlight / Earth line of sight. 24-hour metrics still come from the science API and its LOLA masks.
 
 ## Performance and accessibility
@@ -122,13 +120,86 @@ npx -y firebase-tools@15.36.0 deploy --only firestore:rules,firestore:indexes \
   --project shadowline-2t12 --account taran.duba3@gmail.com
 ```
 
-**Seed production:** first run `gcloud auth application-default login` as taran.duba3@gmail.com, then
-`npm run seed:prod -- --yes`. The project id comes from `.firebaserc`.
+**Seed production:** `npm run seed:prod -- --yes`. The project id comes from `.firebaserc`. Credentials: the
+`FIREBASE_SERVICE_ACCOUNT_JSON` service account (from the environment or `.env.local`, and it must belong to that
+project) when set, otherwise Application Default Credentials from `gcloud auth application-default login` as
+taran.duba3@gmail.com. The target line printed before writing says which one is used.
+
+## Mission Control assistant (Freeplay)
+
+Freeplay has an in-app assistant (header button **Mission Control**) that answers questions about the mission being built and about lunar terrain. It calls read-only tools that wrap `/api/v1` (catalog sites, chapters, and the `science/*` celestial, horizon, metrics, timeline and compare endpoints) and never answers site, Sun/Earth or horizon facts from model memory. Every answer carries a collapsible **Sources** line (site, horizon source, data range), and fallback-horizon or failed lookups always show a fixed notice. One extra tool, `show_in_freeplay`, lets it change the Freeplay view to support an answer (screen, selected site and globe fly-to, mission time, playback, layers, catalog pins, graph tab, and a button to the drive or mission sunlight pages). Its fields are whitelisted and validated, it returns no science data, and each changed reply shows a **View changed** list with **Restore previous view**.
+
+- Model access is **Firebase AI Logic** (Gemini Developer API) through `firebase/ai`. The persona, rules, output format and tool descriptions live in a **server prompt template** in Firebase, not in the client bundle. The source of truth is `docs/ai/prompt-templates/mission-control-v1-1-0.prompt`; it must be pasted into the console (steps below) and re-pasted when edited.
+- Tool parameter schemas are declared in code (`lib/assistant/tool-schemas.ts`) beside their validators (`lib/assistant/tool-validation.ts`). Tools run in the browser against same-origin `/api/v1`, with at most 4 tool rounds per question.
+- Code lives in `lib/assistant/` and `components/freeplay/mission-control-assistant/`. This is separate from the `/mission-control` route.
+
+**One-time Firebase setup** (project `shadowline-2t12`):
+
+1. Firebase console > **AI Services > AI Logic** > Get started > choose **Gemini Developer API**. This enables the Firebase AI Logic API and creates a server-side Gemini key. If your web API key has API restrictions, allow *Firebase AI Logic API* (`firebasevertexai.googleapis.com`) on it.
+2. **AI Logic > Prompt templates > Create new template**: ID `mission-control-v1-1-0`. The console has two separate editors, so the `.prompt` file must be split in two (pasting it all into the Configuration box fails with a YAML error such as "end of the stream or a document separator is expected"):
+   - **Configuration (frontmatter)**: only the YAML between the two `---` lines, without the `---` lines. On macOS: `awk 'NR==1{next} /^---$/{exit} {print}' docs/ai/prompt-templates/mission-control-v1-1-0.prompt | pbcopy`
+   - **Prompt**: only the text after the second `---`, starting at `{{role "system"}}`. On macOS: `awk '/^---$/{c++; next} c>=2{print}' docs/ai/prompt-templates/mission-control-v1-1-0.prompt | pbcopy`
+
+   Then save, run a test, and click the lock icon. New templates can take a couple of minutes to propagate.
+3. **App Check**: register the web app with **reCAPTCHA Enterprise**, set `NEXT_PUBLIC_APPCHECK_RECAPTCHA_ENTERPRISE_SITE_KEY`, then enforce App Check for *Firebase AI Logic* (Security > App Check > APIs).
+4. Local development: set `NEXT_PUBLIC_APPCHECK_DEBUG_TOKEN=true`, run `npm run dev`, copy the debug token printed in the browser console and register it under App Check > Apps > Manage debug tokens. Production builds ignore this variable.
+5. Billing: the Gemini Developer API free tier works for development; production traffic needs the Blaze plan. Set a quota or budget alert in Google Cloud and Firebase AI Logic usage limits.
 
 ## Data sources
 
 - [Lunar Orbiter Laser Altimeter (LOLA), PDS Geosciences Node](https://pds-geosciences.wustl.edu/missions/lro/lola.htm) — precomputed horizon masks and polar terrain-grid masks where coverage is available.
 - [JPL Horizons](https://ssd.jpl.nasa.gov/horizons/) — stored ephemerides used to calculate Sun and Earth positions.
+
+Globe science overlays and meteor references (retrieved 2026-11-14):
+
+- [LROC Lunaserv map catalog](https://wms.im-ldi.com/?service=WMS&request=GetCapabilities) — imagery metadata and WMS layers. [NASA Moon Trek](https://trek.nasa.gov/moon/) supplies the base mosaic and slope overlays.
+- [LROC WAC titanium oxide, Sato et al. (2017)](https://doi.org/10.1016/j.icarus.2017.06.013) — TiO₂ abundance estimates, 70°S–70°N.
+- [Kaguya mineral maps, Lemelin et al. (2016)](https://www.hou.usra.edu/meetings/lpsc2016/pdf/2994.pdf) — FeO, olivine, plagioclase and clinopyroxene, 50°S–50°N.
+- [Lunar Prospector thorium, Lawrence et al. (2007)](https://doi.org/10.1029/2006GL028530) — regional thorium abundance.
+- [Diviner silicate mineralogy, Greenhagen et al. (2010)](https://doi.org/10.1126/science.1192196) — Christiansen-feature composition proxy.
+- [Diviner temperature maps, Williams et al. (2017)](https://doi.org/10.1016/j.icarus.2016.08.012) — maximum/minimum anomalies relative to latitude means; historical observations, not forecasts.
+- [Ice-stability modeling, Siegler et al. (2016)](https://doi.org/10.1038/nature17166) — modeled south-polar ice-stability depth, not detected ice.
+- [LROC Copernican crater catalog](https://wms.im-ldi.com/?service=WMS&request=GetCapabilities) — Ravi et al. (2016), natural craters >10 km, younger than approximately 1.1 billion years, 60°S–60°N; impact history, not present-day storm frequency.
+- [TUM 2026 meteoroid stream geometry](https://www.asg.ed.tum.de/en/lpe/forschung/mondeinschlagsblitze/meteoroid-stream-geometry/) — seven shower radiants and reference epochs. [NASA/JPL NAIF pck00011](https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/pck00011.tpc) supplies the approximate lunar orientation used to derive the stream-facing hemispheres.
+- [NASA Meteoroid Environment Office](https://www.nasa.gov/meteoroid-environment-office/shower-meteoroid-environment/) — context for time-varying shower hazards; the overlay does not predict storm frequency or impact rates.
+
+These additions follow the existing data workflow: curated inputs in
+`scripts/data-pipeline/curated/`, source manifests in `data/seed/dataSources/`, and
+API-backed meteor facts in `data/seed/facts/meteor-streams-2026.json`. Run
+`python3 scripts/data-pipeline/61_globe_layers.py` **before** stage 60 to reproduce
+those reference facts. The map inventory and product abstracts are retained in
+`curated/globeMaps.json`; the downloaded capabilities snapshot is recorded in
+`manifest.lock.json` with its hash and cached under `.cache/globe/`.
+
+The globe now reads stored image snapshots from Firestore through `/api/v1/globe`.
+The images are stored as 240 KiB binary chunks under `catalog/`, using the same
+Firestore Bytes convention as terrain and ephemerides. Original source metadata,
+image bounds, dimensions, byte counts, and SHA-256 hashes are preserved. No Firebase
+Storage bucket or billing-plan change is needed for this bounded archive.
+
+The selected scope is **complete globe display snapshots plus all collected app
+data**, not the upstream full-resolution scientific archives. Most images are
+2048 × 1024; the regional south-pole slope snapshot is 4096 × 256 with its actual
+bounds. Zooming does not increase their detail. The globe fetches imagery only
+from this app's Firebase-backed API, with no live Moon Trek/Lunaserv fallback.
+
+`catalog/globe-assets-v1` lists the stored assets. `catalog/globe-asset-*` documents
+hold manifests; `catalog/globe-chunk-*` documents hold their binary payloads.
+The `collected-data` asset is a gzipped JSON bundle containing the original static
+seed data, curated inputs, locally downloaded source responses and tile bytes,
+and source documentation. Each bundled file includes its relative path, encoding,
+and checksum. Private credentials and user records are excluded.
+
+```bash
+npm run archive:globe                 # prepare snapshots and seed files; no cloud writes
+npm run archive:globe -- --upload     # validate and sync static data, then verify readback
+npm run archive:globe -- --verify     # read every stored asset back and check its checksum
+```
+
+Import provenance is retained in `scripts/data-pipeline/globe-archive.lock.json`;
+generated Firestore documents remain under `data/seed/catalog/`. The original
+source credits above and [complete inventory](docs/SOURCES.md) also apply to the
+stored copies. The globe sidebar includes a collected-data download link.
 
 The app is an educational planning and visualization tool, not an operational mission system. Data coverage and assumptions are exposed in Freeplay; the procedural display terrain should not be interpreted as measured topography.
 

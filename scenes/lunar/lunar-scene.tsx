@@ -9,7 +9,7 @@ import { Earth, Starfield, Sun } from "./celestial";
 import { LandingSite } from "./landing-site";
 import { Astronaut } from "./astronaut";
 import { LunarRover } from "./rover";
-import { MAIN_CRATER, createTerrainGeometry, heightAt, terrainProfileForSite, type LunarTerrainProfile, type TerrainDetail } from "./terrain";
+import { MAIN_CRATER, createTerrainBoundaryGeometry, createTerrainGeometry, heightAt, terrainProfileForSite, type LunarTerrainProfile, type TerrainDetail } from "./terrain";
 import type { TerrainSample } from "@/integrations/terrain/moon-samples";
 import type { LunarSite } from "@/integrations/science/types";
 
@@ -90,6 +90,19 @@ function Terrain({ detail, profile }: { detail: TerrainDetail; profile: LunarTer
   );
 }
 
+function TerrainBoundary({ detail, profile }: { detail: TerrainDetail; profile: LunarTerrainProfile }) {
+  const geometry = useMemo(() => createTerrainBoundaryGeometry(detail, profile), [detail, profile]);
+  useEffect(() => () => { geometry.wall.dispose(); geometry.edge.dispose(); }, [geometry]);
+  return <>
+    <mesh geometry={geometry.wall} castShadow receiveShadow>
+      <meshStandardMaterial vertexColors side={THREE.DoubleSide} roughness={0.92} metalness={0} />
+    </mesh>
+    <lineLoop geometry={geometry.edge}>
+      <lineBasicMaterial color="#ff5364" toneMapped={false} />
+    </lineLoop>
+  </>;
+}
+
 const DATA_POINT_POSITIONS: Array<[number, number]> = [[-38, -68], [38, -68], [-38, -142], [38, -142]];
 const DATA_POINT_COLORS = ["#a986ff", "#4b9bff", "#ff5364", "#a986ff"];
 
@@ -167,6 +180,7 @@ function SceneContents({ variant, still, detail, freeplay, cameraMode, zoom, loo
       <ambientLight intensity={0.04} />
       <SunLight direction={lightDir} />
       <Terrain detail={detail} profile={terrainProfile} />
+      <TerrainBoundary detail={detail} profile={terrainProfile} />
       {variant === "preview" && !freeplay && <>
         <Astronaut position={[astronautPosition.x, astronautPosition.y, astronautPosition.z]} scale={1.8} />
         <LunarRover position={[astronautPosition.x - 9, heightAt(astronautPosition.x - 9, astronautPosition.z + 4, terrainProfile) + 0.72, astronautPosition.z + 4]} scale={1.5} />

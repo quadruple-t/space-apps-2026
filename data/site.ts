@@ -16,10 +16,9 @@ export type NavLink = { label: string; href: string };
 /** Primary navigation routes to distinct pages. */
 export const NAV_LINKS: NavLink[] = [
   { label: "Overview", href: "/" },
-  { label: "Mission Control", href: "/mission-control" },
-  { label: "Guided Mission", href: "/mission" },
   { label: "How It Works", href: "/how-it-works" },
-  { label: "Freeplay", href: "/freeplay" },
+  { label: "Guided Mission", href: "/mission" },
+  { label: "Open Exploration", href: "/freeplay" },
 ];
 
 export const LAUNCH_HREF = "/freeplay";
@@ -41,25 +40,18 @@ export const EXPERIENCES: Experience[] = [
     index: "01",
     title: "Guided Mission",
     subtitle: "Understand the environment.",
-    description:
-      "A twelve-page story through the Apollo, robotic exploration, and Artemis eras. Use live map and timeline tools to understand lighting, terrain, Earth visibility, and the trade-offs of a potential mining lunar base.",
-    topics: [
-      "Solar elevation",
-      "Terrain obstruction",
-      "Earth visibility",
-      "Communication windows",
-      "Mission lighting conditions",
-    ],
-    cta: "Begin your journey",
+    description: "Learn about Apollo landings, robotic explorers, and future lunar-base regions through short stories, examples, and guided actions.",
+    topics: ["Sunlight", "Moon terrain", "View of Earth", "Future base regions"],
+    cta: "Begin Guided Mission",
     href: "/mission",
   },
   {
     id: "explore",
     index: "02",
-    title: "Free Exploration",
-    subtitle: "Discover your own landing site.",
+    title: "Open Exploration",
+    subtitle: "Explore places on the Moon.",
     description:
-      "Choose a lunar region or coordinates, move around the scene, and change the date and time. Freeplay reads JPL Horizons positions and available LOLA horizon data; the rendered surface remains procedural.",
+      "Choose a place on the Moon, explore the map, and see how sunlight changes over time.",
     cta: "Explore the Moon",
     href: "/freeplay/drive",
   },
@@ -104,13 +96,13 @@ export const DATA_SOURCES: DataSource[] = [
 export const FOOTER_LINKS = {
   experiences: [
     { label: "Guided Mission", href: "/mission" },
-    { label: "Free Exploration", href: "/freeplay/drive" },
+    { label: "Open Exploration", href: "/freeplay/drive" },
     { label: "Mission Comparison", href: "/compare" },
   ],
   project: [
     { label: "Overview", href: "/" },
-    { label: "Mission Control", href: "/mission-control" },
-    { label: "Data sources", href: "/mission-control#data-sources" },
+    { label: "How It Works", href: "/how-it-works" },
+    { label: "Data sources", href: "/how-it-works#data-sources" },
   ],
   resources: [
     { label: "LOLA data (PDS)", href: "https://pds-geosciences.wustl.edu/missions/lro/lola.htm" },

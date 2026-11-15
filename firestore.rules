@@ -35,6 +35,7 @@ service cloud.firestore {
     match /ephemerisGlobal/{id}  { allow read: if true; allow write: if false; }
     match /terrainGrid/{id}      { allow read: if true; allow write: if false; }
     match /psrLayer/{id}         { allow read: if true; allow write: if false; }
+    match /compositionGrid/{id}  { allow read: if true; allow write: if false; }
     match /demo/{id}             { allow read: if true; allow write: if false; }
     match /catalog/{id}          { allow read: if true; allow write: if false; }
 
