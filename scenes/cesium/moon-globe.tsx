@@ -46,6 +46,7 @@ export default function MoonGlobe({ guidedSites }: { guidedSites?: FreeplaySite[
   const viewerRef = useRef<CesiumNS.Viewer | null>(null);
   const cesiumRef = useRef<Cesium | null>(null);
   const overlayRefs = useRef(new Map<string, CesiumNS.ImageryLayer[]>());
+  const meteorOverlayRef = useRef<CesiumNS.ImageryLayer | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
@@ -143,13 +144,22 @@ export default function MoonGlobe({ guidedSites }: { guidedSites?: FreeplaySite[
       });
       if (!alive || viewer.isDestroyed()) return;
       overlay = viewer.imageryLayers.addImageryProvider(provider);
-      overlay.alpha = meteorOpacity;
+      overlay.alpha = useFreeplay.getState().layers.meteorStreams.opacity;
+      meteorOverlayRef.current = overlay;
     }).catch(() => { if (alive) setDataError("Meteor exposure could not load. Check the reference facts in the data API."); });
     return () => {
       alive = false;
       if (overlay && !viewer.isDestroyed()) viewer.imageryLayers.remove(overlay, true);
+      if (meteorOverlayRef.current === overlay) meteorOverlayRef.current = null;
     };
-  }, [ready, meteorOn, meteorOpacity, meteorStream]);
+  }, [ready, meteorOn, meteorStream]);
+
+  useEffect(() => {
+    const viewer = viewerRef.current, overlay = meteorOverlayRef.current;
+    if (!ready || !viewer || viewer.isDestroyed() || !overlay) return;
+    overlay.alpha = meteorOpacity;
+    viewer.scene.requestRender();
+  }, [ready, meteorOpacity]);
 
   // ── Create the viewer once ────────────────────────────────────────────────
   useEffect(() => {
