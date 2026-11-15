@@ -54,14 +54,12 @@ export function FreeplayApp({ aside, guidedPanels, assistantEnabled = true, guid
   useEffect(() => { hydrate(); }, [hydrate]);
 
   return <div className="flex h-dvh flex-col bg-void pt-(--nav-height)">
-    <header className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-3 py-2 sm:px-4">
+    <header className={`flex flex-wrap items-center justify-between gap-2 border-b border-line px-3 sm:px-4 ${guidedMode ? "py-1.5" : "py-2"}`}>
       <div className="flex items-center gap-3">
         {guidedMode ? <>
-          <Link href="/" aria-label="Exit Guided Mission to Lunaris360 home" className="grid size-9 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><ArrowLeft size={17} /></Link>
-          <Logo compact />
-          <div>
-            <h1 className="type-heading text-sm text-bone">Guided Mission</h1>
-          </div>
+          <Link href="/" aria-label="Exit Guided Mission to Lunaris360 home" className="grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><ArrowLeft size={16} /></Link>
+          <Logo compact showWordmark={false} />
+          <h1 className="type-heading text-sm text-bone">Guided Mission</h1>
         </> : <>
           <h1 className="type-heading text-sm text-bone sm:text-base">Open Exploration</h1>
           <div role="tablist" aria-label="Explore views" className="flex overflow-hidden rounded border border-line">
