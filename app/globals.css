@@ -63,7 +63,7 @@
   color-scheme: dark;
 
   --void: #100c1b;
-  --charcoal: #211833;
+  --charcoal: #211a38;
   --regolith: #a39ab8;
   --bone: #f0ebf7;
   --sun: #ff5364;
@@ -73,7 +73,7 @@
   --retro-purple: #a986ff;
   --retro-blue: #4b9bff;
   --retro-red: #ff536b;
-  --line: #49395f;
+  --line: #494166;
 
   --background: var(--void);
   --foreground: var(--bone);
@@ -83,11 +83,11 @@
   --popover-foreground: var(--bone);
   --primary: var(--bone);
   --primary-foreground: #100d20;
-  --secondary: #2c2042;
+  --secondary: #292342;
   --secondary-foreground: var(--bone);
-  --muted: #261b37;
+  --muted: #241e3b;
   --muted-foreground: #b2abc4;
-  --accent: #36234d;
+  --accent: #30264d;
   --accent-foreground: var(--bone);
   --destructive: var(--retro-red);
   --border: var(--line);
@@ -121,7 +121,8 @@
     text-rendering: optimizeLegibility;
     background-image:
       radial-gradient(ellipse at 12% 5%, rgb(142 91 220 / 24%), transparent 44rem),
-      radial-gradient(ellipse at 88% 28%, rgb(57 113 210 / 16%), transparent 42rem),
+      radial-gradient(ellipse at 88% 28%, rgb(57 113 210 / 24%), transparent 42rem),
+      radial-gradient(ellipse at 52% 88%, rgb(57 113 210 / 8%), transparent 56rem),
       linear-gradient(118deg, transparent 0 37%, rgb(255 83 107 / 5%) 37.15%, transparent 37.5% 100%),
       linear-gradient(154deg, transparent 0 69%, rgb(255 83 107 / 4%) 69.12%, transparent 69.4% 100%);
     background-attachment: fixed;
@@ -168,7 +169,7 @@
   .hud-panel {
     border: 1px solid color-mix(in oklab, var(--retro-purple) 34%, var(--line));
     border-radius: 0.6rem;
-    background: color-mix(in oklab, var(--void) 82%, var(--retro-purple) 18%);
+    background: linear-gradient(135deg, rgb(75 155 255 / 6%), transparent 58%), color-mix(in oklab, var(--void) 82%, var(--retro-purple) 18%);
     box-shadow: 0 18px 70px rgb(3 2 14 / 34%), 0 0 36px rgb(142 91 220 / 12%), inset 0 1px rgb(255 255 255 / 4%);
     -webkit-backdrop-filter: blur(18px);
     backdrop-filter: blur(18px);
@@ -184,7 +185,7 @@
     min-width: 0;
     border: 1px solid color-mix(in oklab, var(--retro-purple) 22%, var(--line));
     border-radius: 0.35rem;
-    background: color-mix(in oklab, var(--void) 92%, var(--retro-purple) 8%);
+    background: linear-gradient(110deg, rgb(75 155 255 / 7%), transparent 72%), color-mix(in oklab, var(--void) 92%, var(--retro-purple) 8%);
     padding: 0.55rem 0.65rem;
   }
   .hud-input {
@@ -192,7 +193,7 @@
     width: 100%;
     border: 1px solid color-mix(in oklab, var(--retro-purple) 28%, var(--line));
     border-radius: 0.25rem;
-    background: color-mix(in oklab, var(--void) 90%, var(--retro-purple) 10%);
+    background: linear-gradient(110deg, rgb(75 155 255 / 6%), transparent 78%), color-mix(in oklab, var(--void) 90%, var(--retro-purple) 10%);
     padding: 0.45rem 0.55rem;
     color: var(--bone);
     font-size: 0.68rem;
