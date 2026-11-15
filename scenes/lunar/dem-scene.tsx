@@ -233,13 +233,16 @@ function FootprintRing({ radius, color }: { radius: number; color: string }) {
 function CentreBeacon({ surface }: { surface: DemSurface }) {
   const y = groundY(surface, 0, 0);
   const pillar = useRef<THREE.Group>(null);
+  const ring = useRef<THREE.Mesh>(null);
   const world = useRef(new THREE.Vector3());
   useFrame(({ camera }) => {
     const group = pillar.current;
     if (!group) return;
     group.getWorldPosition(world.current);
-    // Hidden while standing at the centre, so the camera is never inside the pillar.
-    group.visible = Math.hypot(camera.position.x - world.current.x, camera.position.z - world.current.z) > 15;
+    // Hidden while standing at the centre, so the camera is never inside the pillar or looking at the ring at its feet.
+    const away = Math.hypot(camera.position.x - world.current.x, camera.position.z - world.current.z) > 15;
+    group.visible = away;
+    if (ring.current) ring.current.visible = away;
     group.scale.setScalar(Math.max(1, camera.position.distanceTo(world.current) * 0.004));
   });
   return <group position={[0, y, 0]}>
@@ -247,7 +250,7 @@ function CentreBeacon({ surface }: { surface: DemSurface }) {
       <mesh position={[0, 20, 0]} raycast={noRaycast}><cylinderGeometry args={[0.25, 0.6, 40, 8, 1, true]} /><meshBasicMaterial color="#ff5364" transparent opacity={0.55} depthWrite={false} toneMapped={false} side={THREE.DoubleSide} /></mesh>
       <mesh position={[0, 41.5, 0]} raycast={noRaycast}><octahedronGeometry args={[1.6, 0]} /><meshBasicMaterial color="#fff3e8" toneMapped={false} /></mesh>
     </group>
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.3, 0]} raycast={noRaycast} renderOrder={4}>
+    <mesh ref={ring} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.3, 0]} raycast={noRaycast} renderOrder={4}>
       <ringGeometry args={[3, 3.8, 48]} /><meshBasicMaterial color="#ff5364" transparent opacity={0.9} side={THREE.DoubleSide} depthWrite={false} toneMapped={false} />
     </mesh>
   </group>;

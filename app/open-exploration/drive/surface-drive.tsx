@@ -51,7 +51,6 @@ const DEFAULT_RADIUS_KM = 5;
 const SHOW_LOCATION_MAP = false;
 /** Simulated hours per real second. 72 h/s plays a full lunar day (~29.5 days) in about ten seconds. */
 const SPEEDS = [{ hps: 1, label: "1 h/s" }, { hps: 6, label: "6 h/s" }, { hps: 24, label: "1 day/s" }, { hps: 72, label: "3 days/s" }] as const;
-const LOOK_HINT = "How fast the camera turns when you drag the view: turning your head in first person, tilting and orbiting in bird's eye. 1× is the default. It does not change walking, panning or zoom.";
 const angle = (n: number) => `${n >= 0 ? "+" : "−"}${Math.abs(n).toFixed(1)}°`;
 const localTime = (date: Date) => `${date.toISOString().slice(0, 10)} · ${date.toISOString().slice(11, 16)} UTC`;
 const distanceLabel = (m: number) => m >= 1000 ? `${(m / 1000).toFixed(2)} km` : `${Math.round(m)} m`;
@@ -135,7 +134,6 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
   const [horizon, setHorizon] = useState<{ siteId: string; peak: { elevationDeg: number; azimuthDeg: number } | null } | null>(null);
   const [guidedComplete, setGuidedComplete] = useState(false);
   const [guidedStage, setGuidedStage] = useState<LessonStage>("story");
-  const [lookSensitivity, setLookSensitivity] = useState(1);
   // Measured terrain and the surface planner.
   const [radiusKm, setRadiusKm] = useState(start.radiusKm);
   const [exaggeration, setExaggeration] = useState(1);
@@ -506,11 +504,11 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
     <div className="absolute inset-0 z-0">
       {measured
         ? <DemScene grid={tile} radiusM={tile.radiusKm * 1000} exaggeration={exaggeration} colorMode={colorMode} detail={deviceTier} still={reducedMotion}
-            viewMode={viewMode} viewTarget={viewTarget} selectedId={selectedId} onSelectObject={setSelectedId} onViewObject={(id) => goToObject(id)} zoom={zoom} lookSensitivity={lookSensitivity} autoLight={!playing}
+            viewMode={viewMode} viewTarget={viewTarget} selectedId={selectedId} onSelectObject={setSelectedId} onViewObject={(id) => goToObject(id)} zoom={zoom} lookSensitivity={1} autoLight={!playing}
             sunAzimuthDeg={sky?.sun.azimuthDeg ?? 120} sunElevationDeg={sky?.sun.elevationDeg ?? 8} earthAzimuthDeg={sky?.earth.azimuthDeg ?? 200} earthElevationDeg={sky?.earth.elevationDeg ?? 20}
             placements={placements} buildType={buildType} buildHeadingDeg={buildHeading} onPlace={placeObject} onHoverCheck={setHoverCheck}
             onFocus={setFocus} onTutorialAction={guided ? recordTutorialAction : undefined} recenterKey={recenterKey} />
-        : <LunarScene variant="preview" active detail={deviceTier} still={reducedMotion} freeplay={phase !== "choose"} cameraMode={viewMode === "first-person" ? "first-person" : "orbit"} hideRover lookSensitivity={lookSensitivity} landingActive={phase === "descent"} zoom={zoom} onTutorialAction={guided ? recordTutorialAction : undefined}
+        : <LunarScene variant="preview" active detail={deviceTier} still={reducedMotion} freeplay={phase !== "choose"} cameraMode={viewMode === "first-person" ? "first-person" : "orbit"} hideRover landingActive={phase === "descent"} zoom={zoom} onTutorialAction={guided ? recordTutorialAction : undefined}
             selectedSite={activeSite} dataPoints={activeTerrain.corners} onSelectDataPoint={selectDataPoint}
             sunAzimuthDeg={sky?.sun.azimuthDeg} sunElevationDeg={sky?.sun.elevationDeg}
             earthAzimuthDeg={sky?.earth.azimuthDeg} earthElevationDeg={sky?.earth.elevationDeg} />}
@@ -666,13 +664,7 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
               </div></div>, document.body)}
             </div>
           </div>
-          <div className="mt-2 flex items-center justify-between gap-3 border-t border-line/70 pt-2">
-            <label className="flex min-w-40 flex-1 items-center gap-2 type-data text-[0.55rem] uppercase tracking-[0.1em] text-muted-foreground sm:max-w-64" title={LOOK_HINT}>
-              <span className="shrink-0">Look speed</span>
-              <input aria-label="Look sensitivity" aria-describedby="drive-look-hint" type="range" min={0.25} max={2.5} step={0.05} value={lookSensitivity} onChange={(event) => setLookSensitivity(Number(event.target.value))} className="h-1.5 min-w-0 flex-1 cursor-pointer accent-[#a986ff]" />
-              <span className="w-8 text-right text-retro-purple">{lookSensitivity.toFixed(2)}×</span>
-              <span id="drive-look-hint" className="sr-only">{LOOK_HINT}</span>
-            </label>
+          <div className="mt-2 flex items-center justify-end gap-3 border-t border-line/70 pt-2">
             <span className="inline-flex min-w-0 items-center gap-1.5 truncate type-data text-[0.52rem] uppercase tracking-[0.1em] text-muted-foreground"><Globe2 size={12} className="shrink-0 text-retro-blue" /><span className="truncate">{terrainSourceText}</span></span>
           </div>
         </div>
