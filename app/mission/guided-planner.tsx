@@ -8,6 +8,8 @@ import { useFreeplay, type LayerId } from "@/lib/freeplay-store";
 import { LessonCard, lessonActionClass, lessonCheckClass, type LessonStage } from "./lesson-card";
 import { GUIDED_LESSONS, STORY_STOPS } from "./tutorial-content";
 import type { TutorialData } from "./use-tutorial-data";
+import { CandidateComparison } from "./candidate-comparison";
+import { SitePreview } from "./site-preview";
 
 const siteKey = (site: FreeplaySite) => `${site.latitudeDeg},${site.longitudeDeg}`;
 const mark = (done: boolean) => (done ? "✓" : "○");
@@ -102,18 +104,14 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
             })}
           </select>
           <p className={lessonCheckClass}>{site ? `Selected: ${site.name}` : "Or click a marker on the Moon."}</p>
+          {site && <div className="mt-2 overflow-hidden border border-retro-purple/35"><SitePreview site={site} /></div>}
         </>}
         {stage === "try" && lesson.id === "overlays" && <p className={lessonCheckClass}>Slope layer {mark(layers.slope.on)}</p>}
         {stage === "try" && lesson.id === "sun" && <p className={lessonCheckClass}>Mission time moved {mark(view === "orbit" && clockMoved)}</p>}
         {stage === "try" && lesson.id === "earth" && <button type="button" onClick={() => setEarthAcknowledged(true)} className={lessonActionClass}>{earthAcknowledged ? "Readout found ✓" : "I found the Earth visibility readout"}</button>}
         {stage === "try" && lesson.id === "candidates" && <>
-          <label className="mt-3 block text-sm text-bone">Compare candidate sites
-            <select value={candidateStops.find((candidate) => candidate.id === site?.id)?.id ?? ""} onChange={(event) => { const selected = candidateStops.find((candidate) => candidate.id === event.target.value); if (selected) useFreeplay.getState().selectSite(selected, false); }} className="hud-input mt-2 text-sm normal-case tracking-normal">
-              <option value="">Choose a candidate</option>
-              {candidateStops.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.name}</option>)}
-            </select>
-          </label>
-          <p className={lessonCheckClass}>Places compared: {compared.size}</p>
+          <CandidateComparison sites={candidateStops} />
+          <p className={lessonCheckClass}>Choose both places, then open either card to inspect its orbit graph. Places visited: {compared.size}</p>
         </>}
       </LessonCard>
     </div>
