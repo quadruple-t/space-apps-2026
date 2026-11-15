@@ -6,7 +6,7 @@
 export const ASSISTANT_NAME = "Mission Control";
 
 /** Server prompt template ID the code expects. Create it in the Firebase console (see docs/ai/prompt-templates). */
-export const DEFAULT_TEMPLATE_ID = "mission-control-v1-0-0";
+export const DEFAULT_TEMPLATE_ID = "mission-control-v1-1-0";
 
 // Abuse and cost controls
 export const MAX_INPUT_CHARS = 500;
@@ -32,6 +32,12 @@ export const COVERAGE_LABEL = "Stored JPL Horizons ephemeris, 2026-01-01 to 2030
 export const MIN_WINDOW_HOURS = 1;
 export const MAX_WINDOW_HOURS = 720;
 export const DEFAULT_STEP_MINUTES = 10;
+/** rank_sites: seasonal windows (each starts RANK_WINDOW_SPACING_HOURS after the previous) and site list cap. Mirrors lib/api/science.ts. */
+export const MAX_RANK_WINDOWS = 4;
+export const RANK_WINDOW_SPACING_HOURS = 2190;
+export const MAX_RANK_SITE_IDS = 25;
+/** Ranked rows returned to the model; the rest are summarised by count. */
+export const RANK_ROWS_SHOWN = 8;
 
 export const TOOL_NAMES = [
   "list_catalog_sites",
@@ -42,6 +48,8 @@ export const TOOL_NAMES = [
   "get_sunlight_and_earth_visibility",
   "get_sun_earth_rise_set",
   "compare_sites",
+  "rank_sites",
+  "get_surface_composition",
   "show_in_freeplay",
 ] as const;
 export type ToolName = (typeof TOOL_NAMES)[number];
@@ -55,6 +63,8 @@ export const TOOL_LABELS: Record<ToolName, string> = {
   get_sunlight_and_earth_visibility: "Sunlight and Earth visibility",
   get_sun_earth_rise_set: "Sun/Earth rise and set",
   compare_sites: "Site comparison",
+  rank_sites: "Site ranking",
+  get_surface_composition: "Surface composition (Lunar Prospector GRS)",
   show_in_freeplay: "Freeplay view",
 };
 
@@ -68,6 +78,8 @@ export const TOOL_PROGRESS: Record<ToolName, string> = {
   get_sunlight_and_earth_visibility: "Checking sunlight and Earth visibility…",
   get_sun_earth_rise_set: "Checking rise and set times…",
   compare_sites: "Comparing sites…",
+  rank_sites: "Ranking catalog sites…",
+  get_surface_composition: "Reading surface composition…",
   show_in_freeplay: "Updating the Freeplay view…",
 };
 
@@ -95,6 +107,12 @@ export const TOOL_LIMIT_WORDING =
   `I reached the limit of ${MAX_TOOL_ROUNDS} data lookups for one question, so this answer may be incomplete. Ask a narrower follow-up to continue.`;
 export const INVALID_REQUEST_WORDING =
   "Mission Control couldn't form a valid data request for that question, so it has no data to answer from. Try rephrasing, or select a site first.";
+export const APPROXIMATE_POINT_WORDING =
+  "NASA has not published coordinates for the Artemis candidate regions, so results for them use an approximate representative point, not a verified site.";
+export const COMPOSITION_WORDING =
+  "Composition values are Lunar Prospector regional averages over about 60 km, not measurements at the site, and oxide abundances are not ore grades.";
+export const ICE_PROXY_WORDING =
+  "Distance to a cold trap is a water-ice proxy, not measured ice.";
 export const UNGROUNDED_WORDING =
   "This reply did not use a data lookup. Check any figures against the app before relying on them.";
 export function failureWording(message: string): string {

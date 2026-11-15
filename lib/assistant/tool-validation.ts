@@ -4,9 +4,10 @@
  * and dates outside stored coverage are refused rather than silently moved.
  */
 import { SITE_FAMILIES } from "@/lib/model/types";
+import { MAX_WEIGHT, RANK_CRITERIA, type RankCriterion } from "@/lib/science/rank";
 import {
-  COVERAGE_END_ISO, COVERAGE_START_ISO, DEFAULT_STEP_MINUTES, MAX_WINDOW_HOURS, MIN_WINDOW_HOURS,
-  NO_COVERAGE_WORDING, UI_GRAPH_TABS, UI_LAYERS, UI_PAGES, UI_SCREENS, UI_SPEEDS, isToolName, type ToolName,
+  COVERAGE_END_ISO, COVERAGE_START_ISO, DEFAULT_STEP_MINUTES, MAX_RANK_SITE_IDS, MAX_RANK_WINDOWS, MAX_WINDOW_HOURS, MIN_WINDOW_HOURS,
+  NO_COVERAGE_WORDING, RANK_WINDOW_SPACING_HOURS, UI_GRAPH_TABS, UI_LAYERS, UI_PAGES, UI_SCREENS, UI_SPEEDS, isToolName, type ToolName,
 } from "./constants";
 
 /** The slice of Freeplay state the tools need to resolve "this site" and "now". */
@@ -46,6 +47,8 @@ export type ToolRequest =
   | { tool: "get_sunlight_and_earth_visibility"; location: Location; startIso: string; durationHours: number; adjustments: string[] }
   | { tool: "get_sun_earth_rise_set"; location: Location; startIso: string; stepMinutes: number; adjustments: string[] }
   | { tool: "compare_sites"; siteIds: string[]; startIso: string; durationHours: number; adjustments: string[] }
+  | { tool: "rank_sites"; startIso: string; durationHours: number; windows: number; family?: string; siteIds?: string[]; weights: Partial<Record<RankCriterion, number>> | null; adjustments: string[] }
+  | { tool: "get_surface_composition"; location: Location }
   | { tool: "show_in_freeplay"; plan: UiPlan };
 
 export type ToolErrorCode =
@@ -72,6 +75,8 @@ const ALLOWED_KEYS: Record<ToolName, string[]> = {
   get_sunlight_and_earth_visibility: [...LOCATION_KEYS, "start", "durationHours"],
   get_sun_earth_rise_set: [...LOCATION_KEYS, "start", "stepMinutes"],
   compare_sites: ["siteIds", "start", "durationHours"],
+  rank_sites: ["start", "durationHours", "windows", "family", "siteIds", "weights"],
+  get_surface_composition: [...LOCATION_KEYS],
   show_in_freeplay: ["screen", "page", "siteId", "latDeg", "lonDeg", "time", "playing", "speed", "layersOn", "layersOff", "showCatalog", "graphTab"],
 };
 
@@ -131,7 +136,8 @@ function cleanArgs(raw: Record<string, unknown>): Record<string, unknown> {
   for (const [k, v] of Object.entries(raw)) {
     if (v === null || v === undefined || v === "") continue;
     if (k === "useCurrentSite" && v === false) continue;
-    if ((k === "durationHours" || k === "stepMinutes") && v === 0) continue;
+    if ((k === "durationHours" || k === "stepMinutes" || k === "windows") && v === 0) continue;
+    if ((k === "siteIds" || k === "weights") && typeof v === "object" && Object.keys(v as object).length === 0) continue;
     out[k] = v;
   }
   if ((out.useCurrentSite === true || out.siteId !== undefined) && out.latDeg === 0 && out.lonDeg === 0) {
@@ -185,6 +191,59 @@ function layerList(raw: unknown, name: string): (typeof UI_LAYERS)[number][] | u
     if (!out.includes(item as never)) out.push(item as never);
   }
   return out;
+}
+
+/** rank_sites weights: known criteria only, numbers clamped to 0–MAX_WEIGHT (reported), at least one above 0. */
+function rankWeights(raw: unknown, adjustments: string[]): Partial<Record<RankCriterion, number>> | null | Validation {
+  if (raw === undefined) return null;
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return bad(`weights must be an object with numeric fields from: ${RANK_CRITERIA.join(", ")}`);
+  const out: Partial<Record<RankCriterion, number>> = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (value === null || value === undefined) continue;
+    if (!(RANK_CRITERIA as readonly string[]).includes(key)) return bad(`Unknown weight "${key}". Allowed: ${RANK_CRITERIA.join(", ")}`);
+    if (typeof value !== "number" || !Number.isFinite(value)) return bad(`weight for ${key} must be a number`);
+    const w = Math.min(MAX_WEIGHT, Math.max(0, value));
+    if (w !== value) adjustments.push(`Weight ${key} ${value} was clamped to ${w} (allowed 0–${MAX_WEIGHT}).`);
+    out[key as RankCriterion] = Number(w.toFixed(2));
+  }
+  if (!Object.values(out).some((w) => (w ?? 0) > 0)) return bad("weights needs at least one criterion above 0, or leave weights out for the default");
+  return out;
+}
+
+function validateRank(args: Record<string, unknown>, ctx: ToolContext): Validation {
+  const adjustments: string[] = [];
+  const { family } = args;
+  if (family !== undefined && !(typeof family === "string" && (SITE_FAMILIES as readonly string[]).includes(family))) return bad(`family must be one of: ${SITE_FAMILIES.join(", ")}`);
+  let siteIds: string[] | undefined;
+  if (args.siteIds !== undefined) {
+    const raw = args.siteIds;
+    if (!Array.isArray(raw) || raw.length > MAX_RANK_SITE_IDS || raw.some((x) => typeof x !== "string" || !ID_RE.test(x))) return bad(`siteIds must list up to ${MAX_RANK_SITE_IDS} catalog site ids`);
+    siteIds = [...new Set(raw as string[])];
+  }
+  if (family !== undefined && siteIds) return bad("Give family or siteIds, not both");
+  const weights = rankWeights(args.weights, adjustments);
+  if (isValidation(weights)) return weights;
+  const start = parseTime(args.start, "start", Date.parse(ctx.missionStartIso));
+  if (typeof start !== "number") return start;
+  const win = fitWindow(start, args.durationHours ?? MAX_WINDOW_HOURS, ctx);
+  if (isValidation(win)) return win;
+  adjustments.push(...win.adjustments);
+  let windows = 1;
+  if (args.windows !== undefined) {
+    if (typeof args.windows !== "number" || !Number.isFinite(args.windows)) return bad("windows must be a number");
+    windows = Math.min(MAX_RANK_WINDOWS, Math.max(1, Math.round(args.windows)));
+    if (windows !== args.windows) adjustments.push(`windows ${args.windows} was adjusted to ${windows} (integer 1–${MAX_RANK_WINDOWS}).`);
+  }
+  const requested = windows;
+  while (windows > 1 && start + ((windows - 1) * RANK_WINDOW_SPACING_HOURS + win.hours) * HOUR_MS > COVERAGE_END_MS) windows--;
+  if (windows !== requested) adjustments.push(`Only ${windows} of ${requested} seasonal windows fit before the end of stored data (${COVERAGE_END_ISO}).`);
+  return {
+    ok: true,
+    request: {
+      tool: "rank_sites", startIso: new Date(start).toISOString(), durationHours: win.hours, windows,
+      ...(typeof family === "string" ? { family } : {}), ...(siteIds ? { siteIds } : {}), weights, adjustments,
+    },
+  };
 }
 
 /** show_in_freeplay: only whitelisted Freeplay controls, with enums and bounds checked here, never trusting the model. */
@@ -287,6 +346,12 @@ export function validateToolCall(name: unknown, rawArgs: unknown, ctx: ToolConte
         if (step !== args.stepMinutes) adjustments.push(`stepMinutes ${args.stepMinutes} was adjusted to ${step} (integer 1–60).`);
       }
       return { ok: true, request: { tool: name, location, startIso: new Date(start).toISOString(), stepMinutes: step, adjustments } };
+    }
+    case "rank_sites":
+      return validateRank(args, ctx);
+    case "get_surface_composition": {
+      const location = parseLocation(args, ctx);
+      return isValidation(location) ? location : { ok: true, request: { tool: name, location } };
     }
     case "compare_sites": {
       const raw = args.siteIds;

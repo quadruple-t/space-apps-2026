@@ -6,7 +6,7 @@ import { DocumentNotFoundError } from "./errors";
 const COLLECTION_ROUTES: Record<string, string> = {
   sites: "sites", storyChapters: "chapters", missionProfiles: "profiles", protectionZones: "zones",
   landerPresets: "presets", facts: "facts", validationChecks: "validations", dataSources: "sources",
-  ephemerisGlobal: "ephemeris", terrainGrid: "terrain", psrLayer: "psr", demo: "demos", catalog: "catalog",
+  ephemerisGlobal: "ephemeris", terrainGrid: "terrain", psrLayer: "psr", compositionGrid: "composition", demo: "demos", catalog: "catalog",
 };
 
 function apiPath(path: string): string {

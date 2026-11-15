@@ -1,0 +1,13 @@
+{
+ "label": "Lunar Prospector GRS elemental abundance, 2-degree equal-area pixels",
+ "kind": "map",
+ "version": "LP-L-GRS-5-ELEM-ABUNDANCE-V1.0",
+ "citation": "Prettyman, T.H. et al. (2006), J. Geophys. Res. 111, E12007",
+ "doi": "10.1029/2005JE002656",
+ "url": "https://pds-geosciences.wustl.edu/missions/lunarp/grs_elem_abundance.html",
+ "license": null,
+ "usedFor": [
+  "regional oxide abundances (FeO, TiO2, Al2O3, CaO, MgO, SiO2) for /api/v1/science/composition and /api/v1/science/rank"
+ ],
+ "retrievedAt": "2026-11-15"
+}

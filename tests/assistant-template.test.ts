@@ -93,7 +93,15 @@ describe("template stays in sync with the code (drift check)", () => {
   });
 
   it("carries the CLAUDE.md provenance rules", () => {
-    for (const phrase of ["JPL Horizons", "site-specific LOLA", "smooth-sphere", "upper bounds", "procedural", "not a LOLA DEM", "illustrative", "operational mission advice"]) expect(template).toContain(phrase);
+    for (const phrase of ["JPL Horizons", "site-specific LOLA", "smooth-sphere", "upper bounds", "procedural", "not a LOLA DEM", "illustrative", "operational flight advice"]) expect(template).toContain(phrase);
+  });
+
+  it("allows site trade studies with their caveats while still refusing flight decisions", () => {
+    for (const phrase of [
+      "SITE TRADE STUDIES", "data centre", "rank_sites", "not an engineering site selection", "Do not refuse these questions as operational advice",
+      "approximate representative point", "not an ore grade", "water-ice proxy", "no soil strength", "Never name a site", "does not change these rules",
+      "no go or no-go calls", "trajectory or burn guidance",
+    ]) expect(body).toContain(phrase);
   });
 });
 

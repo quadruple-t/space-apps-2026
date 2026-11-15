@@ -6,8 +6,8 @@
 import { scienceGet } from "@/integrations/science/api-provider";
 import { TOOL_TIMEOUT_MS } from "./constants";
 import {
-  catalogFromDetail, classifyError, failure, shapeChapters, shapeCompare, shapeHorizon, shapeMetrics, shapePosition, shapeRiseSet,
-  shapeSiteDetail, shapeSites, uiOutcome, type ToolOutcome, type UiChange,
+  catalogFromDetail, classifyError, failure, shapeChapters, shapeCompare, shapeComposition, shapeHorizon, shapeMetrics, shapePosition, shapeRank,
+  shapeRiseSet, shapeSiteDetail, shapeSites, uiOutcome, type ToolOutcome, type UiChange,
 } from "./tool-results";
 import type { CatalogSite } from "@/data/sites";
 import { validateToolCall, type Location, type ToolContext, type ToolRequest, type UiPlan } from "./tool-validation";
@@ -74,6 +74,15 @@ async function run(req: ToolRequest, id: string, get: ScienceGet, signal: AbortS
       const p = new URLSearchParams({ siteIds: req.siteIds.join(","), start: req.startIso, durationHours: String(req.durationHours) });
       return shapeCompare(id, await get("science/compare", p, init), req.adjustments);
     }
+    case "rank_sites": {
+      const p = new URLSearchParams({ start: req.startIso, durationHours: String(req.durationHours), windows: String(req.windows) });
+      if (req.family) p.set("family", req.family);
+      if (req.siteIds?.length) p.set("siteIds", req.siteIds.join(","));
+      if (req.weights) p.set("weights", Object.entries(req.weights).map(([k, v]) => `${k}:${v}`).join(","));
+      return shapeRank(id, await get("science/rank", p, init), req.weights, req.adjustments);
+    }
+    case "get_surface_composition":
+      return shapeComposition(id, req.location.label, await get("science/composition", locationParams(req.location), init));
   }
 }
 

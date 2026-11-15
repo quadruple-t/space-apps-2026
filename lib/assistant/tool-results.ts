@@ -4,8 +4,9 @@
  * smooth-sphere fallback) and the data's date range, so the model and the UI cannot blur provenance.
  */
 import { ScienceApiError } from "@/integrations/science/api-provider";
+import { activeCriteria, DEFAULT_WEIGHTS, type RankCriterion } from "@/lib/science/rank";
 import {
-  COVERAGE_LABEL, FALLBACK_WORDING, GRID_CELL_WORDING, MAX_TOOL_RESULT_CHARS, NO_COVERAGE_WORDING,
+  APPROXIMATE_POINT_WORDING, COMPOSITION_WORDING, COVERAGE_LABEL, FALLBACK_WORDING, ICE_PROXY_WORDING, RANK_ROWS_SHOWN, GRID_CELL_WORDING, MAX_TOOL_RESULT_CHARS, NO_COVERAGE_WORDING,
   TOOL_LABELS, UNRECOGNISED_HORIZON_WORDING, failureWording, type ToolName,
 } from "./constants";
 import type { CatalogSite } from "@/data/sites";
@@ -270,6 +271,72 @@ export function shapeCompare(id: string, raw: unknown, adjustments: string[]): T
   out.record.horizonLabel = labels.join("; ") || null;
   out.record.ok = sites.some((s) => s.ok);
   if (!out.record.ok) out.record.error = "No site returned data";
+  return out;
+}
+
+const COMPOSITION_CRITERIA: RankCriterion[] = ["iron", "titanium", "aluminium", "calcium"];
+const strings = (v: unknown, max: number) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string").slice(0, max) : []);
+
+/** Ranked shortlist: the top rows in full, the rest by count, with every caveat that applies to a shown row. */
+export function shapeRank(id: string, raw: unknown, weights: Partial<Record<RankCriterion, number>> | null, adjustments: string[]): ToolOutcome {
+  const b = asObj(raw), interval = asObj(b.interval), all = (Array.isArray(b.sites) ? b.sites : []) as Json[];
+  const active = activeCriteria(weights ?? DEFAULT_WEIGHTS);
+  const shown = all.slice(0, RANK_ROWS_SHOWN);
+  const kinds: HorizonKind[] = [], mustSay = new Set<string>();
+  const rows = shown.map((r) => {
+    const info = horizonInfo(r.horizonSource);
+    kinds.push(info.kind); info.mustSay.forEach((m) => mustSay.add(m));
+    const flags = strings(r.flags, 10);
+    if (r.locationQuality === "approximate-region") mustSay.add(APPROXIMATE_POINT_WORDING);
+    const opt = (k: string, v: unknown) => (v === null || v === undefined ? {} : { [k]: r2(v) });
+    return {
+      rank: r.rank ?? null, siteId: r.siteId, name: clip(r.name, 80), family: r.family, locationQuality: r.locationQuality,
+      latDeg: r2(r.latDeg), lonDeg: r2(r.lonDeg), score: r2(r.score), weightCoverage: r2(r.weightCoverage),
+      sunlightPercent: r.sunlightPercent, worstWindowSunlightPercent: r.worstWindowSunlightPercent, longestDarknessHours: r.longestDarknessHours,
+      earthVisibilityPercent: r.earthVisibilityPercent, ...opt("slope100mDeg", r.slope100mDeg), ...opt("nearestColdTrapKm", r.nearestColdTrapKm),
+      ...opt("feoWtPct", r.feoWtPct), ...opt("tio2WtPct", r.tio2WtPct), ...opt("al2o3WtPct", r.al2o3WtPct), ...opt("caoWtPct", r.caoWtPct),
+      horizon: info.kind, sharesAreUpperBounds: info.upperBound, flags,
+    };
+  });
+  if (active.some((c) => COMPOSITION_CRITERIA.includes(c)) || rows.some((r) => "feoWtPct" in r)) mustSay.add(COMPOSITION_WORDING);
+  if (active.includes("ice")) mustSay.add(ICE_PROXY_WORDING);
+  const windows = Number(interval.windows) || 1;
+  const start = typeof interval.start === "string" ? interval.start : null;
+  const out = ok("rank_sites", id, {
+    site: `${all.length} catalog sites`, dataRange: start ? `${fmtUtc(start)}, ${windows} window${windows > 1 ? "s" : ""} of ${String(interval.durationHours)} h` : null,
+    data: {
+      criteria: asObj(asObj(b.method).criteria), weights: b.weights, interval: { start, durationHours: interval.durationHours, windows, windowStarts: interval.windowStarts },
+      ranked: all.length, shown: rows.length, sites: rows,
+      skipped: (Array.isArray(b.skipped) ? (b.skipped as Json[]) : []).slice(0, 12).map((s) => s.siteId),
+    },
+    notes: [
+      clip(asObj(b.method).normalisation, 300) ?? "Scores are min-max scaled across the candidates.",
+      "Flags: slope-over-hls-10deg = steeper than the NASA HLS 10° landing limit; heritage-protection-zone = NASA 2011 heritage site; impact-site = crash site; missing:<criterion> = no data, scored as worst for that criterion.",
+      "worstWindowSunlightPercent and longestDarknessHours (worst window) show how consistent the lighting is across windows.",
+      ...strings(b.assumptions, 6),
+    ].filter((n): n is string => typeof n === "string"),
+    adjustments, extraMustSay: [...mustSay],
+  });
+  out.record.horizonKind = worst(kinds);
+  out.record.horizonLabel = kinds.length ? `${kinds.filter((k) => k === "site-lola-mask").length} of ${kinds.length} shown sites use a site LOLA mask` : null;
+  return out;
+}
+
+export function shapeComposition(id: string, site: string, raw: unknown): ToolOutcome {
+  const b = asObj(raw), pixel = asObj(b.pixel), source = asObj(b.source);
+  const table = (o: unknown) => Object.fromEntries(Object.entries(asObj(o)).map(([k, v]) => [k, r2(v)]));
+  const approx = b.locationQuality === "approximate-region";
+  const out = ok("get_surface_composition", id, {
+    site, dataRange: "Lunar Prospector GRS (1998-1999), regional average",
+    data: {
+      locationQuality: b.locationQuality, oxidesWtPct: table(b.oxidesWtPct), sigmaWtPct: table(b.sigmaWtPct),
+      pixel: { centerLatDeg: r2(pixel.centerLatDeg), centerLonDeg: r2(pixel.centerLonDeg), sizeDeg: pixel.sizeDeg, distanceFromPointKm: r2(pixel.distanceKm) },
+      resolutionKm: b.resolutionKm, source: clip(source.citation, 160),
+    },
+    notes: strings(b.assumptions, 5),
+    extraMustSay: [COMPOSITION_WORDING, ...(approx ? [APPROXIMATE_POINT_WORDING] : [])],
+  });
+  out.record.horizonLabel = "Lunar Prospector GRS 2° oxide map";
   return out;
 }
 

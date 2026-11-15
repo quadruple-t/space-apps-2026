@@ -1,7 +1,7 @@
 /**
  * Function declarations passed to the server prompt template chat (`startChat({ tools })`).
  *
- * Split of responsibilities (see docs/ai/prompt-templates/mission-control-v1-0-0.prompt):
+ * Split of responsibilities (see docs/ai/prompt-templates/mission-control-v1-1-0.prompt):
  *  - the template's frontmatter `tools:` lists each function name and its description (the SDK types
  *    forbid `description` on template function declarations, so descriptions live server-side);
  *  - these declarations supply only the parameter schemas, which override any schema in the template.
@@ -13,7 +13,8 @@
  */
 import { Schema, type TemplateFunctionDeclaration } from "firebase/ai";
 import { SITE_FAMILIES } from "@/lib/model/types";
-import { MAX_WINDOW_HOURS, MIN_WINDOW_HOURS, TOOL_NAMES, UI_GRAPH_TABS, UI_LAYERS, UI_PAGES, UI_SCREENS, UI_SPEEDS, type ToolName } from "./constants";
+import { RANK_CRITERIA } from "@/lib/science/rank";
+import { MAX_RANK_SITE_IDS, MAX_RANK_WINDOWS, MAX_WINDOW_HOURS, MIN_WINDOW_HOURS, TOOL_NAMES, UI_GRAPH_TABS, UI_LAYERS, UI_PAGES, UI_SCREENS, UI_SPEEDS, type ToolName } from "./constants";
 
 const locationProps = {
   useCurrentSite: Schema.boolean({ description: "true to use the site currently selected in Freeplay ('this site')." }),
@@ -70,6 +71,25 @@ const DECLARATIONS: Record<ToolName, TemplateFunctionDeclaration["parameters"]> 
       durationHours: Schema.number({ description: `Window length in hours, ${MIN_WINDOW_HOURS} to ${MAX_WINDOW_HOURS}.` }),
     },
     optionalProperties: ["start", "durationHours"],
+  }),
+  rank_sites: Schema.object({
+    properties: {
+      ...timeProp("start", "Start of the first window"),
+      durationHours: Schema.number({ description: `Length of each window in hours, ${MIN_WINDOW_HOURS} to ${MAX_WINDOW_HOURS}. Omit for ${MAX_WINDOW_HOURS} (about one lunar day).` }),
+      windows: Schema.integer({ description: `Number of windows, 1 to ${MAX_RANK_WINDOWS}, each starting about three months after the previous. Use ${MAX_RANK_WINDOWS} for consistent or year-round lighting.` }),
+      family: Schema.enumString({ enum: [...SITE_FAMILIES], description: "Only rank sites of this family." }),
+      siteIds: Schema.array({ items: Schema.string({ description: "Catalog site id." }), description: `Only rank these catalog sites (up to ${MAX_RANK_SITE_IDS}). Omit to rank the whole catalog.` }),
+      weights: Schema.object({
+        properties: Object.fromEntries(RANK_CRITERIA.map((c) => [c, Schema.number({ description: `Weight 0 to 10 for ${c}.` })])),
+        optionalProperties: [...RANK_CRITERIA],
+        description: "How much each criterion matters, 0 to 10. sunlight (more Sun), darkness (shorter longest darkness), earth (more Earth visibility), slope (flatter), ice (closer cold trap), iron (FeO), titanium (TiO2), aluminium (Al2O3), calcium (CaO). Omit for sunlight, darkness, earth and slope equally.",
+      }),
+    },
+    optionalProperties: ["start", "durationHours", "windows", "family", "siteIds", "weights"],
+  }),
+  get_surface_composition: Schema.object({
+    properties: { ...locationProps },
+    optionalProperties: locationOptional,
   }),
   show_in_freeplay: Schema.object({
     properties: {
