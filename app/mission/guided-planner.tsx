@@ -16,10 +16,11 @@ const siteKey = (site: FreeplaySite) => `${site.latitudeDeg},${site.longitudeDeg
 const mark = (done: boolean) => (done ? "✓" : "○");
 
 /** A staged Guided Mission lesson beside only the map or chart needed for the current action. */
-export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
+export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange, onGuidedExit }: {
   tutorial: TutorialData;
   lessonIndex: number;
   onLessonChange: (index: number) => void;
+  onGuidedExit: () => void;
 }) {
   const lesson = GUIDED_LESSONS[lessonIndex];
   const view = useFreeplay((state) => state.view);
@@ -36,6 +37,11 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
   const setStage = (nextStage: LessonStage) => setStages((current) => ({ ...current, [lessonIndex]: nextStage }));
 
   const candidateStops = tutorial.tourStops.filter((stop) => STORY_STOPS.find((spec) => spec.id === stop.id || spec.catalogId === stop.catalogId || spec.name === stop.name)?.group === "Artemis III candidate");
+  const presetStops = ["apollo-11", "luna-9"].flatMap((id) => {
+    const spec = STORY_STOPS.find((stop) => stop.id === id);
+    const match = spec && tutorial.tourStops.find((stop) => stop.catalogId === spec.catalogId || stop.name === spec.name || stop.id === spec.catalogId);
+    return match ? [match] : [];
+  });
 
   useEffect(() => useFreeplay.subscribe((state, previous) => {
     const next = state.site;
@@ -93,7 +99,7 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
       {collapsed ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
     </button>
     <div className={collapsed ? "hidden lg:block" : ""}>
-      <LessonCard lesson={lesson} chapter={chapter} stage={stage} complete={complete} onPrevious={stage !== "story" || lessonIndex > 0 ? previous : undefined} onStageChange={setStage} onNext={() => goToLesson(lessonIndex + 1)} nextLabel={lessonIndex === GUIDED_LESSONS.length - 1 ? "Finish Guided Mission" : "Next lesson"} exampleContent={<LessonExampleActivity lesson={lesson} stops={tutorial.tourStops} candidates={tutorial.tourStops} />}>
+      <LessonCard lesson={lesson} chapter={chapter} stage={stage} complete={complete} onPrevious={stage !== "story" || lessonIndex > 0 ? previous : undefined} onStageChange={setStage} onNext={() => goToLesson(lessonIndex + 1)} nextLabel={lessonIndex === GUIDED_LESSONS.length - 1 ? "Finish Guided Mission" : "Next lesson"} exampleContent={<LessonExampleActivity lesson={lesson} stops={tutorial.tourStops} candidates={presetStops} />}>
         {stage === "try" && lesson.id === "pick-site" && <>
           <label className="sr-only" htmlFor="story-site-stop">Choose a stop</label>
           <select id="story-site-stop" value={site?.id ?? ""} onChange={(event) => { const selected = siteForStop(event.target.value); if (selected) useFreeplay.getState().selectSite(selected, false); }} className="hud-input mt-1 text-sm normal-case tracking-normal">
@@ -124,6 +130,6 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
   };
 
   return <div className="fixed inset-0 z-50 h-dvh overflow-hidden bg-void">
-    <FreeplayApp aside={aside} guidedPanels={guidedPanels} assistantEnabled={false} guidedMode />
+    <FreeplayApp aside={aside} guidedPanels={guidedPanels} assistantEnabled={false} guidedMode onGuidedExit={onGuidedExit} />
   </div>;
 }

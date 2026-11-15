@@ -16,6 +16,7 @@ export function GuidedMissionExperience() {
   const [lessonIndex, setLessonIndex] = useState<number | null>(null);
   const [drive, setDrive] = useState<{ site?: LunarSite; utc: string } | null>(null);
   const tutorial = useTutorialData();
+  const returnToStart = () => { setDrive(null); setLessonIndex(null); };
 
   // Guided Mission runs in Freeplay's own store, so it starts from the opening planner state.
   const start = () => {
@@ -44,9 +45,9 @@ export function GuidedMissionExperience() {
   };
 
   if (lessonIndex !== null && GUIDED_LESSONS[lessonIndex]?.screen === "drive") return <div className="fixed inset-0 z-50 h-dvh overflow-hidden bg-void">
-    <SurfaceDrive guided tutorial={tutorial} startSite={drive?.site} startUtc={drive?.utc} onBack={() => setLessonIndex(lessonIndex - 1)} />
+    <SurfaceDrive guided tutorial={tutorial} startSite={drive?.site} startUtc={drive?.utc} onBack={() => setLessonIndex(lessonIndex - 1)} onGuidedExit={returnToStart} />
   </div>;
-  if (lessonIndex !== null) return <GuidedPlanner tutorial={tutorial} lessonIndex={lessonIndex} onLessonChange={changeLesson} />;
+  if (lessonIndex !== null) return <GuidedPlanner tutorial={tutorial} lessonIndex={lessonIndex} onLessonChange={changeLesson} onGuidedExit={returnToStart} />;
 
   return <>
       <PageIntro index="01" title="Guided Mission" lede="Start with Apollo 11 in 1969. Hear the story, see an example, then try each mission decision yourself." status={`${GUIDED_LESSONS.length} short lessons`}>

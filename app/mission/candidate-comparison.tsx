@@ -55,7 +55,7 @@ function Metric({ label, value, color, text }: { label: string; value: number; c
   </span>;
 }
 
-export function CandidateComparison({ sites }: { sites: FreeplaySite[] }) {
+export function CandidateComparison({ sites, locked = false }: { sites: FreeplaySite[]; locked?: boolean }) {
   const [firstId, setFirstId] = useState("");
   const [secondId, setSecondId] = useState("");
   const startIso = useFreeplay((state) => state.startIso);
@@ -78,10 +78,11 @@ export function CandidateComparison({ sites }: { sites: FreeplaySite[] }) {
 
   return <div className="mt-3 space-y-2.5">
     <div className="flex items-center justify-between gap-2">
-      <p className="type-data text-[.6rem] uppercase tracking-[.12em] text-retro-purple">Site comparison · same mission window</p>
-      <button type="button" onClick={swap} aria-label="Swap candidate places A and B" className="inline-flex min-h-8 shrink-0 items-center gap-1 rounded border border-line px-2 type-data text-[.55rem] uppercase tracking-wide text-muted-foreground hover:border-retro-purple/60 hover:text-bone"><ArrowLeftRight size={12} />Swap</button>
+      <p className="type-data text-[.6rem] uppercase tracking-[.12em] text-retro-purple">{locked ? "Preset · Apollo 11 vs Luna 9" : "Site comparison · same mission window"}</p>
+      {!locked && <button type="button" onClick={swap} aria-label="Swap candidate places A and B" className="inline-flex min-h-8 shrink-0 items-center gap-1 rounded border border-line px-2 type-data text-[.55rem] uppercase tracking-wide text-muted-foreground hover:border-retro-purple/60 hover:text-bone"><ArrowLeftRight size={12} />Swap</button>}
     </div>
-    {[{ value: first.id, label: "Place A", otherId: second.id, set: setFirstId }, { value: second.id, label: "Place B", otherId: first.id, set: setSecondId }].map((choice) => <label key={choice.label} className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground"><span className="w-12 shrink-0">{choice.label}</span><select aria-label={`${choice.label} candidate`} value={choice.value} onChange={(event) => {
+    {locked && <p className="text-[.58rem] leading-relaxed text-muted-foreground">Fixed example pair. The next section lets you compare all available stops.</p>}
+    {!locked && [{ value: first.id, label: "Place A", otherId: second.id, set: setFirstId }, { value: second.id, label: "Place B", otherId: first.id, set: setSecondId }].map((choice) => <label key={choice.label} className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground"><span className="w-12 shrink-0">{choice.label}</span><select aria-label={`${choice.label} candidate`} value={choice.value} onChange={(event) => {
       const next = sites.find((site) => site.id === event.target.value);
       choice.set(event.target.value);
       if (next) setSite(next, false);
