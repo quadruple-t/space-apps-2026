@@ -1,0 +1,47 @@
+import { createHash } from "node:crypto";
+import { describe, expect, test } from "vitest";
+import { Bytes } from "firebase/firestore";
+import { GLOBE_CHUNK_BYTES, globeAssetPath, globeAssetUrl, validateGlobeAsset, type GlobeAsset } from "@/lib/globe-archive";
+import { GlobeAssetNotFound, readGlobeAsset } from "@/lib/globe-asset-reader";
+
+function fixture(data: Buffer) {
+  const sha256 = createHash("sha256").update(data).digest("hex");
+  const id = "temperatureMax-0";
+  const chunks = Array.from({ length: Math.ceil(data.length / GLOBE_CHUNK_BYTES) }, (_, i) => `globe-chunk-${id}-${sha256.slice(0, 16)}-${i}`);
+  const asset: GlobeAsset = { id, kind: "globe-asset", contentType: "image/png", bytes: data.length, sha256, chunks, source: {} };
+  const records = new Map<string, Record<string, unknown>>([[globeAssetPath(id), asset]]);
+  chunks.forEach((chunk, index) => records.set(`catalog/${chunk}`, { assetId: id, sha256, index, data: Bytes.fromUint8Array(data.subarray(index * GLOBE_CHUNK_BYTES, (index + 1) * GLOBE_CHUNK_BYTES)) }));
+  const db = { doc: (path: string) => ({ get: async () => ({ exists: records.has(path), data: () => records.get(path) }) }) };
+  return { db, asset, records };
+}
+
+describe("Firebase globe archive", () => {
+  test("reassembles multiple binary documents exactly using public SDK Bytes", async () => {
+    const original = Buffer.alloc(GLOBE_CHUNK_BYTES * 2 + 71, 201);
+    original[0] = 137;
+    const { db, asset } = fixture(original);
+    const read = await readGlobeAsset(db, asset.id, asset.sha256);
+    expect(read.data.equals(original)).toBe(true);
+    expect(globeAssetUrl(asset)).toContain(`sha256=${asset.sha256}`);
+  });
+  test("detects altered image bytes before serving them", async () => {
+    const { db, asset, records } = fixture(Buffer.from("verified image"));
+    records.get(`catalog/${asset.chunks[0]}`)!.data = Bytes.fromUint8Array(Buffer.from("altered image!"));
+    await expect(readGlobeAsset(db, asset.id)).rejects.toThrow(/checksum|Incomplete/);
+  });
+  test("rejects missing parts and stale versions", async () => {
+    const { db, asset, records } = fixture(Buffer.from("image"));
+    await expect(readGlobeAsset(db, asset.id, "a".repeat(64))).rejects.toBeInstanceOf(GlobeAssetNotFound);
+    records.delete(`catalog/${asset.chunks[0]}`);
+    await expect(readGlobeAsset(db, asset.id)).rejects.toThrow("Missing or mismatched");
+  });
+  test("never follows arbitrary chunk document paths", () => {
+    const { asset } = fixture(Buffer.from("image"));
+    expect(() => validateGlobeAsset({ ...asset, chunks: ["users/private"] }, asset.id)).toThrow();
+  });
+  test("rejects unknown IDs and unsupported formats", async () => {
+    const { db, asset } = fixture(Buffer.from("image"));
+    await expect(readGlobeAsset(db, "../users/private")).rejects.toBeInstanceOf(GlobeAssetNotFound);
+    expect(() => validateGlobeAsset({ ...asset, contentType: "text/html" }, asset.id)).toThrow();
+  });
+});

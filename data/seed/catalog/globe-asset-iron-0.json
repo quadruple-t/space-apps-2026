@@ -1,0 +1,36 @@
+{
+ "id": "iron-0",
+ "kind": "globe-asset",
+ "contentType": "image/png",
+ "bytes": 2151999,
+ "sha256": "c91947036af897c8156fb624049532f109783a97e6011a6cbb0bd1a4221c695b",
+ "chunks": [
+  "globe-chunk-iron-0-c91947036af897c8-0",
+  "globe-chunk-iron-0-c91947036af897c8-1",
+  "globe-chunk-iron-0-c91947036af897c8-2",
+  "globe-chunk-iron-0-c91947036af897c8-3",
+  "globe-chunk-iron-0-c91947036af897c8-4",
+  "globe-chunk-iron-0-c91947036af897c8-5",
+  "globe-chunk-iron-0-c91947036af897c8-6",
+  "globe-chunk-iron-0-c91947036af897c8-7",
+  "globe-chunk-iron-0-c91947036af897c8-8"
+ ],
+ "source": {
+  "kind": "wms",
+  "layers": "luna_kaguya_feo",
+  "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_kaguya_feo&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+  "requestedWidth": 2048,
+  "requestedHeight": 1024,
+  "retrievedAt": "2026-11-15T04:13:30.669Z"
+ },
+ "layerId": "iron",
+ "sourceIndex": 0,
+ "width": 2048,
+ "height": 1024,
+ "rectangle": [
+  -180,
+  -90,
+  180,
+  90
+ ]
+}

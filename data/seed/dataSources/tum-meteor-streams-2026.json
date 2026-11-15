@@ -1,0 +1,14 @@
+{
+  "id": "tum-meteor-streams-2026",
+  "label": "TUM Lunar and Planetary Exploration, 2026 meteoroid stream geometry (updated 4 May 2026)",
+  "kind": "document",
+  "version": "2026 reference snapshots",
+  "citation": "TUM Lunar and Planetary Exploration, 2026 meteoroid stream geometry (updated 4 May 2026)",
+  "doi": null,
+  "url": "https://www.asg.ed.tum.de/en/lpe/forschung/mondeinschlagsblitze/meteoroid-stream-geometry/",
+  "license": null,
+  "usedFor": [
+    "2026 meteor-stream reference epochs and equatorial radiants"
+  ],
+  "retrievedAt": "2026-11-14"
+}

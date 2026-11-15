@@ -1,0 +1,14 @@
+{
+  "id": "naif-lunar-orientation",
+  "label": "NASA/JPL NAIF pck00011, IAU_MOON orientation model (2009 coefficients)",
+  "kind": "document",
+  "version": "pck00011",
+  "citation": "NASA/JPL NAIF pck00011, IAU_MOON orientation model (2009 coefficients)",
+  "doi": null,
+  "url": "https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/pck00011.tpc",
+  "license": null,
+  "usedFor": [
+    "derived approximate lunar sub-radiants for stream exposure snapshots"
+  ],
+  "retrievedAt": "2026-11-14"
+}

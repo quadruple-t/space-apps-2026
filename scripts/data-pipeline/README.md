@@ -68,3 +68,16 @@ Disk: `.cache/` about 4 GB; `data/seed/` about 65 MB of JSON (about 48 MiB of Fi
 
 See `docs/METHODS.md` (equations, error margins, validation), `docs/SOURCES.md`, `docs/MISSING_DATA.md` and
 `docs/DATA_SIZE_REPORT.md`.
+
+
+## Firebase globe archive
+
+From the repository root, run `npm run archive:globe` to collect complete globe
+snapshots at the selected overview resolution and create seed-ready binary chunks.
+`npm run archive:globe -- --upload` runs the normal full static seed validator and
+uploader and then reads every asset back to verify SHA-256. `--verify` repeats only
+the readback. Raw requests are cached in `.cache/globe-assets/`; provenance is in
+`globe-archive.lock.json`. The collected-data gzip includes the original seed data,
+curation, cached source responses/tiles and citations. It excludes generated chunk
+JSON to avoid recursive archives, credentials, user data and unavailable full-size
+upstream source archives. See the root README for storage layout and API routes.

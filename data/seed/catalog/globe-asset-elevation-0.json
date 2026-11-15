@@ -1,0 +1,47 @@
+{
+ "id": "elevation-0",
+ "kind": "globe-asset",
+ "contentType": "image/png",
+ "bytes": 4710692,
+ "sha256": "a07781bb97ba5e168782460e86d024bcb45e3ca7065443b6f5f29c080094e57c",
+ "chunks": [
+  "globe-chunk-elevation-0-a07781bb97ba5e16-0",
+  "globe-chunk-elevation-0-a07781bb97ba5e16-1",
+  "globe-chunk-elevation-0-a07781bb97ba5e16-2",
+  "globe-chunk-elevation-0-a07781bb97ba5e16-3",
+  "globe-chunk-elevation-0-a07781bb97ba5e16-4",
+  "globe-chunk-elevation-0-a07781bb97ba5e16-5",
+  "globe-chunk-elevation-0-a07781bb97ba5e16-6",
+  "globe-chunk-elevation-0-a07781bb97ba5e16-7",
+  "globe-chunk-elevation-0-a07781bb97ba5e16-8",
+  "globe-chunk-elevation-0-a07781bb97ba5e16-9",
+  "globe-chunk-elevation-0-a07781bb97ba5e16-10",
+  "globe-chunk-elevation-0-a07781bb97ba5e16-11",
+  "globe-chunk-elevation-0-a07781bb97ba5e16-12",
+  "globe-chunk-elevation-0-a07781bb97ba5e16-13",
+  "globe-chunk-elevation-0-a07781bb97ba5e16-14",
+  "globe-chunk-elevation-0-a07781bb97ba5e16-15",
+  "globe-chunk-elevation-0-a07781bb97ba5e16-16",
+  "globe-chunk-elevation-0-a07781bb97ba5e16-17",
+  "globe-chunk-elevation-0-a07781bb97ba5e16-18",
+  "globe-chunk-elevation-0-a07781bb97ba5e16-19"
+ ],
+ "source": {
+  "kind": "wms",
+  "layers": "luna_wac_dtm",
+  "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_wac_dtm&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+  "requestedWidth": 2048,
+  "requestedHeight": 1024,
+  "retrievedAt": "2026-11-15T04:13:30.669Z"
+ },
+ "layerId": "elevation",
+ "sourceIndex": 0,
+ "width": 2048,
+ "height": 1024,
+ "rectangle": [
+  -180,
+  -90,
+  180,
+  90
+ ]
+}
