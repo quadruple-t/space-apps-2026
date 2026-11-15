@@ -143,31 +143,39 @@ export async function GET(request: Request, context: { params: Promise<{ path?: 
       let horizonSource = "none — smooth horizon";
       let slopeDeg: number | null = null;
       let elevationMeters: number | null = null;
+      // Whether the LOLA terrain-grid cell lies inside a permanently shadowed region (PSR); south polar points only.
+      // The cells' nearestPsrKm is not exposed: the seeded values are all zero, so it carries no information yet.
+      let insidePsr: boolean | null = null;
+      const loadGridTile = async (snap: NonNullable<ReturnType<typeof snapToGrid>>) => {
+        const tileSnap = await db.doc(`terrainGrid/${snap.tileId}`).get();
+        if (!tileSnap.exists) return null;
+        const d = tileSnap.data()!;
+        const cells = Number(d.cellsPerSide) ** 2;
+        const bins = Number(d.bins);
+        return {
+          id: snap.tileId, gridSpacingKm: Number(d.gridSpacingKm), tileOriginXY: d.tileOriginXY,
+          cellsPerSide: Number(d.cellsPerSide), binDeg: Number(d.binDeg), bins,
+          masks: decodeInt16(binary(d.masks)), maskErr: decodeUint8(binary(d.maskErr)),
+          cellStats: decodeCellStats(binary(d.cellStats), decodeInt16(binary(d.masks)), bins, cells),
+          demProducts: d.demProducts ?? [], rayLengthKm: Number(d.rayLengthKm), observerHeightM: Number(d.observerHeightM), computedAt: d.computedAt,
+        };
+      };
       const terrainSnap = siteId ? await db.doc(`sites/${siteId}/terrain/v1`).get() : null;
       if (terrainSnap?.exists) {
         mask = horizonFromDoc(terrainSnap.data()!);
         horizonSource = "LOLA DEM";
         slopeDeg = terrainSnap.get("slope100mDeg") ?? null;
         elevationMeters = position?.latDeg == null ? null : siteSnap?.get("coordinates.elevationM") ?? null;
-      } else if (latitude <= -80) {
+      }
+      if (latitude <= -80 && (!terrainSnap?.exists || id === "metrics")) {
         const snap = snapToGrid(latitude, longitude);
-        if (snap) {
-          const tileSnap = await db.doc(`terrainGrid/${snap.tileId}`).get();
-          if (tileSnap.exists) {
-            const d = tileSnap.data()!;
-            const cells = Number(d.cellsPerSide) ** 2;
-            const bins = Number(d.bins);
-            const tile = {
-              id: snap.tileId, gridSpacingKm: Number(d.gridSpacingKm), tileOriginXY: d.tileOriginXY,
-              cellsPerSide: Number(d.cellsPerSide), binDeg: Number(d.binDeg), bins,
-              masks: decodeInt16(binary(d.masks)), maskErr: decodeUint8(binary(d.maskErr)),
-              cellStats: decodeCellStats(binary(d.cellStats), decodeInt16(binary(d.masks)), bins, cells),
-              demProducts: d.demProducts ?? [], rayLengthKm: Number(d.rayLengthKm), observerHeightM: Number(d.observerHeightM), computedAt: d.computedAt,
-            };
-            const gridMask = maskFromGridCell(tile, snap.cellIndex);
-            if (gridMask) { mask = gridMask; horizonSource = `LOLA DEM grid · ${snap.gridSpacingKm} km cell, ${snap.distanceKm.toFixed(1)} km from point`; slopeDeg = tile.cellStats[snap.cellIndex]?.slope100mDeg ?? null; }
-          }
+        const tile = snap ? await loadGridTile(snap) : null;
+        const cell = snap && tile ? tile.cellStats[snap.cellIndex] : undefined;
+        if (snap && tile && !terrainSnap?.exists) {
+          const gridMask = maskFromGridCell(tile, snap.cellIndex);
+          if (gridMask) { mask = gridMask; horizonSource = `LOLA DEM grid · ${snap.gridSpacingKm} km cell, ${snap.distanceKm.toFixed(1)} km from point`; slopeDeg = cell?.slope100mDeg ?? null; }
         }
+        if (cell?.hasData) insidePsr = cell.insidePsr;
       }
       const frame = siteFrame(latitude, longitude);
       // Shared with the client graphs: lib/science/sky.ts holds the one visibility implementation.
@@ -191,6 +199,7 @@ export async function GET(request: Request, context: { params: Promise<{ path?: 
         sunlightPercent: Math.round(share(sunlit) * 100), sunlightHours: Number((share(sunlit) * durationHours).toFixed(1)),
         longestDarknessHours: longestRunHours(sunlit, false, 1 / 6), earthVisibilityPercent: Math.round(share(earthVisible) * 100),
         longestBlackoutHours: longestRunHours(earthVisible, false, 1 / 6), ...(slopeDeg !== null ? { slopeDeg } : {}), ...(elevationMeters !== null ? { elevationMeters } : {}),
+        ...(insidePsr !== null ? { insidePsr } : {}),
         intervalStart: fromIso, intervalEnd: toIso, horizonSource,
         assumptions: ["10-minute sampling; run lengths limited to the interval", "Sun and Earth treated as points (centre of disk), no refraction", smooth ? "No terrain mask for this location: smooth-sphere horizon, so lit and visible shares are upper bounds" : "Terrain occlusion from the precomputed horizon mask"],
         provenance: "scientific",
