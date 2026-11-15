@@ -3,11 +3,21 @@ import { executeToolCall } from "@/lib/assistant/tools";
 import { applyUiPlan, captureView, restoreView } from "@/lib/assistant/ui-actions";
 import { turnNotices } from "@/lib/assistant/guards";
 import { DEFAULT_START_ISO, useFreeplay } from "@/lib/freeplay-store";
+import { useComparison } from "@/lib/comparison-store";
 import { ctxWithCatalogSite } from "./helpers/assistant-fixtures";
 
 const detail = { site: { id: "apollo-17", name: "Apollo 17", coordinates: { latDeg: 20.19, lonDeg: 30.77 }, coordsVerified: true } };
 
-beforeEach(() => useFreeplay.setState({ ...useFreeplay.getInitialState() }));
+beforeEach(() => {
+  useFreeplay.setState({ ...useFreeplay.getInitialState() });
+  useComparison.setState({ ...useComparison.getInitialState() });
+});
+
+const savePreset = (name: string, latDeg: number, lonDeg: number) => {
+  useFreeplay.getState().selectCustom(latDeg, lonDeg);
+  useFreeplay.getState().saveCurrentSite(name);
+  return useFreeplay.getState().savedSites.find((s) => s.name === name)!;
+};
 
 describe("show_in_freeplay execution", () => {
   it("resolves a catalog site, applies the plan, and reports a ui record (not a source)", async () => {
@@ -54,5 +64,50 @@ describe("applyUiPlan and restoreView", () => {
     expect(applyUiPlan({ page: "drive" }, null).link).toBeUndefined();
     useFreeplay.getState().selectCustom(-85, 20);
     expect(applyUiPlan({ page: "drive" }, null).link?.href).toContain("/open-exploration/drive");
+  });
+
+  it("selects a saved preset, sets its radius and duration, and restores both", () => {
+    const preset = savePreset("Ridge camp", -89.1, 120.5);
+    const before = captureView();
+    const change = applyUiPlan({ savedSiteId: preset.id, radiusKm: 25, durationHours: 48 }, null);
+    const s = useFreeplay.getState();
+    expect(s.site?.id).toBe(preset.id);
+    expect(s.site?.radiusKm).toBe(25);
+    expect(s.durationHours).toBe(48);
+    expect(change.changes.join(" ")).toMatch(/Ridge camp/);
+    restoreView(before);
+    expect(useFreeplay.getState().durationHours).not.toBe(48);
+    expect(useFreeplay.getState().site?.id).toBe(preset.id);
+  });
+
+  it("opens the launch planner and applies its settings", () => {
+    const change = applyUiPlan({ launchTimeIso: "2027-04-01T00:00:00.000Z", trajectoryType: "low-energy", payloadKg: 1200, ispS: 320, showArtemisReference: true }, null);
+    const s = useFreeplay.getState();
+    expect(s.view).toBe("launch");
+    expect([s.launchIso, s.trajectoryType, s.payloadKg, s.ispS, s.showArtemisReference]).toEqual(["2027-04-01T00:00:00.000Z", "low-energy", 1200, 320, true]);
+    expect(change.changes.join(" ")).toMatch(/Low-energy transfer/);
+  });
+
+  it("selects a meteor stream and panel assumptions", () => {
+    applyUiPlan({ meteorStream: "Perseids", panelAreaM2: 3.5, panelEfficiency: 0.22 }, null);
+    const s = useFreeplay.getState();
+    expect(s.view).toBe("globe");
+    expect([s.meteorStream, s.panelAreaM2, s.panelEfficiency]).toEqual(["Perseids", 3.5, 0.22]);
+  });
+
+  it("fills comparison slots, graph focus and metric rows, then restores them", () => {
+    const a = savePreset("Site A", -89.1, 120.5);
+    const b = savePreset("Site B", -88.4, 60.2);
+    const before = captureView();
+    const change = applyUiPlan({ compareSiteA: a.id, compareSiteB: b.id, compareGraph: "power", compareMetrics: ["sunlightPct", "energyKWh"] }, null);
+    const c = useComparison.getState();
+    expect(useFreeplay.getState().view).toBe("compare");
+    expect([c.slotA?.id, c.slotB?.id]).toEqual([a.id, b.id]);
+    expect(c.graphFocus).toBe("power");
+    expect(c.metrics).toEqual(["sunlightPct", "energyKWh"]);
+    expect(change.changes.join(" ")).toMatch(/Comparison site A/);
+    restoreView(before);
+    const r = useComparison.getState();
+    expect([r.slotA, r.slotB, r.graphFocus]).toEqual([null, null, "sunlight"]);
   });
 });

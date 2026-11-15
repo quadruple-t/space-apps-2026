@@ -8,6 +8,13 @@ export const ctxWithCatalogSite: ToolContext = {
 };
 export const ctxWithCustomSite: ToolContext = { ...ctxWithCatalogSite, site: { name: "Custom site", latitudeDeg: -85.1, longitudeDeg: 20.5, kind: "custom" } };
 export const ctxNoSite: ToolContext = { ...ctxWithCatalogSite, site: null };
+export const ctxWithSavedSites: ToolContext = {
+  ...ctxWithCatalogSite,
+  savedSites: [
+    { id: "saved-ridge", name: "Ridge camp", latitudeDeg: -89.1, longitudeDeg: 120.5, radiusKm: 10 },
+    { id: "saved-flat", name: "Flat plain", latitudeDeg: -88.2, longitudeDeg: 45, radiusKm: 5 },
+  ],
+};
 
 export const metricsApi = (horizonSource: string) => ({
   sunlightPercent: 72, sunlightHours: 17.3, longestDarknessHours: 4.5, earthVisibilityPercent: 61, longestBlackoutHours: 6.2,

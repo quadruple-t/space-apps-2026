@@ -19,6 +19,7 @@ export const NAV_LINKS: NavLink[] = [
   { label: "Debrief", href: "/how-it-works" },
   { label: "Guided Mission", href: "/mission" },
   { label: "Open Exploration", href: "/open-exploration" },
+  { label: "My Explorations", href: "/expeditions" },
 ];
 
 export const LAUNCH_HREF = "/open-exploration";

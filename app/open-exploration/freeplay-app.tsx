@@ -3,17 +3,17 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
-import { ArrowLeft, Bot, Car, GitCompareArrows, Globe2, Orbit } from "lucide-react";
+import { ArrowLeft, Bot, Car, GitCompareArrows, Globe2, Orbit, Rocket } from "lucide-react";
 import { ExpeditionControl, EXPEDITION_LAUNCHER_ID } from "@/components/expeditions/expedition-control";
 import { ExpeditionPanel } from "@/components/expeditions/expedition-panel";
 import { Logo } from "@/components/brand/logo";
-import { LoadingIndicator } from "@/components/freeplay/loading-indicator";
 import { AssistantPanel, LAUNCHER_ID, PANEL_ID } from "@/components/freeplay/assistant-panel";
+import { LoadingIndicator } from "@/components/freeplay/loading-indicator";
 import { usePlaybackClock } from "@/components/freeplay/time-controls";
 import type { FreeplaySite } from "@/data/sites";
-import { useAssistant } from "@/lib/assistant/assistant-store";
 import { driveHref } from "@/lib/drive-link";
 import { useExpeditions } from "@/lib/expeditions/expedition-store";
+import { useAssistant } from "@/lib/assistant/assistant-store";
 import { currentTimeMs, useFreeplay, type FreeplayView, type LayerId } from "@/lib/freeplay-store";
 
 const Loading = ({ label }: { label: string }) =>
@@ -21,11 +21,13 @@ const Loading = ({ label }: { label: string }) =>
 
 const GlobeScreen = dynamic(() => import("./globe-screen").then((m) => m.GlobeScreen), { ssr: false, loading: () => <Loading label="Moon globe" /> });
 const OrbitScreen = dynamic(() => import("./orbit-screen").then((m) => m.OrbitScreen), { ssr: false, loading: () => <Loading label="orbit view" /> });
+const LaunchScreen = dynamic(() => import("./launch-screen").then((m) => m.LaunchScreen), { ssr: false, loading: () => <Loading label="launch window" /> });
 const CompareScreen = dynamic(() => import("./compare-screen").then((m) => m.CompareScreen), { ssr: false, loading: () => <Loading label="mission comparison" /> });
 
 const TABS: { id: FreeplayView; label: string; Icon: typeof Globe2 }[] = [
   { id: "globe", label: "Moon map", Icon: Globe2 },
   { id: "orbit", label: "Orbit + Graphs", Icon: Orbit },
+  { id: "launch", label: "Launch window", Icon: Rocket },
   { id: "compare", label: "Mission comparison", Icon: GitCompareArrows },
 ];
 
@@ -60,14 +62,16 @@ export function FreeplayApp({ aside, guidedPanels, assistantEnabled = true, guid
   const view = useFreeplay((s) => s.view);
   const site = useFreeplay((s) => s.site);
   const setView = useFreeplay((s) => s.setView);
+  const [expeditionOpen, setExpeditionOpen] = useState(false);
+  const closeExpedition = () => { setExpeditionOpen(false); requestAnimationFrame(() => document.getElementById(EXPEDITION_LAUNCHER_ID)?.focus()); };
+  // The assistant is a right-hand sidebar here (not the floating bubble) and pushes the screen over instead of covering it.
   const assistantOpen = useAssistant((s) => s.open);
   const setAssistantOpen = useAssistant((s) => s.setOpen);
-  const [expeditionOpen, setExpeditionOpen] = useState(false);
   const closeAssistant = () => { setAssistantOpen(false); requestAnimationFrame(() => document.getElementById(LAUNCHER_ID)?.focus()); };
-  const closeExpedition = () => { setExpeditionOpen(false); requestAnimationFrame(() => document.getElementById(EXPEDITION_LAUNCHER_ID)?.focus()); };
-  // Both panels dock in the same right-hand slot (full-screen overlay below lg), so opening one closes the other.
+  // One side panel at a time keeps the globe usable.
   const toggleExpedition = () => { if (!expeditionOpen) setAssistantOpen(false); setExpeditionOpen(!expeditionOpen); };
   const toggleAssistant = () => { if (!assistantOpen) setExpeditionOpen(false); setAssistantOpen(!assistantOpen); };
+  const sidebarOpen = !guidedMode && assistantOpen;
   usePlaybackClock();
   // Non-guided Open Exploration loads the open expedition (or this browser's draft) and autosaves it.
   // Guided Mission shares the Open Exploration store but never attaches, so its resets are never saved.
@@ -120,15 +124,17 @@ export function FreeplayApp({ aside, guidedPanels, assistantEnabled = true, guid
     <div className="relative flex min-h-0 flex-1">
       <div className="relative min-h-0 min-w-0 flex-1">
         {view === "globe" ? <GlobeScreen guidedLayers={guidedPanels?.layers} guidedSites={guidedMode ? guidedPanels?.tourSites : undefined} guidedMode={guidedMode} />
-          : view === "compare" ? <CompareScreen /> : <OrbitScreen />}
+          : view === "launch" ? <LaunchScreen />
+            : view === "compare" ? <CompareScreen /> : <OrbitScreen />}
       </div>
       {guidedMode && guidedPanels?.dimContent && <div aria-hidden className="pointer-events-auto absolute inset-0 z-20 bg-void/55 backdrop-blur-[2px]" />}
       {aside}
+      {!guidedMode && <div aria-hidden={!sidebarOpen} inert={!sidebarOpen}
+        className={`min-h-0 shrink-0 overflow-hidden bg-void transition-[width] duration-200 ease-out motion-reduce:transition-none max-lg:absolute max-lg:inset-y-0 max-lg:right-0 max-lg:z-40 ${sidebarOpen ? "w-[min(360px,100vw)] border-l border-line" : "w-0"}`}>
+        {sidebarOpen && <div className="h-full w-[min(360px,100vw)]"><AssistantPanel onClose={closeAssistant} /></div>}
+      </div>}
       {!guidedMode && expeditionOpen && <div className="absolute inset-0 z-40 bg-void/70 p-2 lg:static lg:bg-transparent lg:p-0">
         <ExpeditionPanel onClose={closeExpedition} />
-      </div>}
-      {assistantEnabled && assistantOpen && <div className="absolute inset-0 z-40 bg-void/70 p-2 lg:static lg:bg-transparent lg:p-0">
-        <AssistantPanel onClose={closeAssistant} />
       </div>}
     </div>
   </div>;

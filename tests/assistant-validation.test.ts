@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { TOOL_NAMES } from "@/lib/assistant/constants";
 import { parseIsoUtc, validateToolCall } from "@/lib/assistant/tool-validation";
-import { ctxNoSite, ctxWithCatalogSite, ctxWithCustomSite } from "./helpers/assistant-fixtures";
+import { ctxNoSite, ctxWithCatalogSite, ctxWithCustomSite, ctxWithSavedSites } from "./helpers/assistant-fixtures";
 
 const v = (name: unknown, args: unknown, ctx = ctxWithCatalogSite) => validateToolCall(name, args, ctx);
 const errCode = (r: ReturnType<typeof v>) => (r.ok ? null : r.error.code);
@@ -140,6 +140,44 @@ describe("tool-call validation", () => {
     expect(ok.ok && ok.request).toMatchObject({ siteIds: ["apollo-17", "apollo-11"] });
     expect(errCode(v("compare_sites", { siteIds: ["current", "apollo-11"] }, ctxWithCustomSite))).toBe("invalid_arguments");
   });
+
+  it("accepts saved preset ids in compare_sites but not ids the user does not own", () => {
+    const ok = v("compare_sites", { siteIds: ["saved-ridge", "apollo-11"] }, ctxWithSavedSites);
+    expect(ok.ok && ok.request).toMatchObject({ siteIds: ["saved-ridge", "apollo-11"] });
+    // Saved-looking ids are just catalog ids when the user has no such preset, and the API decides.
+    expect(v("compare_sites", { siteIds: ["saved-nope", "apollo-11"] }, ctxWithSavedSites).ok).toBe(true);
+    expect(errCode(v("compare_sites", { siteIds: ["saved-ridge", "saved-ridge"] }, ctxWithSavedSites))).toBe("invalid_arguments");
+  });
+
+  it("validates launch planner arguments and defaults them from the Open Exploration state", () => {
+    const d = v("get_launch_plan", {}, { ...ctxWithCatalogSite, launchIso: "2027-04-01T00:00:00.000Z", trajectoryType: "low-energy", payloadKg: 1200, ispS: 320 });
+    expect(d.ok && d.request).toMatchObject({
+      tool: "get_launch_plan", launchIso: "2027-04-01T00:00:00.000Z", trajectoryType: "low-energy", payloadKg: 1200, ispS: 320, includeArtemisReference: false,
+    });
+    expect(errCode(v("get_launch_plan", { trajectoryType: "warp" }))).toBe("invalid_arguments");
+    expect(errCode(v("get_launch_plan", { payloadKg: 0.5 }))).toBe("invalid_arguments");
+    expect(errCode(v("get_launch_plan", { ispS: 900 }))).toBe("invalid_arguments");
+    expect(errCode(v("get_launch_plan", { launchTime: "2031-01-01T00:00:00Z" }))).toBe("out_of_coverage");
+    expect(errCode(v("get_launch_plan", {}, ctxNoSite))).toBe("no_site_selected");
+    expect(v("get_launch_plan", { includeArtemisReference: true }).ok).toBe(true);
+  });
+
+  it("validates solar power assumptions and stays inside the panel bounds", () => {
+    const d = v("get_solar_power", { useCurrentSite: true }, { ...ctxWithCatalogSite, panelAreaM2: 2.5, panelEfficiency: 0.28 });
+    expect(d.ok && d.request).toMatchObject({ panelAreaM2: 2.5, panelEfficiency: 0.28, durationHours: 709 });
+    expect(errCode(v("get_solar_power", { useCurrentSite: true, panelAreaM2: -1 }))).toBe("invalid_arguments");
+    expect(errCode(v("get_solar_power", { useCurrentSite: true, panelAreaM2: 5000 }))).toBe("invalid_arguments");
+    expect(errCode(v("get_solar_power", { useCurrentSite: true, panelEfficiency: 4 }))).toBe("invalid_arguments");
+  });
+
+  it("lists or resolves meteor streams, defaulting to the current site", () => {
+    const all = v("get_meteor_stream_exposure", {});
+    expect(all.ok && all.request).toEqual({ tool: "get_meteor_stream_exposure", stream: null, location: null });
+    const atSite = v("get_meteor_stream_exposure", { stream: "Geminids" });
+    expect(atSite.ok && atSite.request).toMatchObject({ stream: "Geminids", location: { kind: "catalog", siteId: "apollo-17" } });
+    expect(errCode(v("get_meteor_stream_exposure", { stream: "Geminids" }, ctxNoSite))).toBe("no_site_selected");
+    expect(errCode(v("get_meteor_stream_exposure", { stream: "<script>" }))).toBe("invalid_arguments");
+  });
 });
 
 describe("show_in_freeplay validation", () => {
@@ -164,5 +202,32 @@ describe("show_in_freeplay validation", () => {
     expect(run({ layersOn: ["psr"], layersOff: ["psr"] }).ok).toBe(false);
     const late = run({ time: "2035-01-01T00:00:00Z" });
     expect(late).toMatchObject({ ok: false, error: { code: "out_of_coverage" } });
+  });
+
+  it("accepts the new screens, layers, planner, meteor, panel and comparison controls", () => {
+    for (const screen of ["globe", "orbit", "launch", "compare"]) expect(run({ screen }).ok, screen).toBe(true);
+    for (const layer of ["landings", "meteorStreams", "temperatureMax", "iceDepth"]) expect(run({ layersOn: [layer] }).ok, layer).toBe(true);
+    const full = run({
+      screen: "compare", meteorStream: "Geminids", panelAreaM2: 3, panelEfficiency: 0.25,
+      launchTime: "2027-04-01T00:00:00Z", trajectoryType: "low-energy", payloadKg: 1200, ispS: 320, showArtemisReference: true,
+    });
+    expect(full.ok && full.request).toMatchObject({
+      plan: {
+        screen: "compare", meteorStream: "Geminids", panelAreaM2: 3, panelEfficiency: 0.25,
+        launchTimeIso: "2027-04-01T00:00:00.000Z", trajectoryType: "low-energy", payloadKg: 1200, ispS: 320, showArtemisReference: true,
+      },
+    });
+  });
+
+  it("allows a saved preset id, and rejects comparison misuse", () => {
+    const saved = validateToolCall("show_in_freeplay", { savedSiteId: "saved-ridge" }, ctxWithSavedSites);
+    expect(saved.ok && saved.request).toMatchObject({ plan: { savedSiteId: "saved-ridge" } });
+    expect(validateToolCall("show_in_freeplay", { savedSiteId: "saved-nope" }, ctxWithSavedSites).ok).toBe(false);
+    expect(validateToolCall("show_in_freeplay", { savedSiteId: "saved-ridge", siteId: "apollo-17" }, ctxWithSavedSites).ok).toBe(false);
+    const cmp = validateToolCall("show_in_freeplay", { compareSiteA: "saved-ridge", compareSiteB: "saved-flat", compareGraph: "power", compareMetrics: ["sunlightPct", "energyKWh", "slopeDeg"] }, ctxWithSavedSites);
+    expect(cmp.ok && cmp.request).toMatchObject({ plan: { compareSiteA: "saved-ridge", compareSiteB: "saved-flat", compareGraph: "power", compareMetrics: ["sunlightPct", "energyKWh", "slopeDeg"] } });
+    expect(validateToolCall("show_in_freeplay", { compareSiteA: "saved-ridge", compareSiteB: "saved-ridge" }, ctxWithSavedSites).ok).toBe(false);
+    expect(run({ compareGraph: "xray" }).ok).toBe(false);
+    expect(run({ compareMetrics: ["lava"] }).ok).toBe(false);
   });
 });

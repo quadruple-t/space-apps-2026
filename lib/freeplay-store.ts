@@ -2,9 +2,10 @@
 
 import { create } from "zustand"
 import { COORD_REF, type FreeplaySite } from "@/data/sites"
+import { DEFAULT_ISP_S, DEFAULT_PAYLOAD_KG, type TrajectoryType } from "@/lib/engine/deltav"
 
-/** "orbit" is the Orbit + Graphs screen, "compare" the two-site Mission comparison. */
-export type FreeplayView = "globe" | "orbit" | "compare"
+/** "orbit" is the Orbit + Graphs screen, "launch" the Launch window planner, "compare" the two-site Mission comparison. */
+export type FreeplayView = "globe" | "orbit" | "launch" | "compare"
 export type LayerId = "slope" | "illumination" | "psr" | "elevation" | "landings" | "impacts" | "heritage" | "coldTraps" | "resources" | "artemis" | "titanium" | "iron" | "thorium" | "olivine" | "plagioclase" | "pyroxene" | "silicates" | "iceDepth" | "temperatureMax" | "temperatureMin" | "impactHistory" | "meteorStreams"
 export type LayerState = { on: boolean; opacity: number }
 export type GraphTab = "daily" | "yearly"
@@ -40,6 +41,13 @@ type FreeplayState = {
   playing: boolean
   speed: Speed
 
+  /** Launch-window planner on the Orbit screen (separate from the mission start date). */
+  launchIso: string
+  trajectoryType: TrajectoryType
+  payloadKg: number
+  ispS: number
+  showArtemisReference: boolean
+
   layers: Record<LayerId, LayerState>
   /** Show the Lunaris360 catalog sites (landings and Artemis candidates) as pins on the globe */
   meteorStream: string
@@ -69,6 +77,12 @@ type FreeplayState = {
   setElapsed: (hours: number) => void
   setPlaying: (p: boolean) => void
   setSpeed: (s: Speed) => void
+
+  setLaunch: (iso: string) => void
+  setTrajectoryType: (t: TrajectoryType) => void
+  setPayloadKg: (kg: number) => void
+  setIsp: (s: number) => void
+  setShowArtemisReference: (show: boolean) => void
 
   setLayer: (id: LayerId, patch: Partial<LayerState>) => void
   setShowCatalog: (show: boolean) => void
@@ -124,6 +138,12 @@ export const useFreeplay = create<FreeplayState>((set, get) => {
     elapsedHours: 0,
     playing: false,
     speed: 10,
+
+    launchIso: DEFAULT_START_ISO,
+    trajectoryType: "direct",
+    payloadKg: DEFAULT_PAYLOAD_KG,
+    ispS: DEFAULT_ISP_S,
+    showArtemisReference: false,
 
     layers: DEFAULT_LAYERS,
     meteorStream: DEFAULT_METEOR_STREAM,
@@ -200,6 +220,15 @@ export const useFreeplay = create<FreeplayState>((set, get) => {
     setElapsed: (h) => set((s) => ({ elapsedHours: Math.max(0, Math.min(s.durationHours, h)) })),
     setPlaying: (playing) => set((s) => ({ playing, elapsedHours: playing && s.elapsedHours >= s.durationHours ? 0 : s.elapsedHours })),
     setSpeed: (speed) => set({ speed }),
+
+    setLaunch: (iso) => {
+      const ms = Math.min(Date.parse(COVERAGE_END_ISO), Math.max(Date.parse(COVERAGE_START_ISO), Date.parse(iso)))
+      if (!Number.isNaN(ms)) set({ launchIso: new Date(ms).toISOString() })
+    },
+    setTrajectoryType: (trajectoryType) => set({ trajectoryType }),
+    setPayloadKg: (kg) => { if (Number.isFinite(kg)) set({ payloadKg: Math.max(1, Math.min(100_000, kg)) }) },
+    setIsp: (s) => { if (Number.isFinite(s)) set({ ispS: Math.max(100, Math.min(500, s)) }) },
+    setShowArtemisReference: (showArtemisReference) => set({ showArtemisReference }),
 
     setLayer: (id, patch) => set((s) => ({ layers: { ...s.layers, [id]: { ...s.layers[id], ...patch } } })),
     setShowCatalog: (showCatalog) => set({ showCatalog }),

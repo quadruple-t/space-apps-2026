@@ -54,6 +54,7 @@ export function buildSetupContext(s: SetupSnapshot): string {
     lines.push(parts.join("; "));
   });
   if (s.objects.length > MAX_LISTED) lines.push(`…and ${s.objects.length - MAX_LISTED} more objects.`);
+  lines.push(`Editing: positions are metres east/north of the site centre; the walled terrain reaches about ${Math.round(s.radiusKm * 1000)} m from the centre (keep objects inside it by their footprint). Use edit_surface_setup to place, move, rotate or remove hardware; the planner refuses spots that are outside the walls, too steep or overlapping, so say so when it does. Object types: solar array, rover buggy, dome habitat, modules outpost, inflatable habitat, comms mast.`);
   lines.push(`Assumptions: each solar array is ${s.solarAreaM2} m² at ${Math.round(s.solarEfficiency * 100)}% efficiency and tracks the Sun; sunlight and Earth line of sight use measured GLD100 terrain (about 100 m resolution) only inside the walls, so they are upper bounds near the edge.`);
   return lines.join("\n");
 }

@@ -208,7 +208,37 @@ excluded. `scripts/data-pipeline/globe-archive.lock.json` is the import manifest
 
 The globe's star background is Cesium's bundled Tycho-2 sky box.
 
-## 8. Surface-drive elevation
+## 8. Trajectory and launch-cost model constants (issue #21)
+
+Used by `lib/engine/deltav.ts`, `lib/engine/launch-costs.ts` and `lib/engine/trajectory.ts` for the Launch window view's planner. Retrieved 2026-11-15. Everything here is a **planning approximation**; the UI and the Methods page label it so. `tests/trajectory-sources.test.ts` fails if a `sourceId` in those files is missing from this table.
+
+Source quality is mixed and marked per row: "secondary" means a reference or aggregator page, not a primary mission document. Rows marked **verify** should be replaced with a primary source before anyone relies on them.
+
+| ID | Constant | Value | Source |
+|---|---|---|---|
+| DV-1 | TLI from LEO | 3.2 km/s (high-thrust table); range 3.1 to 3.2, nominal 3.15 = midpoint | Wikipedia, [Delta-v budget](https://en.wikipedia.org/wiki/Delta-v_budget) (secondary). The 3.1 end is the issue #21 starting estimate and a ~3.15 km/s forum figure. |
+| DV-2 | Lunar orbit insertion (direct) | 0.90 km/s TLI to low polar lunar orbit; low bound 0.8 | Wikipedia, [Delta-v budget](https://en.wikipedia.org/wiki/Delta-v_budget) (secondary). 0.8 is the lower end of issue #21's 0.8 to 0.9 estimate (**verify**). |
+| DV-3 | Descent from low lunar orbit | 1.87 to 2.2 km/s, nominal 1.95 | 1.87: R. Clark, [Earth-Moon delta-v tally](https://exoscientist.blogspot.com/2012/09) (2012, secondary, **verify**). 2.2: footnote in Wikipedia's Delta-v budget to a dated calculator (**verify**). Nominal 1.95 is the midpoint of issue #21's 1.9 to 2.0. |
+| DV-4 | Low-energy insertion saving | 0.1 to 0.4 km/s saved on insertion: LOI 0.8 / 0.75 / 0.5 km/s (high / nominal / low), nominal saving 0.15 | Miller and Belbruno, ["A method for the construction of a lunar transfer trajectory using ballistic capture"](https://ui.adsabs.harvard.edu/abs/1991sfm..proc...97M/abstract) (1991: 100 to 200 m/s, 5 to 10 percent propellant); Wikipedia, [Low-energy transfer](https://en.wikipedia.org/wiki/Low-energy_transfer) (up to 0.4 km/s). TLI is kept equal to the direct value. |
+| ISP-1 | Default Isp | 311 s | Apollo Lunar Module descent engine, vacuum, full thrust. Wikipedia, [Descent propulsion system](https://en.wikipedia.org/wiki/Descent_propulsion_system) (secondary). User-editable. |
+| CONST-G0 | Standard gravity g0 | 9.80665 m/s^2 | Exact by definition (CGPM 1901). |
+| ASM-1 | Near-sunrise window | 72 h | Design heuristic of this project (assumption, not a published figure). |
+| ASM-2 | Default landed dry mass | 500 kg | Assumption: a small lander. User-editable. |
+| GEO-1 | Earth GM | 398600.4418 km^3/s^2 | Standard geocentric gravitational constant (IERS Conventions 2010 / NASA). |
+| GEO-2 | Earth equatorial radius | 6378.137 km | WGS84 / IERS standard value. |
+| GEO-3 | Parking orbit altitude | 185 km | Assumption: about 100 nautical miles, the order of the Apollo parking orbits (**verify**). |
+| GEO-4 | Mean Earth-Moon distance | 384,400 km | NASA, [Moon fact sheet](https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html). Used only as the first guess and the display scale; arrival uses the Horizons Moon distance. |
+| GEO-5 | Direct-transfer apogee factor | 1.1 x the Moon's distance | Assumption chosen so the direct arc takes about 3.6 days, inside the 3 to 5 day range in issue #21. |
+| GEO-6 | Low-energy loop apogee | 1,500,000 km | Assumption: the Sun-Earth L1 region that weak-stability transfers loop out toward. Gives a transit of about 73 days, inside issue #21's 1 to 4 months. Illustrative, not a real WSB trajectory. |
+| GEO-7 | Mean apparent Sun motion | 360 / 365.2422 deg per day | Tropical year. Rotates the launch-fixed arc into the Sun-fixed diagram frame. |
+| LC-1 | Small launcher class | Electron-class: 300 kg LEO, about $7.5M, $25,000 to $30,000 per kg | Third-party summary, [SpaceNexus launch cost guide](https://spacenexus.us/guide/space-launch-cost-comparison) (secondary; the vendor page was not retrievable, **verify**). |
+| LC-2 | Medium launcher class | Falcon 9-class: 22,800 kg LEO (expendable), $67M to $75M, so $2,940 to $3,290 per kg | Price range and capacity from third-party summaries ([Orbital Radar](https://orbitalradar.com/launch-vehicles/falcon-9), [Space Odyssey Hub](https://spaceodysseyhub.com/articles/launch-cost-comparison-2025)); SpaceX's [capabilities PDF](https://spacex.com/media/Capabilities&Services.pdf) lists no prices (**verify**). Per-kg = price / capacity. |
+| LC-3 | Heavy launcher class | Falcon Heavy-class: 63,800 kg LEO, $90M to $97M, so $1,410 to $1,520 per kg | $90M: [AIAA vehicle guide](https://www.aiaa.org/vehicle-guide/vehicles/falcon) citing SpaceX (2020); $97M and capacity from third-party summaries (secondary). Per-kg = price / capacity. |
+| HZ-1 | Artemis I reference path | Horizons target -1023 (Orion EM-1) and 301 (Moon), Earth-centred ICRF ecliptic, 1 h step, 2022-11-16 09:00 to 2022-11-21 18:00 UTC | JPL Horizons API (`EPHEM_TYPE=VECTORS`, `CENTER=500@399`), fetched once by `scripts/fetch-artemis-reference.ts` into `data/trajectory/artemis-1-reference.json`. Horizons holds only the post-TLI NASA/JSC as-flown segment (starts 2022-11-16 08:46 TDB). Public domain. |
+
+Cost method: the mass in LEO (rocket equation, summed over the three burns) selects the smallest class whose capacity covers it. Low end = mass x per-kg low (a pro-rata share, as on a rideshare or shared manifest). High end = the larger of mass x per-kg high and the whole dedicated-launch list price. Above 63,800 kg no range is given. Excludes the spacecraft, operations, insurance and the lander's own development cost. These are not quotes or contract prices.
+
+## 9. Surface-drive elevation
 
 The surface drive's 3D terrain is built from LROC Lunaserv's numeric GLD100 layer, requested live
 by `GET /api/v1/terrain/dem` (the one interactive upstream call; see docs/API.md). Display and

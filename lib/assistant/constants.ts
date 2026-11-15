@@ -6,7 +6,7 @@
 export const ASSISTANT_NAME = "Mission Control";
 
 /** Server prompt template ID the code expects. Create it in the Firebase console (see docs/ai/prompt-templates). */
-export const DEFAULT_TEMPLATE_ID = "mission-control-v1-1-0";
+export const DEFAULT_TEMPLATE_ID = "mission-control-v1-2-0";
 
 // Abuse and cost controls
 export const MAX_INPUT_CHARS = 500;
@@ -45,6 +45,7 @@ export const TOOL_NAMES = [
   "list_catalog_sites",
   "get_catalog_site",
   "list_story_chapters",
+  "list_saved_sites",
   "get_sun_earth_position",
   "get_horizon_profile",
   "get_sunlight_and_earth_visibility",
@@ -52,7 +53,11 @@ export const TOOL_NAMES = [
   "compare_sites",
   "rank_sites",
   "get_surface_composition",
+  "get_launch_plan",
+  "get_solar_power",
+  "get_meteor_stream_exposure",
   "show_in_freeplay",
+  "edit_surface_setup",
 ] as const;
 export type ToolName = (typeof TOOL_NAMES)[number];
 
@@ -60,6 +65,7 @@ export const TOOL_LABELS: Record<ToolName, string> = {
   list_catalog_sites: "Catalog sites",
   get_catalog_site: "Catalog site detail",
   list_story_chapters: "Story chapters",
+  list_saved_sites: "Saved presets",
   get_sun_earth_position: "Sun/Earth position",
   get_horizon_profile: "Horizon profile",
   get_sunlight_and_earth_visibility: "Sunlight and Earth visibility",
@@ -67,7 +73,11 @@ export const TOOL_LABELS: Record<ToolName, string> = {
   compare_sites: "Site comparison",
   rank_sites: "Site ranking",
   get_surface_composition: "Surface composition (Lunar Prospector GRS)",
+  get_launch_plan: "Launch window and trajectory estimate",
+  get_solar_power: "Solar power estimate",
+  get_meteor_stream_exposure: "Meteor-stream exposure",
   show_in_freeplay: "Open Exploration view",
+  edit_surface_setup: "Surface setup",
 };
 
 /** Shown while a tool runs. */
@@ -75,6 +85,7 @@ export const TOOL_PROGRESS: Record<ToolName, string> = {
   list_catalog_sites: "Searching the site catalog…",
   get_catalog_site: "Reading catalog site data…",
   list_story_chapters: "Reading story chapters…",
+  list_saved_sites: "Reading your saved presets…",
   get_sun_earth_position: "Checking Sun and Earth position…",
   get_horizon_profile: "Checking horizon data…",
   get_sunlight_and_earth_visibility: "Checking sunlight and Earth visibility…",
@@ -82,15 +93,73 @@ export const TOOL_PROGRESS: Record<ToolName, string> = {
   compare_sites: "Comparing sites…",
   rank_sites: "Ranking catalog sites…",
   get_surface_composition: "Reading surface composition…",
+  get_launch_plan: "Planning the Earth–Moon transfer…",
+  get_solar_power: "Estimating solar power…",
+  get_meteor_stream_exposure: "Checking meteor-stream geometry…",
   show_in_freeplay: "Updating the Open Exploration view…",
+  edit_surface_setup: "Editing your surface setup…",
 };
 
-/** Values the show_in_freeplay tool may set. Mirrors the Open Exploration store; the validator rejects anything else. */
-export const UI_SCREENS = ["globe", "orbit"] as const;
+/** edit_surface_setup: what the surface drive lets the assistant place, and how much of it in one call. Mirrors lib/drive-placements.ts and the drive's view modes. */
+export const SURFACE_TYPES = ["solar", "rover", "dome", "modules", "inflatable", "comms"] as const;
+export const SURFACE_VIEW_MODES = ["first-person", "birds-eye"] as const;
+export const SURFACE_ACTIONS = ["place", "move", "remove"] as const;
+export const MAX_SURFACE_OPS = 12;
+/** Positions are metres east/north of the site centre; the walled terrain tile is far smaller than this, which the drive enforces. */
+export const MAX_SURFACE_COORD_M = 20_000;
+
+/** Values the show_in_freeplay tool may set. Mirrors the Open Exploration store and comparison store; the validator rejects anything else. */
+export const UI_SCREENS = ["globe", "orbit", "launch", "compare"] as const;
 export const UI_PAGES = ["drive"] as const;
-export const UI_LAYERS = ["slope", "illumination", "psr", "elevation"] as const;
+export const UI_LAYERS = [
+  "slope", "illumination", "psr", "elevation",
+  "landings", "impacts", "heritage", "coldTraps", "resources", "artemis",
+  "titanium", "iron", "thorium", "olivine", "plagioclase", "pyroxene", "silicates", "iceDepth",
+  "temperatureMax", "temperatureMin", "impactHistory", "meteorStreams",
+] as const;
+export type UiLayer = (typeof UI_LAYERS)[number];
+/** Layer names as the Open Exploration panel shows them. Used in the "View changed" report. */
+export const UI_LAYER_LABELS: Record<UiLayer, string> = {
+  slope: "Slope",
+  illumination: "Illumination % (polar)",
+  psr: "Permanently shadowed regions",
+  elevation: "Elevation",
+  landings: "Landing sites",
+  impacts: "Impact and rover sites",
+  heritage: "Heritage boundaries",
+  coldTraps: "Cold-trap regions",
+  resources: "Resource prospecting regions",
+  artemis: "Artemis candidate regions",
+  titanium: "Titanium oxide",
+  iron: "Iron oxide",
+  thorium: "Thorium abundance",
+  olivine: "Olivine abundance",
+  plagioclase: "Plagioclase abundance",
+  pyroxene: "Clinopyroxene abundance",
+  silicates: "Silicate mineralogy",
+  iceDepth: "Ice-stability depth",
+  temperatureMax: "Maximum temperature anomaly",
+  temperatureMin: "Minimum temperature anomaly",
+  impactHistory: "Meteoroid impact history",
+  meteorStreams: "Meteor-shower exposure",
+};
 export const UI_SPEEDS = [1, 10, 100, 1000] as const;
 export const UI_GRAPH_TABS = ["daily", "yearly"] as const;
+export const UI_TRAJECTORY_TYPES = ["direct", "low-energy"] as const;
+export const UI_COMPARE_GRAPHS = ["sunlight", "earth", "power"] as const;
+
+/** Mission windows can be up to a year (the 1-year duration preset); science windows cap at MAX_WINDOW_HOURS. */
+export const MAX_MISSION_HOURS = 8760;
+export const MIN_RADIUS_KM = 0.1;
+export const MAX_RADIUS_KM = 500;
+export const MIN_PANEL_AREA_M2 = 0.1;
+export const MAX_PANEL_AREA_M2 = 1000;
+export const MAX_PAYLOAD_KG = 100_000;
+export const MIN_PAYLOAD_KG = 1;
+export const MIN_ISP_S = 100;
+export const MAX_ISP_S = 500;
+/** 2026 meteor-stream fact sheet: published reference snapshots, not forecasts. */
+export const METEOR_STREAM_FACT_ID = "meteor-streams-2026";
 
 export function isToolName(name: unknown): name is ToolName {
   return typeof name === "string" && (TOOL_NAMES as readonly string[]).includes(name);
@@ -117,6 +186,16 @@ export const ICE_PROXY_WORDING =
   "Distance to a cold trap is a water-ice proxy, not measured ice.";
 export const UNGROUNDED_WORDING =
   "This reply did not use a data lookup. Check any figures against the app before relying on them.";
+
+export const LAUNCH_PLAN_WORDING =
+  "The transfer is a single two-body Earth arc aimed at the Moon's position at arrival, with no lunar gravity, Sun perturbation or n-body propagation. Delta-v and launch costs are planning approximations from published figures, not mission design or quotes.";
+export const SOLAR_POWER_WORDING =
+  "Solar power is for a flat panel at the panel area and efficiency in the app, using 1361 W/m² scaled by the Sun's distance and the sine of the Sun's elevation above the local terrain horizon. It is an estimate, not hardware sizing, and ignores temperature, dust, degradation, cabling and storage losses.";
+export const METEOR_STREAM_WORDING =
+  "Meteor-stream exposure is approximate stream-facing geometry from a published 2026 reference snapshot. It is not an impact rate, impact probability or storm forecast, and does not account for gravitational focusing or velocity aberration.";
+export const SAVED_SITE_WORDING =
+  "Saved presets are the user's own points on the Moon. They are not catalog sites and their coordinates are not independently verified.";
+
 export function failureWording(message: string): string {
   return `I couldn't retrieve that from the Lunaris360 data service (${message}). I won't fill the gap from memory.`;
 }

@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
+import { GlobalAssistant } from "@/components/freeplay/global-assistant";
 
 export function SiteFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -16,5 +17,6 @@ export function SiteFrame({ children }: { children: React.ReactNode }) {
       ? <div id="main" tabIndex={-1} className="fixed inset-0 z-40 h-dvh overflow-hidden outline-none">{children}</div>
       : <main id="main" tabIndex={-1} className="flex-1 outline-none">{children}</main>}
     {!immersive && !fullHeightApp && <Footer />}
+    <GlobalAssistant />
   </>;
 }
