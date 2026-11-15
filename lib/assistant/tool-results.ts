@@ -8,6 +8,7 @@ import {
   COVERAGE_LABEL, FALLBACK_WORDING, GRID_CELL_WORDING, MAX_TOOL_RESULT_CHARS, NO_COVERAGE_WORDING,
   TOOL_LABELS, UNRECOGNISED_HORIZON_WORDING, failureWording, type ToolName,
 } from "./constants";
+import type { CatalogSite } from "@/data/sites";
 import type { ToolError } from "./tool-validation";
 
 export type HorizonKind = "site-lola-mask" | "lola-polar-grid" | "smooth-sphere-fallback" | "unrecognised";
@@ -26,7 +27,10 @@ export type SourceRecord = {
   internal?: boolean;
   /** Fixed wording that must accompany this result (shown as a notice by the UI). */
   mustSay: string[];
+  /** Set for show_in_freeplay: what changed on screen. Not a data lookup, so it is kept out of Sources. */
+  ui?: UiChange;
 };
+export type UiChange = { changes: string[]; link?: { label: string; href: string } };
 export type ToolOutcome = { response: Record<string, unknown>; record: SourceRecord };
 
 type Json = Record<string, unknown>;
@@ -267,4 +271,30 @@ export function shapeCompare(id: string, raw: unknown, adjustments: string[]): T
   out.record.ok = sites.some((s) => s.ok);
   if (!out.record.ok) out.record.error = "No site returned data";
   return out;
+}
+
+/** Reads the point out of a /catalog/sites/{id} response. Null when the document has no usable coordinates. */
+export function catalogFromDetail(raw: unknown, requestedId: string): CatalogSite | null {
+  const body = asObj(raw), site = asObj(body.site);
+  const point = asObj(site.coordinates).latDeg !== undefined ? asObj(site.coordinates) : asObj(site.representativePoint);
+  if (typeof point.latDeg !== "number" || typeof point.lonDeg !== "number" || typeof site.name !== "string") return null;
+  return {
+    id: typeof site.id === "string" ? site.id : requestedId,
+    name: site.name,
+    latDeg: point.latDeg,
+    lonDeg: point.lonDeg,
+    family: typeof site.family === "string" ? site.family : undefined,
+    pointIsApproximate: site.pointIsApproximate === true,
+    coordsVerified: site.coordsVerified === true,
+  };
+}
+
+/** Result of a Freeplay view change. Carries no science data and no horizon claim. */
+export function uiOutcome(id: string, ui: UiChange): ToolOutcome {
+  const response: Json = {
+    ok: true, tool: "show_in_freeplay", applied: ui.changes,
+    ...(ui.link ? { pageLink: `The user can open "${ui.link.label}" from a button under your reply.` } : {}),
+    notes: ["The on-screen view was changed. Say briefly what is now showing; this result has no science data, so do not quote figures from it."],
+  };
+  return { response, record: { id, tool: "show_in_freeplay", label: TOOL_LABELS.show_in_freeplay, ok: true, site: null, horizonKind: null, horizonLabel: null, dataRange: null, mustSay: [], ui } };
 }

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
-import { Info, RotateCw, SendHorizontal, Square, Trash2, X } from "lucide-react";
+import Link from "next/link";
+import { ExternalLink, Info, MonitorUp, RotateCcw, RotateCw, SendHorizontal, Square, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { ASSISTANT_NAME, MAX_INPUT_CHARS } from "@/lib/assistant/constants";
@@ -16,6 +17,7 @@ const SUGGESTIONS = [
   "When is the Sun above the horizon at this site?",
   "How much sunlight and Earth visibility does this mission get?",
   "What does the horizon look like here, and where does the data come from?",
+  "Show me the Sun and Earth over this mission on the orbit view.",
 ];
 
 /** Shows what "this site" and "now" currently mean. Own component so playback ticks re-render only this. */
@@ -28,7 +30,22 @@ function ContextChip() {
   </p>;
 }
 
-function Bubble({ message }: { message: UiMessage }) {
+/** What the assistant changed on screen, with Undo (latest changed reply only, so it never reverts later work) and page links. */
+function ViewChanges({ message, canUndo }: { message: UiMessage; canUndo: boolean }) {
+  const changes = message.viewChanges?.flatMap((c) => c.changes) ?? [];
+  const links = message.viewChanges?.flatMap((c) => (c.link ? [c.link] : [])) ?? [];
+  if (changes.length === 0 && links.length === 0) return null;
+  return <div className="mt-2 rounded-sm border border-retro-blue/40 bg-retro-blue/10 px-2 py-1.5 text-[0.68rem] leading-snug text-bone/90">
+    <p className="type-data flex items-center gap-1.5 uppercase tracking-[0.1em] text-retro-blue"><MonitorUp size={12} aria-hidden />View changed</p>
+    <ul className="mt-1 list-disc space-y-0.5 pl-4">{changes.map((c, i) => <li key={i}>{c}</li>)}</ul>
+    <div className="mt-1.5 flex flex-wrap gap-1.5">
+      {canUndo && <Button type="button" variant="outline" size="xs" onClick={() => useAssistant.getState().undoView(message.id)}><RotateCcw />Restore previous view</Button>}
+      {links.map((l) => <Button key={l.href} asChild variant="outline" size="xs"><Link href={l.href}><ExternalLink />{l.label}</Link></Button>)}
+    </div>
+  </div>;
+}
+
+function Bubble({ message, canUndo }: { message: UiMessage; canUndo: boolean }) {
   const mine = message.role === "user";
   return <li className={mine ? "flex justify-end" : "flex justify-start"}>
     <div className={`max-w-[92%] rounded border px-3 py-2 text-[0.8rem] leading-relaxed ${mine ? "border-retro-purple/35 bg-retro-purple/15 text-bone" : "border-line bg-charcoal/70 text-bone/95"}`}>
@@ -39,6 +56,7 @@ function Bubble({ message }: { message: UiMessage }) {
           <Info size={12} className="mt-0.5 shrink-0 text-retro-purple" aria-hidden /><span><span className="sr-only">Data note: </span>{n}</span>
         </li>)}
       </ul>}
+      <ViewChanges message={message} canUndo={canUndo} />
       {message.records && <Sources records={message.records} />}
     </div>
   </li>;
@@ -54,6 +72,7 @@ export function AssistantPanel({ onClose, className = "" }: { onClose: () => voi
   const announce = useAssistant((s) => s.announce);
   const { send, cancel, clear, retry } = useAssistant.getState();
   const reduced = useReducedMotion();
+  const lastUndoable = [...messages].reverse().find((m) => m.viewBefore)?.id;
   const [input, setInput] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -96,7 +115,7 @@ export function AssistantPanel({ onClose, className = "" }: { onClose: () => voi
             className="w-full rounded border border-line px-2.5 py-1.5 text-left text-bone/85 hover:border-retro-purple/50 hover:text-bone focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50">{q}</button></li>)}
         </ul>
       </div>}
-      <ul className="space-y-3">{messages.map((m) => <Bubble key={m.id} message={m} />)}</ul>
+      <ul className="space-y-3">{messages.map((m) => <Bubble key={m.id} message={m} canUndo={m.id === lastUndoable} />)}</ul>
 
       {busy && <div className="flex justify-start"><div className="max-w-[92%] rounded border border-line bg-charcoal/70 px-3 py-2 text-[0.8rem]">
         {draft && !reduced

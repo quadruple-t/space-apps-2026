@@ -6,7 +6,7 @@
 import { SITE_FAMILIES } from "@/lib/model/types";
 import {
   COVERAGE_END_ISO, COVERAGE_START_ISO, DEFAULT_STEP_MINUTES, MAX_WINDOW_HOURS, MIN_WINDOW_HOURS,
-  NO_COVERAGE_WORDING, isToolName, type ToolName,
+  NO_COVERAGE_WORDING, UI_GRAPH_TABS, UI_LAYERS, UI_PAGES, UI_SCREENS, UI_SPEEDS, isToolName, type ToolName,
 } from "./constants";
 
 /** The slice of Freeplay state the tools need to resolve "this site" and "now". */
@@ -22,6 +22,21 @@ export type Location =
   | { kind: "catalog"; siteId: string; label: string }
   | { kind: "point"; latDeg: number; lonDeg: number; label: string };
 
+/** A validated request to change the Freeplay view. Every field is optional; at least one is set. */
+export type UiPlan = {
+  screen?: (typeof UI_SCREENS)[number];
+  page?: (typeof UI_PAGES)[number];
+  siteId?: string;
+  point?: { latDeg: number; lonDeg: number };
+  timeIso?: string;
+  playing?: boolean;
+  speed?: (typeof UI_SPEEDS)[number];
+  layersOn?: (typeof UI_LAYERS)[number][];
+  layersOff?: (typeof UI_LAYERS)[number][];
+  showCatalog?: boolean;
+  graphTab?: (typeof UI_GRAPH_TABS)[number];
+};
+
 export type ToolRequest =
   | { tool: "list_catalog_sites"; query?: string; family?: string }
   | { tool: "get_catalog_site"; siteId: string }
@@ -30,7 +45,8 @@ export type ToolRequest =
   | { tool: "get_horizon_profile"; location: Location }
   | { tool: "get_sunlight_and_earth_visibility"; location: Location; startIso: string; durationHours: number; adjustments: string[] }
   | { tool: "get_sun_earth_rise_set"; location: Location; startIso: string; stepMinutes: number; adjustments: string[] }
-  | { tool: "compare_sites"; siteIds: string[]; startIso: string; durationHours: number; adjustments: string[] };
+  | { tool: "compare_sites"; siteIds: string[]; startIso: string; durationHours: number; adjustments: string[] }
+  | { tool: "show_in_freeplay"; plan: UiPlan };
 
 export type ToolErrorCode =
   | "unknown_tool" | "invalid_arguments" | "no_site_selected" | "out_of_coverage" | "site_unverified"
@@ -56,6 +72,7 @@ const ALLOWED_KEYS: Record<ToolName, string[]> = {
   get_sunlight_and_earth_visibility: [...LOCATION_KEYS, "start", "durationHours"],
   get_sun_earth_rise_set: [...LOCATION_KEYS, "start", "stepMinutes"],
   compare_sites: ["siteIds", "start", "durationHours"],
+  show_in_freeplay: ["screen", "page", "siteId", "latDeg", "lonDeg", "time", "playing", "speed", "layersOn", "layersOff", "showCatalog", "graphTab"],
 };
 
 /** Strict ISO 8601 parse. A timestamp without an offset is read as UTC. */
@@ -154,6 +171,64 @@ function fitWindow(startMs: number, rawHours: unknown, ctx: ToolContext): { hour
   return { hours, adjustments };
 }
 
+function enumArg<T extends string | number>(raw: unknown, allowed: readonly T[], name: string): T | undefined | Validation {
+  if (raw === undefined) return undefined;
+  return (allowed as readonly unknown[]).includes(raw) ? (raw as T) : bad(`${name} must be one of: ${allowed.join(", ")}`);
+}
+
+function layerList(raw: unknown, name: string): (typeof UI_LAYERS)[number][] | undefined | Validation {
+  if (raw === undefined) return undefined;
+  if (!Array.isArray(raw) || raw.length > UI_LAYERS.length) return bad(`${name} must be a list of layer names from: ${UI_LAYERS.join(", ")}`);
+  const out: (typeof UI_LAYERS)[number][] = [];
+  for (const item of raw) {
+    if (!(UI_LAYERS as readonly unknown[]).includes(item)) return bad(`${name} entries must be from: ${UI_LAYERS.join(", ")}`);
+    if (!out.includes(item as never)) out.push(item as never);
+  }
+  return out;
+}
+
+/** show_in_freeplay: only whitelisted Freeplay controls, with enums and bounds checked here, never trusting the model. */
+function validateUiPlan(args: Record<string, unknown>): Validation {
+  const plan: UiPlan = {};
+  for (const [key, list] of [["screen", UI_SCREENS], ["page", UI_PAGES], ["graphTab", UI_GRAPH_TABS], ["speed", UI_SPEEDS]] as const) {
+    const v = enumArg(args[key], list as readonly (string | number)[], key);
+    if (isValidation(v)) return v;
+    if (v !== undefined) (plan as Record<string, unknown>)[key] = v;
+  }
+  for (const key of ["playing", "showCatalog"] as const) {
+    if (args[key] === undefined) continue;
+    if (typeof args[key] !== "boolean") return bad(`${key} must be a boolean`);
+    plan[key] = args[key] as boolean;
+  }
+  for (const [key, target] of [["layersOn", "layersOn"], ["layersOff", "layersOff"]] as const) {
+    const v = layerList(args[key], key);
+    if (isValidation(v)) return v;
+    if (v?.length) plan[target] = v;
+  }
+  if (plan.layersOn?.some((l) => plan.layersOff?.includes(l))) return bad("A layer cannot be in both layersOn and layersOff");
+
+  const hasLat = args.latDeg !== undefined, hasLon = args.lonDeg !== undefined;
+  if (args.siteId !== undefined && (hasLat || hasLon)) return bad("Give either siteId or both latDeg and lonDeg, not both");
+  if (args.siteId !== undefined) {
+    if (typeof args.siteId !== "string" || !ID_RE.test(args.siteId)) return bad("siteId must be a catalog site id (letters, digits, - and _ only)");
+    plan.siteId = args.siteId;
+  } else if (hasLat || hasLon) {
+    const { latDeg, lonDeg } = args;
+    if (typeof latDeg !== "number" || typeof lonDeg !== "number" || !Number.isFinite(latDeg) || !Number.isFinite(lonDeg)) return bad("latDeg and lonDeg must both be finite numbers");
+    if (latDeg < -90 || latDeg > 90) return bad("latDeg must be between -90 and 90");
+    if (lonDeg < -180 || lonDeg > 360) return bad("lonDeg must be between -180 and 360 (east-positive)");
+    plan.point = { latDeg: Number(latDeg.toFixed(4)), lonDeg: Number(lonDeg.toFixed(4)) };
+  }
+  if (args.time !== undefined) {
+    const t = parseIsoUtc(args.time);
+    if (t === null) return bad("time must be an ISO 8601 timestamp such as 2027-03-01T12:00:00Z");
+    if (t < COVERAGE_START_MS || t > COVERAGE_END_MS) return coverageError(`Time ${new Date(t).toISOString()}`);
+    plan.timeIso = new Date(t).toISOString();
+  }
+  if (Object.keys(plan).length === 0) return bad("Give at least one thing to change: screen, page, siteId or latDeg+lonDeg, time, playing, speed, layersOn, layersOff, showCatalog or graphTab");
+  return { ok: true, request: { tool: "show_in_freeplay", plan } };
+}
+
 export function validateToolCall(name: unknown, rawArgs: unknown, ctx: ToolContext): Validation {
   if (!isToolName(name)) return { ok: false, error: { code: "unknown_tool", message: "That tool does not exist." } };
   if (rawArgs !== undefined && rawArgs !== null && (typeof rawArgs !== "object" || Array.isArray(rawArgs))) return bad("Arguments must be an object");
@@ -175,6 +250,8 @@ export function validateToolCall(name: unknown, rawArgs: unknown, ctx: ToolConte
     }
     case "list_story_chapters":
       return { ok: true, request: { tool: name } };
+    case "show_in_freeplay":
+      return validateUiPlan(args);
     case "get_horizon_profile": {
       const location = parseLocation(args, ctx);
       return isValidation(location) ? location : { ok: true, request: { tool: name, location } };

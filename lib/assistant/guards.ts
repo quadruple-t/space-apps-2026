@@ -50,9 +50,9 @@ export function turnNotices(records: SourceRecord[], reply: string, opts: { tool
   const notices = new Set<string>();
   for (const r of records) if (!r.internal) r.mustSay.forEach((s) => notices.add(s));
   // The model could not form a valid request at all: say so rather than leaving a silent, empty answer.
-  if (records.some((r) => r.internal) && !records.some((r) => r.ok)) notices.add(INVALID_REQUEST_WORDING);
+  if (records.some((r) => r.internal) && !records.some((r) => r.ok && !r.ui)) notices.add(INVALID_REQUEST_WORDING);
   if (opts.toolLimitHit) notices.add(TOOL_LIMIT_WORDING);
-  if (!records.some((r) => r.ok) && NUMERIC_CLAIM.test(reply)) notices.add(UNGROUNDED_WORDING);
+  if (!records.some((r) => r.ok && !r.ui) && NUMERIC_CLAIM.test(reply)) notices.add(UNGROUNDED_WORDING);
   // Skip a notice the reply already states verbatim, so the same sentence is not shown twice.
   const squash = (t: string) => t.toLowerCase().replace(/\s+/g, " ").trim();
   const said = squash(reply);

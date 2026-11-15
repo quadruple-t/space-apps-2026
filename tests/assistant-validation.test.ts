@@ -141,3 +141,28 @@ describe("tool-call validation", () => {
     expect(errCode(v("compare_sites", { siteIds: ["current", "apollo-11"] }, ctxWithCustomSite))).toBe("invalid_arguments");
   });
 });
+
+describe("show_in_freeplay validation", () => {
+  const run = (args: unknown) => validateToolCall("show_in_freeplay", args, ctxWithCatalogSite);
+
+  it("accepts a whitelisted plan and normalises time", () => {
+    const r = run({ screen: "orbit", time: "2027-03-02T06:00:00Z", layersOn: ["psr", "psr"], graphTab: "daily", playing: false });
+    expect(r).toEqual({ ok: true, request: { tool: "show_in_freeplay", plan: { screen: "orbit", graphTab: "daily", playing: false, layersOn: ["psr"], timeIso: "2027-03-02T06:00:00.000Z" } } });
+  });
+  it("accepts a catalog id or a point, never both", () => {
+    expect(run({ siteId: "apollo-17" }).ok).toBe(true);
+    expect(run({ latDeg: -89.5, lonDeg: 129 }).ok).toBe(true);
+    expect(run({ siteId: "apollo-17", latDeg: 1, lonDeg: 2 }).ok).toBe(false);
+    expect(run({ latDeg: 95, lonDeg: 0 }).ok).toBe(false);
+  });
+  it("rejects empty plans, unknown keys, bad enums and out-of-coverage times", () => {
+    expect(run({}).ok).toBe(false);
+    expect(run({ url: "/x" }).ok).toBe(false);
+    expect(run({ screen: "drive" }).ok).toBe(false);
+    expect(run({ speed: 7 }).ok).toBe(false);
+    expect(run({ layersOn: ["lava"] }).ok).toBe(false);
+    expect(run({ layersOn: ["psr"], layersOff: ["psr"] }).ok).toBe(false);
+    const late = run({ time: "2035-01-01T00:00:00Z" });
+    expect(late).toMatchObject({ ok: false, error: { code: "out_of_coverage" } });
+  });
+});

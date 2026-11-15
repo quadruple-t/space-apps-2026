@@ -235,6 +235,20 @@ export default function MoonGlobe() {
     });
   }, [ready, siteId, siteKind]);
 
+  // ── Fly to the selected site when something outside the globe asks (the assistant) ──
+  const focusNonce = useFreeplay((s) => s.focusNonce);
+  const handledFocus = useRef(0);
+  useEffect(() => {
+    const C = cesiumRef.current, viewer = viewerRef.current;
+    const s = useFreeplay.getState().site;
+    if (!ready || !C || !viewer || !s || focusNonce === handledFocus.current) return;
+    handledFocus.current = focusNonce;
+    viewer.camera.flyTo({
+      destination: C.Cartesian3.fromDegrees(s.longitudeDeg, s.latitudeDeg, Math.min(3_000_000, Math.max(40_000, s.radiusKm * 1000 * 10)), C.Ellipsoid.MOON),
+      duration: 1.6,
+    });
+  }, [ready, focusNonce]);
+
   // ── Overlay visibility and opacity ────────────────────────────────────────
   useEffect(() => {
     const viewer = viewerRef.current;

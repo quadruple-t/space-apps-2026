@@ -7,7 +7,8 @@ import { buildTemplateVariables, toToolContext, type FreeplaySnapshot } from "./
 import { describeError } from "./errors";
 import { TURN_INACTIVITY_MS } from "./constants";
 import { capHistory, createRateLimiter, createWatchdog, normalizeInput, turnNotices } from "./guards";
-import type { SourceRecord } from "./tool-results";
+import type { SourceRecord, UiChange } from "./tool-results";
+import { applyUiPlan, captureView, restoreView, type ViewSnapshot } from "./ui-actions";
 
 export type UiMessage = {
   id: string;
@@ -15,6 +16,9 @@ export type UiMessage = {
   text: string;
   records?: SourceRecord[];
   notices?: string[];
+  /** What the assistant changed on screen while answering, and the view to restore on Undo (cleared once used). */
+  viewChanges?: UiChange[];
+  viewBefore?: ViewSnapshot;
   /** User messages count toward model history only once they got a reply. */
   answered?: boolean;
 };
@@ -38,6 +42,8 @@ type AssistantState = {
   send: (raw: string) => Promise<void>;
   retry: () => void;
   cancel: () => void;
+  /** Puts the Freeplay view back as it was before this reply's changes. */
+  undoView: (messageId: string) => void;
   clear: () => void;
 };
 
@@ -89,6 +95,12 @@ export const useAssistant = create<AssistantState>((set, get) => ({
     const at = () => `${Math.round(performance.now() - started)}ms`;
     let timedOut = false;
     const watchdog = createWatchdog(TURN_INACTIVITY_MS, () => { timedOut = true; dbg("no progress, aborting", at()); controller?.abort(); });
+    // The view as it was before the assistant touched it this turn, captured on its first change only.
+    let viewBefore: ViewSnapshot | undefined;
+    const applyUi = (plan: Parameters<typeof applyUiPlan>[0], catalog: Parameters<typeof applyUiPlan>[1]) => {
+      viewBefore ??= captureView();
+      return applyUiPlan(plan, catalog);
+    };
     try {
       const snap = snapshot();
       const { createTurnChat, checkAppCheck } = await import("./firebase-ai");
@@ -98,7 +110,7 @@ export const useAssistant = create<AssistantState>((set, get) => ({
       dbg("sending", { historyMessages: history.length, variables });
       const chat = createTurnChat(history, variables, signal);
       const result = await runTurn({
-        chat, userText: text, ctx: toToolContext(snap), signal,
+        chat, userText: text, ctx: toToolContext(snap), signal, applyUi,
         events: {
           onText: (draft) => { watchdog.poke(); set({ draft, status: draft ? "streaming" : "thinking", progress: null }); },
           onToolStart: (progress) => { watchdog.poke(); dbg("tool start", progress, at()); set({ status: "tool", progress, announce: progress }); },
@@ -112,7 +124,10 @@ export const useAssistant = create<AssistantState>((set, get) => ({
       if (!reply) throw new Error("empty reply");
       const notices = turnNotices(result.records, reply, { toolLimitHit: result.toolLimitHit });
       set((s) => ({
-        messages: [...s.messages.map((m) => (m.id === userMessage.id ? { ...m, answered: true } : m)), { id: nextId(), role: "model", text: reply, records: result.records, notices }],
+        messages: [...s.messages.map((m) => (m.id === userMessage.id ? { ...m, answered: true } : m)), {
+          id: nextId(), role: "model", text: reply, records: result.records, notices,
+          ...(viewBefore ? { viewBefore, viewChanges: result.records.flatMap((r) => (r.ui ? [r.ui] : [])) } : {}),
+        }],
         status: "idle", progress: null, draft: "", announce: `Mission Control replied: ${reply.slice(0, 600)}`,
       }));
     } catch (err) {
@@ -138,6 +153,13 @@ export const useAssistant = create<AssistantState>((set, get) => ({
   },
 
   cancel: () => controller?.abort(),
+
+  undoView: (messageId) => {
+    const target = get().messages.find((m) => m.id === messageId);
+    if (!target?.viewBefore) return;
+    restoreView(target.viewBefore);
+    set((s) => ({ messages: s.messages.map((m) => (m.id === messageId ? { ...m, viewBefore: undefined } : m)), announce: "Restored the previous Freeplay view." }));
+  },
 
   clear: () => {
     controller?.abort();

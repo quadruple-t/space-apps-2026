@@ -42,6 +42,7 @@ export const TOOL_NAMES = [
   "get_sunlight_and_earth_visibility",
   "get_sun_earth_rise_set",
   "compare_sites",
+  "show_in_freeplay",
 ] as const;
 export type ToolName = (typeof TOOL_NAMES)[number];
 
@@ -54,6 +55,7 @@ export const TOOL_LABELS: Record<ToolName, string> = {
   get_sunlight_and_earth_visibility: "Sunlight and Earth visibility",
   get_sun_earth_rise_set: "Sun/Earth rise and set",
   compare_sites: "Site comparison",
+  show_in_freeplay: "Freeplay view",
 };
 
 /** Shown while a tool runs. */
@@ -66,7 +68,15 @@ export const TOOL_PROGRESS: Record<ToolName, string> = {
   get_sunlight_and_earth_visibility: "Checking sunlight and Earth visibility…",
   get_sun_earth_rise_set: "Checking rise and set times…",
   compare_sites: "Comparing sites…",
+  show_in_freeplay: "Updating the Freeplay view…",
 };
+
+/** Values the show_in_freeplay tool may set. Mirrors the Freeplay store; the validator rejects anything else. */
+export const UI_SCREENS = ["globe", "orbit"] as const;
+export const UI_PAGES = ["drive", "approach"] as const;
+export const UI_LAYERS = ["slope", "illumination", "psr", "elevation"] as const;
+export const UI_SPEEDS = [1, 10, 100, 1000] as const;
+export const UI_GRAPH_TABS = ["daily", "yearly"] as const;
 
 export function isToolName(name: unknown): name is ToolName {
   return typeof name === "string" && (TOOL_NAMES as readonly string[]).includes(name);

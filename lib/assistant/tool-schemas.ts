@@ -13,7 +13,7 @@
  */
 import { Schema, type TemplateFunctionDeclaration } from "firebase/ai";
 import { SITE_FAMILIES } from "@/lib/model/types";
-import { MAX_WINDOW_HOURS, MIN_WINDOW_HOURS, TOOL_NAMES, type ToolName } from "./constants";
+import { MAX_WINDOW_HOURS, MIN_WINDOW_HOURS, TOOL_NAMES, UI_GRAPH_TABS, UI_LAYERS, UI_PAGES, UI_SCREENS, UI_SPEEDS, type ToolName } from "./constants";
 
 const locationProps = {
   useCurrentSite: Schema.boolean({ description: "true to use the site currently selected in Freeplay ('this site')." }),
@@ -70,6 +70,23 @@ const DECLARATIONS: Record<ToolName, TemplateFunctionDeclaration["parameters"]> 
       durationHours: Schema.number({ description: `Window length in hours, ${MIN_WINDOW_HOURS} to ${MAX_WINDOW_HOURS}.` }),
     },
     optionalProperties: ["start", "durationHours"],
+  }),
+  show_in_freeplay: Schema.object({
+    properties: {
+      screen: Schema.enumString({ enum: [...UI_SCREENS], description: "Freeplay screen to show: globe (Moon map) or orbit (Sun/Earth orbit view with graphs)." }),
+      page: Schema.enumString({ enum: [...UI_PAGES], description: "Offer a button to the surface drive or the mission sunlight (approach) page for the selected site and time. Does not leave the chat." }),
+      siteId: Schema.string({ description: "Catalog site id from list_catalog_sites to select on the globe and fly to." }),
+      latDeg: Schema.number({ description: "Latitude in degrees, -90 to 90, to select a custom point. Use with lonDeg, never with siteId." }),
+      lonDeg: Schema.number({ description: "East-positive longitude in degrees, -180 to 360. Use with latDeg." }),
+      time: Schema.string({ description: "Mission time to show, ISO 8601 UTC, within 2026-01-01 to 2030-12-31. Moves the Sun and Earth in the orbit view." }),
+      playing: Schema.boolean({ description: "true to play the mission clock, false to pause it." }),
+      speed: Schema.integer({ description: `Playback speed multiplier, one of ${UI_SPEEDS.join(", ")}.` }),
+      layersOn: Schema.array({ items: Schema.enumString({ enum: [...UI_LAYERS] }), description: "Globe layers to switch on." }),
+      layersOff: Schema.array({ items: Schema.enumString({ enum: [...UI_LAYERS] }), description: "Globe layers to switch off." }),
+      showCatalog: Schema.boolean({ description: "Show or hide the Lunaris360 catalog site pins on the globe." }),
+      graphTab: Schema.enumString({ enum: [...UI_GRAPH_TABS], description: "Graph tab to show on the orbit screen." }),
+    },
+    optionalProperties: ["screen", "page", "siteId", "latDeg", "lonDeg", "time", "playing", "speed", "layersOn", "layersOff", "showCatalog", "graphTab"],
   }),
 };
 
