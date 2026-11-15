@@ -1,87 +1,46 @@
 import type { ChapterId } from "@/lib/model/types";
 
-/** Freeplay screen a lesson runs on: the Moon globe, Orbit + Graphs, or the surface drive. */
-export type LessonScreen = "globe" | "orbit" | "drive";
+export type LessonScreen = "story" | "globe" | "orbit";
+export type MissionPhase = "history" | "science" | "challenge" | "debrief";
 
 export type GuidedLesson = {
-  id: "pick-site" | "overlays" | "sun" | "earth" | "candidates" | "surface";
-  /** Story chapter (storyChapters collection) this lesson belongs to. */
+  id: string;
   chapterId: ChapterId;
   screen: LessonScreen;
+  phase: MissionPhase;
   title: string;
+  kicker: string;
   body: string;
-  objective: string;
-  takeaway: string;
+  objective?: string;
+  takeaway?: string;
 };
 
-export const SCREEN_LABELS: Record<LessonScreen, string> = { globe: "Globe", orbit: "Orbit + Graphs", drive: "Surface drive" };
+export const SCREEN_LABELS: Record<LessonScreen, string> = { story: "Mission briefing", globe: "Lunar map", orbit: "Orbit + Graphs" };
 
-/** Shown while the chapter records load, or if the catalog is unavailable. */
 export const CHAPTER_LABELS: Record<ChapterId, { title: string; era: string; concept: string }> = {
-  "ch1-first-landing": { title: "First Landing", era: "Apollo era", concept: "Sun angle and lighting" },
-  "ch2-robotic-explorer": { title: "Robotic Explorer", era: "Commercial landers", concept: "Solar power, batteries and Earth comms" },
-  "ch3-lunar-base": { title: "Lunar Base", era: "Artemis era", concept: "Ice, long-duration sunlight and survival" },
+  "ch1-first-landing": { title: "First Landing", era: "Apollo era", concept: "Sun angle and landing visibility" },
+  "ch2-robotic-explorer": { title: "Robotic Explorers", era: "Modern exploration", concept: "Power and communication" },
+  "ch3-lunar-base": { title: "Mining Lunar Base", era: "Artemis era", concept: "Sustained operations and potential resources" },
 };
 
-/** Mission start for the tutorial: a lunar morning at Apollo 11 (Tranquility Base), where the stored ephemeris puts the Sun about 10.7° above the eastern horizon, inside the 5°-14° Apollo planning range. */
+/** A lunar morning at Tranquility Base, inside Apollo 11's planned Sun-elevation range. */
 export const GUIDED_START_UTC = "2026-11-15T23:00:00.000Z";
 
-/** The lessons follow Freeplay's own order: Globe, then Orbit + Graphs, then the surface drive. */
+/** The three-act mission arc is deliberately expressed as the twelve pages from the project blueprint. */
 export const GUIDED_LESSONS: readonly GuidedLesson[] = [
-  {
-    id: "pick-site",
-    chapterId: "ch1-first-landing",
-    screen: "globe",
-    title: "Pick a landing site",
-    body: "Freeplay opens on the Moon globe with no site selected. Switch on Catalog sites in Layers to show past landings and Artemis candidates as stars, then click a star or anywhere on the Moon. A catalog site with a verified point brings its LOLA horizon mask with it; any other point uses a labelled smooth horizon.",
-    objective: "Select a site on the globe. The button below jumps to this chapter's featured landing.",
-    takeaway: "A landing coordinate is only the start: the horizon around it decides what a crew can see.",
-  },
-  {
-    id: "overlays",
-    chapterId: "ch1-first-landing",
-    screen: "globe",
-    title: "Read the surface",
-    body: "The Layers panel adds LRO overlays to the base imagery: slope, polar illumination, permanently shadowed ground and elevation. The circle around your site is the region you are evaluating, and its radius is set in the site callout. The overlays are imagery for context; sunlight and Earth visibility are computed separately from the stored ephemeris and the site's horizon.",
-    objective: "Switch on at least one overlay in Layers and look at the ground inside your site's circle.",
-    takeaway: "Low sun is useful: long shadows make slopes, craters and boulders easier to read.",
-  },
-  {
-    id: "sun",
-    chapterId: "ch2-robotic-explorer",
-    screen: "orbit",
-    title: "Following the Sun",
-    body: "Orbit + Graphs follows one site through a mission. The diagram places the Moon, Sun and Earth; the readouts give the Sun's elevation and the time until sunset or sunrise at your site. A lander's panels only produce power while the Sun clears the terrain. Press play or drag the mission-time slider and watch the readouts and the daily graphs move.",
-    objective: "Open Orbit + Graphs (the tab, or View orbit in the site callout), then run or scrub the mission clock.",
-    takeaway: "A single lighting snapshot cannot describe a whole mission window.",
-  },
-  {
-    id: "earth",
-    chapterId: "ch2-robotic-explorer",
-    screen: "orbit",
-    title: "Finding Earth",
-    body: "Earth visible compares Earth's elevation with the terrain in that direction, and the line next to the graph tabs says which horizon was used. Until Earthset or Earthrise tells you how long the current state lasts. A clear line of sight is still not a working radio link; antennas and link engineering matter too.",
-    objective: "Read Earth visible and the time until it changes, then acknowledge the distinction.",
-    takeaway: "Line of sight is a necessary communication condition, not a complete link budget.",
-  },
-  {
-    id: "candidates",
-    chapterId: "ch3-lunar-base",
-    screen: "orbit",
-    title: "Choose a landing site",
-    body: "A base has to survive more than one good day. Set Duration to a lunar day or a year, open the yearly graphs, and compare candidates over the same mission. Check each site's terrain line before trusting a number: a smooth horizon only gives upper bounds. Save to presets on the globe keeps a site for later. This is a learning exercise, not a mission recommendation.",
-    objective: "Compare at least two sites, from the list below, your presets or the globe, then keep your preferred one selected.",
-    takeaway: "Site selection is a trade-off. The best choice depends on mission goals and validated data.",
-  },
-  {
-    id: "surface",
-    chapterId: "ch3-lunar-base",
-    screen: "drive",
-    title: "Stand on the surface",
-    body: "Surface drive puts you at your selected site at the current mission time. The 3D surface is procedural and only there for orientation; the Sun, Earth and horizon readouts come from the same stored ephemeris and LOLA masks as the graphs. Look around, move across the surface, and try another camera view.",
-    objective: "Look around, move with WASD or arrow keys, switch camera view, then confirm you compared the horizon readout with the view.",
-    takeaway: "Visibility follows the terrain horizon, not an ideal flat plane.",
-  },
+  { id: "apollo-history", chapterId: "ch1-first-landing", screen: "story", phase: "history", kicker: "Chapter 1 · 1969", title: "Humanity's first landing", body: "You are an Apollo-era mission planner. Reaching the Moon is no longer the only question: you must choose a place and time where astronauts can see the surface well enough to land safely." },
+  { id: "apollo-science", chapterId: "ch1-first-landing", screen: "orbit", phase: "science", kicker: "Learn the science", title: "Understanding the lunar horizon", body: "With no atmosphere to soften the light, the lunar Sun creates sharp contrast. Move through the mission timeline to see how Sun elevation changes shadows and visibility.", objective: "Open Orbit + Graphs and move the mission clock to inspect the Sun’s changing elevation.", takeaway: "High Sun shortens shadows; low Sun reveals terrain but deepens contrast." },
+  { id: "apollo-challenge", chapterId: "ch1-first-landing", screen: "orbit", phase: "challenge", kicker: "Landing challenge", title: "Choose a landing time", body: "Your spacecraft is approaching Tranquility Base. Select a moment when the Sun clears the horizon without washing away the terrain’s relief.", objective: "Scrub the timeline, then choose a landing condition after inspecting the Sun elevation.", takeaway: "Apollo 11 planners worked within a narrow 5°–14° Sun-elevation window." },
+  { id: "apollo-debrief", chapterId: "ch1-first-landing", screen: "story", phase: "debrief", kicker: "Mission debrief", title: "Landing conditions analyzed", body: "Apollo planners balanced visibility against shadow length. You have learned why a safe landing is tied to the moving Sun — and why touching down is only the beginning." },
+  { id: "robot-history", chapterId: "ch2-robotic-explorer", screen: "story", phase: "history", kicker: "Chapter 2 · Today", title: "The robotic frontier", body: "Now the goal is to remain useful after landing. As the planner for a robotic explorer, you must keep it powered, warm, and able to contact Earth while its environment changes." },
+  { id: "robot-science", chapterId: "ch2-robotic-explorer", screen: "orbit", phase: "science", kicker: "Learn the science", title: "Power and communication", body: "Solar panels work only while the Sun is above the local terrain. Earth visibility is also shaped by the horizon. Follow both signals over time before you commit to operations.", objective: "Run or scrub the timeline and compare the Sun and Earth readouts.", takeaway: "A clear Earth line of sight is necessary for communication, but it is not a complete radio link budget." },
+  { id: "robot-challenge", chapterId: "ch2-robotic-explorer", screen: "orbit", phase: "challenge", kicker: "Operations challenge", title: "Keep the explorer alive", body: "Plan a short robotic mission around light and contact windows. A long dark period or terrain-blocked Earth can end the mission before its science does.", objective: "Inspect both Sun and Earth conditions, then confirm the operational window you would use.", takeaway: "Mission duration depends on more than a successful landing." },
+  { id: "robot-debrief", chapterId: "ch2-robotic-explorer", screen: "story", phase: "debrief", kicker: "Mission debrief", title: "A working spacecraft needs a window", body: "Modern missions show that operations depend on lighting, panel orientation, batteries, and communication opportunity. The next mission must sustain people and equipment for far longer." },
+  { id: "base-history", chapterId: "ch3-lunar-base", screen: "story", phase: "history", kicker: "Chapter 3 · The Artemis era", title: "Plan a mining lunar base", body: "You are evaluating a future lunar south-pole base. It must support crews and equipment while remaining near areas that may hold water ice — without treating potential resources as guaranteed reserves." },
+  { id: "base-science", chapterId: "ch3-lunar-base", screen: "globe", phase: "science", kicker: "Learn the science", title: "Build for a sustained presence", body: "Use the map layers to compare terrain, illumination, and permanently shadowed regions. PSRs are cold enough for ice to persist; they are not proof of extractable ice at a particular location.", objective: "Turn on elevation, illumination, or PSR layers and inspect an Artemis candidate region.", takeaway: "A long-term site trades sunlight, terrain safety, communication, and access to potential resources." },
+  { id: "base-challenge", chapterId: "ch3-lunar-base", screen: "globe", phase: "challenge", kicker: "Base selection challenge", title: "Choose a mining base location", body: "Compare candidate locations and decide which trade-off you accept. The map can identify candidate conditions, but it cannot certify a resource reserve or an operational mining plan.", objective: "Compare at least two candidate sites, keep one selected, and record the criterion you prioritize.", takeaway: "A base location is a mission-specific decision, not a universal ranking." },
+  { id: "base-debrief", chapterId: "ch3-lunar-base", screen: "story", phase: "debrief", kicker: "Final mission debrief", title: "From landing to lasting presence", body: "Your journey progressed from finding a safe place to land, to keeping a robotic explorer operating, to weighing the conditions for a mining lunar base. Continue in Freeplay to investigate the tools on your own." },
 ];
 
-export const SURFACE_LESSON = GUIDED_LESSONS[GUIDED_LESSONS.length - 1];
+/** Retained for SurfaceDrive's optional guided mode. */
+export const SURFACE_LESSON = GUIDED_LESSONS[10];

@@ -17,7 +17,7 @@ export type NavLink = { label: string; href: string };
 export const NAV_LINKS: NavLink[] = [
   { label: "Overview", href: "/" },
   { label: "Mission Control", href: "/mission-control" },
-  { label: "Tutorial", href: "/mission" },
+  { label: "Guided Mission", href: "/mission" },
   { label: "How It Works", href: "/how-it-works" },
   { label: "Freeplay", href: "/freeplay" },
 ];
@@ -42,7 +42,7 @@ export const EXPERIENCES: Experience[] = [
     title: "Guided Mission",
     subtitle: "Understand the environment.",
     description:
-      "An interactive tutorial that runs inside Freeplay: the Moon globe, Orbit + Graphs, then the surface drive. Six lessons follow the First Landing, Robotic Explorer and Lunar Base chapters at catalog landing sites, covering sunlight, terrain obstruction, Earth visibility and mission windows.",
+      "A twelve-page story through the Apollo, robotic exploration, and Artemis eras. Use live map and timeline tools to understand lighting, terrain, Earth visibility, and the trade-offs of a potential mining lunar base.",
     topics: [
       "Solar elevation",
       "Terrain obstruction",
@@ -50,7 +50,7 @@ export const EXPERIENCES: Experience[] = [
       "Communication windows",
       "Mission lighting conditions",
     ],
-    cta: "Begin Tutorial",
+    cta: "Begin your journey",
     href: "/mission",
   },
   {
