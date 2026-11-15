@@ -5,7 +5,7 @@ import type { FreeplaySite } from "@/data/sites";
 import { earthUp, sunUp } from "@/lib/illumination";
 import { useFreeplay } from "@/lib/freeplay-store";
 import { useLunarWindow } from "@/lib/use-lunar-data";
-import { STORY_STOPS, type GuidedLesson } from "./tutorial-content";
+import { COMPARISON_PRESET, STORY_STOPS, type GuidedLesson } from "./tutorial-content";
 import { CandidateComparison } from "./candidate-comparison";
 import { SitePreview } from "./site-preview";
 
@@ -44,7 +44,7 @@ export function LessonExampleActivity({ lesson, stops, candidates }: {
     overlays: "Set a pretend lander slope limit and see the trade-off.",
     sun: "Scrub the mission clock. Compare the Sun with the local terrain horizon.",
     earth: "Scrub the mission clock. Check whether terrain blocks Earth.",
-    candidates: "Review this fixed Apollo 11 and Luna 9 example. In the next section, compare any two stops from the earlier site tour.",
+    candidates: COMPARISON_PRESET.lead,
     surface: "Change the ridge and your distance. See how a nearby horizon can hide a low Sun.",
   }[lesson.id]), [lesson.id]);
 
@@ -95,7 +95,17 @@ export function LessonExampleActivity({ lesson, stops, candidates }: {
       <p className="text-[.65rem] leading-relaxed text-muted-foreground">The horizon comparison shows whether the body clears the modeled local terrain; radio hardware and weather are not included.</p>
     </>}
 
-    {lesson.id === "candidates" && <CandidateComparison sites={candidates} locked />}
+    {lesson.id === "candidates" && <>
+      <p className="text-xs leading-relaxed text-bone">{COMPARISON_PRESET.predict}</p>
+      <CandidateComparison sites={candidates} locked lockedLabel={COMPARISON_PRESET.label} />
+      <div className="space-y-2">
+        {COMPARISON_PRESET.sites.map((entry) => <div key={entry.stopId} className="border-l-2 border-retro-purple/50 pl-2.5">
+          <p className="text-xs font-semibold text-bone">{entry.title}</p>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{entry.body}</p>
+          <p className="mt-1 text-[.65rem] leading-relaxed text-muted-foreground">{entry.caveat}</p>
+        </div>)}
+      </div>
+    </>}
 
     {lesson.id === "surface" && <>
       <label className="block text-xs text-muted-foreground">Ridge height <span className="text-bone">{ridgeHeight} m</span>

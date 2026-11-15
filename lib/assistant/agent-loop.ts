@@ -39,7 +39,7 @@ export type TurnParams = {
   signal?: AbortSignal;
   maxRounds?: number;
   /** Injectable for tests. */
-  /** Changes the Freeplay view for show_in_freeplay. */
+  /** Changes the Open Exploration view for show_in_freeplay. */
   applyUi?: ApplyUi;
   /** Edits the surface drive's placed hardware for edit_surface_setup. */
   applySurface?: ApplySurface;

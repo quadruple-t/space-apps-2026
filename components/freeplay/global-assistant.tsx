@@ -6,8 +6,8 @@ import { AssistantPanel, LAUNCHER_ID, PANEL_ID } from "@/components/freeplay/ass
 import { useCornerDrag, type Corner } from "@/components/freeplay/use-corner-drag";
 import { useAssistant } from "@/lib/assistant/assistant-store";
 
-/** Pages that render their own assistant (the Freeplay sidebar, the Walk on the Moon circle) and the landing page, which has none. */
-const HIDDEN_ON = new Set(["/", "/freeplay", "/freeplay/drive"]);
+/** Pages that render their own assistant (the Open Exploration sidebar, the Walk on the Moon circle) and the landing page, which has none. */
+const HIDDEN_ON = new Set(["/", "/open-exploration", "/open-exploration/drive"]);
 
 export const CORNER_BUTTON: Record<Corner, string> = {
   tl: "left-4 top-20 sm:left-6", tr: "right-4 top-20 sm:right-6", bl: "bottom-4 left-4 sm:bottom-6 sm:left-6", br: "bottom-4 right-4 sm:bottom-6 sm:right-6",

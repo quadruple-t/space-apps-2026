@@ -63,7 +63,7 @@ describe("applyUiPlan and restoreView", () => {
   it("only builds a page link when a site is selected", () => {
     expect(applyUiPlan({ page: "drive" }, null).link).toBeUndefined();
     useFreeplay.getState().selectCustom(-85, 20);
-    expect(applyUiPlan({ page: "drive" }, null).link?.href).toContain("/freeplay/drive");
+    expect(applyUiPlan({ page: "drive" }, null).link?.href).toContain("/open-exploration/drive");
   });
 
   it("selects a saved preset, sets its radius and duration, and restores both", () => {

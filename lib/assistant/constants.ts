@@ -76,7 +76,7 @@ export const TOOL_LABELS: Record<ToolName, string> = {
   get_launch_plan: "Launch window and trajectory estimate",
   get_solar_power: "Solar power estimate",
   get_meteor_stream_exposure: "Meteor-stream exposure",
-  show_in_freeplay: "Freeplay view",
+  show_in_freeplay: "Open Exploration view",
   edit_surface_setup: "Surface setup",
 };
 
@@ -96,7 +96,7 @@ export const TOOL_PROGRESS: Record<ToolName, string> = {
   get_launch_plan: "Planning the Earth–Moon transfer…",
   get_solar_power: "Estimating solar power…",
   get_meteor_stream_exposure: "Checking meteor-stream geometry…",
-  show_in_freeplay: "Updating the Freeplay view…",
+  show_in_freeplay: "Updating the Open Exploration view…",
   edit_surface_setup: "Editing your surface setup…",
 };
 
@@ -108,7 +108,7 @@ export const MAX_SURFACE_OPS = 12;
 /** Positions are metres east/north of the site centre; the walled terrain tile is far smaller than this, which the drive enforces. */
 export const MAX_SURFACE_COORD_M = 20_000;
 
-/** Values the show_in_freeplay tool may set. Mirrors the Freeplay store and comparison store; the validator rejects anything else. */
+/** Values the show_in_freeplay tool may set. Mirrors the Open Exploration store and comparison store; the validator rejects anything else. */
 export const UI_SCREENS = ["globe", "orbit", "launch", "compare"] as const;
 export const UI_PAGES = ["drive"] as const;
 export const UI_LAYERS = [
@@ -118,7 +118,7 @@ export const UI_LAYERS = [
   "temperatureMax", "temperatureMin", "impactHistory", "meteorStreams",
 ] as const;
 export type UiLayer = (typeof UI_LAYERS)[number];
-/** Layer names as the Freeplay panel shows them. Used in the "View changed" report. */
+/** Layer names as the Open Exploration panel shows them. Used in the "View changed" report. */
 export const UI_LAYER_LABELS: Record<UiLayer, string> = {
   slope: "Slope",
   illumination: "Illumination % (polar)",

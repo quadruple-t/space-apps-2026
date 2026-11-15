@@ -14,6 +14,7 @@ import { meteorStreamsFromFacts, streamIncidence } from "@/lib/science/meteor-st
 import { publishAnchor } from "./anchor";
 import { loadCesium, type Cesium } from "./load-cesium";
 import { LAYERS } from "./moon-layers";
+import { colorizeImage } from "./colorize";
 import { globeAssetUrl, globeDisplayAsset, type GlobeArchive } from "@/lib/globe-archive";
 
 
@@ -210,6 +211,7 @@ export default function MoonGlobe({ guidedSites }: { guidedSites?: FreeplaySite[
       base.requestImage = (...args) => {
         const result = requestBase(...args);
         if (!result) return result;
+        // The base mosaic stays in its original grayscale; only data overlays are recoloured.
         return result.then((image) => { if (!destroyed) setBaseLoading(false); return image; }, (failure) => {
           if (!destroyed) { setBaseLoading(false); setError("The stored Moon image could not load. Check your connection and try again."); }
           throw failure;
@@ -416,7 +418,8 @@ export default function MoonGlobe({ guidedSites }: { guidedSites?: FreeplaySite[
             if (!result) return result;
             pending++;
             if (overlayRefs.current.get(def.id) === group) setStatus(def.id, { state: "loading" });
-            return result.then((image) => {
+            const ramp = def.colorize;
+            return result.then((image) => ramp ? colorizeImage(image, ramp) : image).then((image) => {
               pending--;
               if (!failed && pending === 0 && overlayRefs.current.get(def.id) === group) setStatus(def.id, { state: "ready" });
               return image;

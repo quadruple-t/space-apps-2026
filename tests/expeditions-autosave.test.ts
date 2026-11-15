@@ -86,7 +86,7 @@ describe("draft storage", () => {
   });
   afterEach(() => vi.unstubAllGlobals());
 
-  it("migrates the legacy Freeplay key once and removes it", () => {
+  it("migrates the legacy Open Exploration key once and removes it", () => {
     store.set(LEGACY_FREEPLAY_KEY, JSON.stringify({ savedSites: [{ id: "saved-1", name: "Rim", latitudeDeg: -89, longitudeDeg: 10, radiusKm: 5 }], panelAreaM2: 3 }));
     const draft = loadDraft();
     expect(draft.sites.map((s) => s.name)).toEqual(["Rim"]);

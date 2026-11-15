@@ -10,15 +10,18 @@ const SUGGESTIONS = [
   "Is my base well placed for power and Earth contact?",
 ];
 
-// The drive's own controls sit along the bottom (and a telemetry panel on the right), so bottom corners start higher on small screens.
+// The playback bar runs along the bottom centre (about 12rem tall) and spans nearly the full width below lg,
+// so bottom-corner launchers sit above it until there is room beside it, and open panels always sit above it.
+// The bottom-right launcher clears the controls hint that sits just above the bar on the right.
 const LAUNCHERS = {
   tl: "left-3 top-[5.25rem] sm:left-5", tr: "right-3 top-[5.25rem] sm:right-5",
-  bl: "bottom-[11.25rem] left-3 sm:bottom-3 sm:left-5", br: "bottom-[11.25rem] right-3 sm:bottom-3 sm:right-5",
+  bl: "bottom-[12.75rem] left-3 sm:left-5 lg:bottom-3", br: "bottom-[15.5rem] right-3 sm:right-5 lg:bottom-3",
 };
+const ABOVE_BAR = "h-[min(560px,calc(100dvh-23rem))] lg:bottom-[13rem] lg:h-[min(560px,calc(100dvh-19rem))]";
 const PANELS = {
-  tl: "left-3 top-[9rem] sm:left-5 h-[min(560px,calc(100dvh-12rem))]", tr: "right-3 top-[9rem] sm:right-5 h-[min(560px,calc(100dvh-12rem))]",
-  bl: "bottom-[15rem] left-3 h-[min(560px,calc(100dvh-20rem))] sm:bottom-[4.75rem] sm:left-5 sm:h-[min(560px,calc(100dvh-9rem))]",
-  br: "bottom-[15rem] right-3 h-[min(560px,calc(100dvh-20rem))] sm:bottom-[4.75rem] sm:right-5 sm:h-[min(560px,calc(100dvh-9rem))]",
+  tl: "left-3 top-[9rem] sm:left-5 h-[min(560px,calc(100dvh-22rem))]", tr: "right-3 top-[9rem] sm:right-5 h-[min(560px,calc(100dvh-22rem))]",
+  bl: `bottom-[17rem] left-3 sm:left-5 ${ABOVE_BAR}`,
+  br: `bottom-[19.75rem] right-3 sm:right-5 ${ABOVE_BAR}`,
 };
 
 export function DriveAssistantBubble({ contextLabel, getContext, getSnapshot }: {

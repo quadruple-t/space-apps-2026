@@ -3,7 +3,7 @@ import { summarizeSetup } from "@/lib/setup-performance";
 import type { HardwareAnalysis, CommsResult, SolarArrayResult } from "@/lib/hardware-analysis";
 const H = 3_600_000;
 const mast = (id: string, on: boolean[], clear = on): CommsResult => ({ id, label: id, eastM: 0, northM: 0, earthEl: Float64Array.from(clear, (v, i) => v ? 10 : on[i] ? 0 : -10), horizon: new Float64Array(on.length), on, windows: [], visibleHours: 0, longestWindowHours: 0, longestGapHours: 0 });
-const array = (kw: number[]): SolarArrayResult => ({ id: "solar", label: "Solar", eastM: 0, northM: 0, kw: Float64Array.from(kw), peakKw: Math.max(...kw), energyKWh: kw.slice(0, -1).reduce((sum, n) => sum + n, 0), sunHours: 0, sunOn: [], windows: [], longestDayHours: 0, longestNightHours: 0 });
+const array = (kw: number[]): SolarArrayResult => ({ id: "solar", label: "Solar", eastM: 0, northM: 0, kw: Float64Array.from(kw), peakKw: Math.max(...kw), energyKWh: kw.slice(0, -1).reduce((sum, n) => sum + n, 0), sunHours: 0, sunOn: [], windows: [], longestDayHours: 0, longestNightHours: 0, aboveHorizonHours: 0, clearSkyKWh: 0 });
 const analysis = (comms: CommsResult[], solar: SolarArrayResult[] = []): HardwareAnalysis => ({ xs: Float64Array.from([0, H, 2 * H, 3 * H, 4 * H]), stepHours: 1, comms, solar, outside: [] });
 describe("habitat setup performance", () => {
   it("counts overlapping mast coverage once and allows complementary coverage", () => {

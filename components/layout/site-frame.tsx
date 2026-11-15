@@ -7,8 +7,8 @@ import { GlobalAssistant } from "@/components/freeplay/global-assistant";
 
 export function SiteFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const immersive = pathname === "/freeplay/drive";
-  const fullHeightApp = pathname === "/freeplay";
+  const immersive = pathname === "/open-exploration/drive";
+  const fullHeightApp = pathname === "/open-exploration";
 
   return <>
     <a href="#main" className="sr-only z-50 rounded-sm bg-bone px-4 py-2 text-sm font-medium text-void focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Skip to content</a>

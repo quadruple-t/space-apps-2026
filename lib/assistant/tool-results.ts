@@ -511,7 +511,7 @@ export function shapeMeteorStreams(id: string, requested: string | null, site: s
   };
 }
 
-/** Result of a Freeplay view change. Carries no science data and no horizon claim. */
+/** Result of a Open Exploration view change. Carries no science data and no horizon claim. */
 export function uiOutcome(id: string, ui: UiChange, tool: "show_in_freeplay" | "edit_surface_setup" = "show_in_freeplay"): ToolOutcome {
   const response: Json = {
     ok: true, tool, applied: ui.changes,

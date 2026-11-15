@@ -18,14 +18,14 @@ export const NAV_LINKS: NavLink[] = [
   { label: "Overview", href: "/" },
   { label: "Debrief", href: "/how-it-works" },
   { label: "Guided Mission", href: "/mission" },
-  { label: "Open Exploration", href: "/freeplay" },
+  { label: "Open Exploration", href: "/open-exploration" },
   { label: "My Explorations", href: "/expeditions" },
 ];
 
-export const LAUNCH_HREF = "/freeplay";
+export const LAUNCH_HREF = "/open-exploration";
 
 export type Experience = {
-  id: "mission" | "explore" | "compare";
+  id: "mission" | "explore";
   index: string;
   title: string;
   subtitle: string;
@@ -54,17 +54,7 @@ export const EXPERIENCES: Experience[] = [
     description:
       "Choose a place on the Moon, explore the map, and see how sunlight changes over time.",
     cta: "Explore the Moon",
-    href: "/freeplay/drive",
-  },
-  {
-    id: "compare",
-    index: "03",
-    title: "Mission Comparison",
-    subtitle: "Find the strongest candidate.",
-    description:
-      "The comparison workspace is in progress. Its current page shows the empty layout; adding and analysing multiple missions is not available yet.",
-    cta: "Compare Missions",
-    href: "/compare",
+    href: "/open-exploration",
   },
 ];
 
@@ -97,8 +87,7 @@ export const DATA_SOURCES: DataSource[] = [
 export const FOOTER_LINKS = {
   experiences: [
     { label: "Guided Mission", href: "/mission" },
-    { label: "Open Exploration", href: "/freeplay/drive" },
-    { label: "Mission Comparison", href: "/compare" },
+    { label: "Open Exploration", href: "/open-exploration" },
   ],
   project: [
     { label: "Overview", href: "/" },

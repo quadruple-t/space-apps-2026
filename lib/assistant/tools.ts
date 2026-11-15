@@ -15,7 +15,7 @@ import type { CatalogSite } from "@/data/sites";
 import { validateToolCall, type Location, type SurfacePlan, type ToolContext, type ToolRequest, type UiPlan } from "./tool-validation";
 
 export type ScienceGet = <T>(path: string, params: URLSearchParams, init?: { signal?: AbortSignal }) => Promise<T>;
-/** Applies a validated view change to the Freeplay UI (supplied by the browser store; absent in pure tests). */
+/** Applies a validated view change to the Open Exploration UI (supplied by the browser store; absent in pure tests). */
 export type ApplyUi = (plan: UiPlan, catalog: CatalogSite | null) => UiChange;
 
 /** A launch plan request; the browser supplies ephemeris-backed planning, tests can inject a fake. */
@@ -96,7 +96,7 @@ async function run(req: ToolRequest, id: string, get: ScienceGet, signal: AbortS
       return shapeRiseSet(id, req.location.label, await get("science/timeline", p, init), req.adjustments);
     }
     case "show_in_freeplay": {
-      if (!deps.applyUi) return failure(req.tool, id, { code: "unavailable", message: "The Freeplay view cannot be changed here." });
+      if (!deps.applyUi) return failure(req.tool, id, { code: "unavailable", message: "The Open Exploration view cannot be changed here." });
       let catalog: CatalogSite | null = null;
       if (req.plan.siteId) {
         catalog = catalogFromDetail(await get(`catalog/sites/${encodeURIComponent(req.plan.siteId)}`, new URLSearchParams(), init), req.plan.siteId);

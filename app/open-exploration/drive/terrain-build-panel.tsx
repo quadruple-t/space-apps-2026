@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import Link from "next/link";
-import { Box, Eye, Hammer, LineChart, Mountain, RotateCcw, RotateCw, Trash2, X } from "lucide-react";
-import { useFreeplay } from "@/lib/freeplay-store";
+import { Box, Eye, Hammer, Mountain, RotateCcw, RotateCw, Trash2, X } from "lucide-react";
 import type { DemTile } from "@/integrations/terrain/dem-client";
 import type { Placement } from "@/lib/drive-placements";
 import { DEM_MAX_RADIUS_KM, DEM_MIN_RADIUS_KM } from "@/lib/terrain/dem";
@@ -16,6 +14,8 @@ export type PlacementStatus = {
   /** Beyond the loaded terrain, so no sunlight or Earth result is given. */
   outsideTerrain?: boolean;
   sunVisible: number; earthVisible: number; slopeDeg: number; powerKw: number | null;
+  /** Sun / Earth elevation in the object's own frame now, and the loaded-terrain horizon toward each (degrees). */
+  sunElevationDeg?: number | null; sunHorizonDeg?: number | null; earthElevationDeg?: number | null; earthHorizonDeg?: number | null;
   daily: { sunHours: number | null; earthHours: number; kwh: number } | null;
 };
 
@@ -38,7 +38,7 @@ export function TerrainBuildPanel({ radiusKm, onRadius, exaggeration, onExaggera
   /** The object clicked in the scene or in this list, and how to select one. */
   selectedId: string | null;
   onSelect: (id: string) => void;
-  /** The Freeplay graphs are following this same site, so the link can open them. */
+  /** The Open Exploration graphs are following this same site, so the link can open them. */
   graphsAvailable: boolean;
   setupDetails?: ReactNode;
   onDelete: (id: string) => void; onClear: () => void; onClose: () => void;
@@ -140,7 +140,7 @@ export function TerrainBuildPanel({ radiusKm, onRadius, exaggeration, onExaggera
             </li>;
           })}</ul>}
         {solarKwh > 0 && <p className="mt-1.5 type-data text-[.56rem] text-bone">Solar today ≈ {solarKwh.toFixed(0)} kWh from {placements.filter((p) => p.type === "solar").length} array{placements.filter((p) => p.type === "solar").length === 1 ? "" : "s"}</p>}
-        {graphsAvailable && placements.some((p) => p.type === "solar" || p.type === "comms") && <Link href="/freeplay" onClick={() => useFreeplay.getState().setView("orbit")} className="mt-2 inline-flex items-center gap-1.5 rounded border border-retro-blue/40 bg-retro-blue/10 px-2.5 py-1.5 type-data text-[.56rem] uppercase tracking-[.1em] text-retro-blue hover:bg-retro-blue/20"><LineChart size={12} />Site sunlight &amp; Earth visibility graphs</Link>}
+        {placements.some((p) => p.type === "solar" || p.type === "comms") && <p className="mt-1.5 type-data text-[.52rem] text-muted-foreground">Power, Earth contact and today&apos;s graph{graphsAvailable ? " (with a link to the full site graphs)" : ""} are in the telemetry panel.</p>}
         {placements.length > 0 && <p className="mt-1.5 text-[.52rem] leading-relaxed text-muted-foreground">Sunlight uses the stored Horizons ephemeris and only the terrain inside the walls, so it is an upper bound near the edge. Power assumes an 18 m² sun-tracking panel at 30% efficiency.</p>}
       </div>
     </div>

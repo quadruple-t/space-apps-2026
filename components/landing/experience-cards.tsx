@@ -12,14 +12,14 @@ export function ExperienceCards() {
     <section id="explore" data-constellation-node="Explore" aria-labelledby="explore-title" className="relative border-t border-line py-24 sm:py-32">
       <PageContainer>
         <Reveal>
-          <SectionHeading id="explore-title" title="Three ways to explore.">
+          <SectionHeading id="explore-title" title="Two ways to explore.">
             <p>
               Start with the Guided Mission, or choose a place and explore the Moon yourself.
             </p>
           </SectionHeading>
         </Reveal>
 
-        <ul className="mt-16 grid gap-5 lg:grid-cols-3 lg:gap-6">
+        <ul className="mt-16 grid gap-5 lg:grid-cols-2 lg:gap-6">
           {EXPERIENCES.map((exp, i) => (
             <Reveal
               as="li"

@@ -3,8 +3,8 @@ import { Suspense } from "react";
 import { SurfaceDrive } from "./surface-drive";
 
 export const metadata: Metadata = {
-  title: "Freeplay · Surface drive",
-  description: "Drive across the lunar surface at the site and time chosen in Freeplay.",
+  title: "Open Exploration · Surface drive",
+  description: "Drive across the lunar surface at the site and time chosen in Open Exploration.",
 };
 
 export default function SurfaceDrivePage() {

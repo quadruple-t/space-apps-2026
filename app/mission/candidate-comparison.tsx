@@ -8,7 +8,7 @@ import { useFreeplay } from "@/lib/freeplay-store";
 import { useLunarWindow } from "@/lib/use-lunar-data";
 import { SitePreview } from "./site-preview";
 
-type CandidateMetrics = { sunlight: number; earth: number; terrain: string };
+type CandidateMetrics = { sunlight: number; earth: number; terrain: string; smooth: boolean };
 
 function useCandidateMetrics(site: FreeplaySite | null, startIso: string, hours: number) {
   const result = useLunarWindow(site, startIso, hours, !!site);
@@ -19,6 +19,8 @@ function useCandidateMetrics(site: FreeplaySite | null, startIso: string, hours:
       sunlight: Math.round(samples.filter(sunUp).length / samples.length * 100),
       earth: Math.round(samples.filter(earthUp).length / samples.length * 100),
       terrain: result.data?.horizon.source ?? "unknown",
+      // No terrain mask (smooth-sphere fallback): nothing blocks the Sun or Earth but the horizon itself.
+      smooth: !result.data?.horizon.elevationsDeg,
     };
   }, [result.data]);
   return { metrics, loading: result.loading, error: result.error };
@@ -42,6 +44,7 @@ function SitePlacard({ site, label, metrics, loading, error, active, onSelect }:
         <Metric label="Sunlight" value={metrics.sunlight} color="bg-retro-red" text="text-retro-red" />
         <Metric label="Earth visible" value={metrics.earth} color="bg-retro-blue" text="text-retro-blue" />
         <span className="mt-2 block text-[.52rem] leading-relaxed text-muted-foreground">Horizon data · {metrics.terrain}</span>
+        {metrics.smooth && <span className="mt-1 block text-[.52rem] leading-relaxed text-retro-red">Smooth-sphere fallback, not terrain-derived: these shares are upper bounds.</span>}
       </> : <span className="mt-2 block min-h-10 text-[.58rem] leading-relaxed text-muted-foreground">{loading ? "Loading site conditions…" : error ? "Site data unavailable for this window." : "No samples available for this window."}</span>}
       <span className="mt-2 block border-t border-line/70 pt-2 type-data text-[.53rem] uppercase tracking-wide text-muted-foreground">Open this site in orbit view ↗</span>
     </span>
@@ -55,7 +58,7 @@ function Metric({ label, value, color, text }: { label: string; value: number; c
   </span>;
 }
 
-export function CandidateComparison({ sites, locked = false }: { sites: FreeplaySite[]; locked?: boolean }) {
+export function CandidateComparison({ sites, locked = false, lockedLabel }: { sites: FreeplaySite[]; locked?: boolean; lockedLabel?: string }) {
   const [firstId, setFirstId] = useState("");
   const [secondId, setSecondId] = useState("");
   const startIso = useFreeplay((state) => state.startIso);
@@ -83,7 +86,7 @@ export function CandidateComparison({ sites, locked = false }: { sites: Freeplay
 
   return <div className="mt-3 space-y-2.5">
     <div className="flex items-center justify-between gap-2">
-      <p className="type-data text-[.6rem] uppercase tracking-[.12em] text-retro-purple">{locked ? "Preset · Apollo 11 vs Luna 9" : "Site comparison · same mission window"}</p>
+      <p className="type-data text-[.6rem] uppercase tracking-[.12em] text-retro-purple">{locked ? `Preset · ${lockedLabel ?? sites.slice(0, 2).map((site) => site.name).join(" vs ")}` : "Site comparison · same mission window"}</p>
       {!locked && <button type="button" onClick={swap} aria-label="Swap candidate places A and B" className="inline-flex min-h-8 shrink-0 items-center gap-1 rounded border border-line px-2 type-data text-[.55rem] uppercase tracking-wide text-muted-foreground hover:border-retro-purple/60 hover:text-bone"><ArrowLeftRight size={12} />Swap</button>}
     </div>
     {locked && <p className="text-[.58rem] leading-relaxed text-muted-foreground">Fixed example pair. The next section lets you compare all available stops.</p>}
@@ -101,6 +104,7 @@ export function CandidateComparison({ sites, locked = false }: { sites: Freeplay
     {firstResult.metrics && secondResult.metrics && <div className="rounded border border-retro-blue/25 bg-retro-blue/5 p-2">
       <p className="type-data text-[.55rem] uppercase tracking-wide text-retro-blue">Trade-off readout</p>
       <p className="mt-1 text-[.62rem] leading-relaxed text-bone">{describeDifference("sunlight", firstResult.metrics.sunlight, secondResult.metrics.sunlight)} {describeDifference("Earth visibility", firstResult.metrics.earth, secondResult.metrics.earth)}</p>
+      {(firstResult.metrics.smooth || secondResult.metrics.smooth) && <p className="mt-1 text-[.58rem] leading-relaxed text-muted-foreground">{[first, second].filter((_, index) => [firstResult, secondResult][index].metrics?.smooth).map((site) => site.name).join(" and ")} {firstResult.metrics.smooth && secondResult.metrics.smooth ? "use" : "uses"} the smooth-sphere fallback, so {firstResult.metrics.smooth && secondResult.metrics.smooth ? "their" : "its"} shares are upper bounds; terrain could lower them.</p>}
     </div>}
     <p className="text-[.58rem] leading-relaxed text-muted-foreground">Sunlight can support solar power; Earth visibility can open more contact time. Bars show the share of sampled hours. Select a card to inspect its orbit. Some points are approximate; this comparison does not confirm resources or recommend a landing.</p>
   </div>;

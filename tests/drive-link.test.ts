@@ -9,7 +9,7 @@ const custom: FreeplaySite = {
 const query = (href: string) => new URLSearchParams(href.split("?")[1])
 const T = Date.parse("2027-03-14T05:30:00.000Z")
 
-describe("Freeplay → drive links", () => {
+describe("Open Exploration → drive links", () => {
   it("carries a custom site and time, and the drive reads them back", () => {
     const q = query(driveHref(custom, T))
     expect(siteFromDriveParams(q)).toMatchObject({ name: "Ridge camp", latitudeDeg: -89.2, longitudeDeg: 120, provenance: "user" })
@@ -34,6 +34,6 @@ describe("Freeplay → drive links", () => {
   })
 
   it("without a site, links to the plain pages", () => {
-    expect(driveHref(null, T)).toBe("/freeplay/drive")
+    expect(driveHref(null, T)).toBe("/open-exploration/drive")
   })
 })

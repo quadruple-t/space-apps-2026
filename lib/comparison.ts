@@ -27,7 +27,7 @@ export type SlotMetrics = {
 export function computeMetrics(samples: Sample[], panelAreaM2: number, panelEfficiency: number): SlotMetrics | null {
   const n = samples.length
   if (n === 0) return null
-  // Each sample stands for one hour, matching how the rest of Freeplay summarises the series.
+  // Each sample stands for one hour, matching how the rest of Open Exploration summarises the series.
   const tl = buildTimeline(samples, 1, "horizontal")
   const last = n - 1
   let peak = -90

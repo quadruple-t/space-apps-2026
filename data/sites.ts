@@ -1,5 +1,5 @@
 /**
- * Freeplay site shape. Sites are either picked on the globe (custom), saved and named by the
+ * Open Exploration site shape. Sites are either picked on the globe (custom), saved and named by the
  * user, or chosen from the Lunaris360 catalog (`/api/v1/catalog/sites`, see docs/API.md).
  * Catalog sites carry `catalogId`, which unlocks their precomputed LOLA horizon mask.
  */

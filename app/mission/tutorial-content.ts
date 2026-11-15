@@ -7,6 +7,8 @@ export type GuidedLesson = {
   chapterId: ChapterId;
   screen: LessonScreen;
   title: string;
+  /** One or two words for the lesson roadmap. */
+  short: string;
   story: string;
   example: string;
   steps: string[];
@@ -58,6 +60,7 @@ export const GUIDED_LESSONS: readonly GuidedLesson[] = [
     chapterId: "ch1-first-landing",
     screen: "globe",
     title: "Choose a Moon stop",
+    short: "Pick a stop",
     story: "Every mission starts with a place. Explore historic landing sites, unvisited regions, and Artemis candidate areas on the Moon.",
     example: "Apollo 11 landed in Mare Tranquillitatis. Candidate markers are possible regions, not confirmed landing sites.",
     steps: [],
@@ -68,6 +71,7 @@ export const GUIDED_LESSONS: readonly GuidedLesson[] = [
     chapterId: "ch1-first-landing",
     screen: "globe",
     title: "Look at the ground",
+    short: "Ground",
     story: "A smooth-looking image can hide steep ground. Planners check slope before choosing where a lander can touch down safely.",
     example: "Apollo 15 explored beside Hadley Rille and the Apennine Mountains. The slope layer helps distinguish gentler ground from steep terrain.",
     steps: ["Turn on Slope in Layers.", "Find the flatter and steeper colors near your marker."],
@@ -78,6 +82,7 @@ export const GUIDED_LESSONS: readonly GuidedLesson[] = [
     chapterId: "ch2-robotic-explorer",
     screen: "orbit",
     title: "Follow the sunlight",
+    short: "Sunlight",
     story: "A landing site can be bright at one time and dark later. A robotic explorer needs sunlight for power and warmth.",
     example: "Apollo 11 was planned for a low morning Sun. Long shadows helped astronauts see rocks and craters, but the Sun still had to reach the landing area.",
     steps: ["Press Play or move the time slider.", "Watch the sunlight readout and graph change."],
@@ -88,6 +93,7 @@ export const GUIDED_LESSONS: readonly GuidedLesson[] = [
     chapterId: "ch2-robotic-explorer",
     screen: "orbit",
     title: "Keep a view of Earth",
+    short: "Earth view",
     story: "A lander needs to send information home. A nearby ridge can block the view of Earth, even when the sky looks open from another place.",
     example: "The Earth-visibility graph shows when terrain blocks the view. A clear view helps, but does not guarantee a working radio link.",
     steps: ["Choose Earth visibility.", "Move along the graph and notice when Earth is above the horizon."],
@@ -98,8 +104,9 @@ export const GUIDED_LESSONS: readonly GuidedLesson[] = [
     chapterId: "ch3-lunar-base",
     screen: "orbit",
     title: "Compare future base regions",
+    short: "Compare",
     story: "Now plan for a possible long-term lunar base. A base may need steady sunlight, safe ground, communication, and access to places that could contain ice.",
-    example: "Malapert Massif, Nobile Rim 1, and Mons Mouton are candidate regions. Their map points are approximate references, not official landing coordinates or proof of resources.",
+    example: "Compare a south-polar highland, Malapert Massif, with Luna 9's landing area near the equator. Malapert Massif, Nobile Rim 1, and Mons Mouton are candidate regions; their map points are approximate references, not official landing coordinates or proof of resources.",
     steps: ["Choose a second candidate.", "Compare sunlight at both places over the same time."],
     why: "There is no single best place for every mission; each site involves trade-offs.",
   },
@@ -108,11 +115,45 @@ export const GUIDED_LESSONS: readonly GuidedLesson[] = [
     chapterId: "ch3-lunar-base",
     screen: "drive",
     title: "Explore the surface",
+    short: "Surface",
     story: "You have compared places from above. Now visit your chosen stop and look around from the ground.",
     example: "From the surface, nearby hills can hide the Sun or Earth. The 3D terrain is an illustration for orientation; science readouts use the data source shown in the panel.",
     steps: ["Move the pointer to look around.", "Use WASD or the arrow keys to move.", "Try another camera view."],
     why: "The view from the ground can be different from the view on a map.",
   },
 ];
+
+/**
+ * The fixed example pair in the "Compare future base regions" lesson: two places whose sunlight
+ * and Earth geometry differ for different reasons. Copy stays qualitative; the numbers come from
+ * the app's own calculations in the comparison cards.
+ *
+ * Horizon sources as the app resolves them: Malapert Massif's catalog point is an approximate
+ * region reference, so the API refuses it by id and the point falls back to its LOLA polar
+ * terrain-grid cell (terrain-derived). Luna 9's Soviet-era coordinate is unverified, so it is also
+ * refused by id, and at about 7°N it is outside the polar grid: it gets the labelled smooth-sphere
+ * horizon, whose sunlight and Earth-visibility shares are upper bounds.
+ */
+export const COMPARISON_PRESET = {
+  /** STORY_STOPS ids (catalog ids `artemis-malapert-massif` and `luna-9`). */
+  stopIds: ["malapert-massif", "luna-9"] as const,
+  label: "Malapert Massif vs Luna 9",
+  lead: "Review this fixed example: a south-polar highland against an equatorial landing site. In the next section, compare any two stops from the earlier site tour.",
+  sites: [
+    {
+      stopId: "malapert-massif",
+      title: "Malapert Massif · south-polar highland",
+      body: "A mountain massif about 86° south. Near the pole the Sun never climbs high; it circles low around the horizon, so high ground can stay sunlit for long stretches while nearby low ground stays in shadow. Earth sits low over the near-side horizon and wobbles up and down over the month (libration), so it can dip below the horizon or behind ridges at times.",
+      caveat: "The marker is an approximate region reference, not a NASA landing coordinate, and not necessarily the sunniest high point. Its horizon comes from the LOLA polar terrain grid cell nearest that point.",
+    },
+    {
+      stopId: "luna-9",
+      title: "Luna 9 · Oceanus Procellarum, about 7°N 64°W",
+      body: "The first soft landing, in 1966, on dark mare plains near the equator. Here the Sun rises, crosses high overhead and sets: roughly 14.75 Earth days of daylight, then roughly 14.75 days of night. From the near side, Earth stays in about the same part of the sky.",
+      caveat: "Its Soviet-era coordinate has never been confirmed, so the app does not use a terrain horizon there. It uses a smooth-sphere horizon instead (not terrain-derived), so its sunlight and Earth-visibility shares are upper bounds.",
+    },
+  ],
+  predict: "Predict first: which place do you expect to stay sunlit longer over one lunar day, and which keeps Earth in view more steadily? Then check the bars, calculated by the app for the same mission window.",
+} as const;
 
 export const SURFACE_LESSON = GUIDED_LESSONS[GUIDED_LESSONS.length - 1];

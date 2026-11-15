@@ -126,7 +126,7 @@ Recommended order:
 4. Keep `smoothHorizonMask()` as the explicit, labelled fallback for pins
    outside DEM coverage — never silently present it as terrain.
 
-## 7. Freeplay globe imagery and overlays
+## 7. Open Exploration globe imagery and overlays
 
 Display imagery only; no analysis uses these color images. The original service
 identifiers below are imported by `scripts/archive-globe.ts`. The globe loads their
@@ -140,6 +140,8 @@ Source definitions remain in `scenes/cesium/moon-layers.ts`.
 | Illumination % (polar) | LROC Lunaserv WMS 1.1.1 (`https://wms.im-ldi.com/`, EPSG:4326) | `luna_polar_illumination_pct` |
 | Permanently shadowed regions | LROC Lunaserv WMS | `luna_psr_81s` |
 | Elevation (color shaded relief) | LROC Lunaserv WMS | `luna_wac_dtm` |
+
+The base mosaic is shown in its original grayscale. The polar illumination layer is grayscale at the source; the browser recolours it with a violet-to-gold false-colour ramp after the checksum-verified image loads (`scenes/cesium/colorize.ts`). Stored snapshots are unchanged.
 
 Catalog landing, impact/rover, and Artemis reference-point overlays use `/api/v1/catalog/sites`.
 Heritage boundaries and PSR resource-context polygons use the existing `/api/v1/zones`

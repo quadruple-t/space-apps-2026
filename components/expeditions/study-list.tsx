@@ -6,8 +6,7 @@
  * and "Re-run" fetches current results instead of presenting the stored ones as live.
  */
 import { useState } from "react";
-import Link from "next/link";
-import { BarChart3, ChevronDown, ChevronRight, ListOrdered, RotateCw, Trash2 } from "lucide-react";
+import { BarChart3, ChevronDown, ChevronRight, ListOrdered, Trash2 } from "lucide-react";
 import { useExpeditions } from "@/lib/expeditions/expedition-store";
 import type { Study } from "@/lib/expeditions/types";
 
@@ -17,11 +16,6 @@ const arr = (v: unknown): Obj[] => (Array.isArray(v) ? v.filter((x): x is Obj =>
 const text = (v: unknown) => (typeof v === "string" ? v : typeof v === "number" ? String(v) : "—");
 const pct = (v: unknown) => (typeof v === "number" ? `${v}%` : "—");
 export const savedOn = (iso: string) => new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-
-/** Where a comparison saved from /compare (or by Mission Control) reopens. */
-export function studyHref(study: Study, rerun = false) {
-  return `/compare?study=${encodeURIComponent(study.id)}${rerun ? "&rerun=1" : ""}`;
-}
 
 function RankingDetails({ study }: { study: Study }) {
   const data = obj(study.result.data);
@@ -75,11 +69,7 @@ function StudyRow({ study }: { study: Study }) {
       </div>
     </div>
     <div className="mt-1 flex flex-wrap items-center gap-1 pl-6">
-      {study.kind === "comparison" && study.source === "compare-page" && <>
-        <Link href={studyHref(study)} className="rounded border border-line px-2 py-0.5 text-[0.56rem] uppercase tracking-[0.08em] text-muted-foreground hover:text-bone">Open</Link>
-        <Link href={studyHref(study, true)} className="inline-flex items-center gap-1 rounded border border-line px-2 py-0.5 text-[0.56rem] uppercase tracking-[0.08em] text-muted-foreground hover:text-bone"><RotateCw size={10} />Re-run</Link>
-      </>}
-      {study.source === "mission-control" && !isRanking && <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="rounded border border-line px-2 py-0.5 text-[0.56rem] uppercase tracking-[0.08em] text-muted-foreground hover:text-bone">{open ? "Hide" : "Show"}</button>}
+      {!isRanking && <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="rounded border border-line px-2 py-0.5 text-[0.56rem] uppercase tracking-[0.08em] text-muted-foreground hover:text-bone">{open ? "Hide" : "Show"}</button>}
       {confirming
         ? <span className="inline-flex items-center gap-1 text-[0.56rem] text-muted-foreground">Delete?
             <button type="button" onClick={() => act(() => deleteStudy(study.id))} className="rounded bg-retro-red/80 px-2 py-0.5 uppercase text-void">Delete</button>
@@ -92,8 +82,12 @@ function StudyRow({ study }: { study: Study }) {
   </li>;
 }
 
-/** Mission Control comparisons: the shaped per-site rows the assistant answered from. */
+/**
+ * Saved comparisons. Mission Control studies store the shaped rows the assistant answered from;
+ * older studies from the former comparison page store the science API's per-site results.
+ */
 function ComparisonDetails({ study }: { study: Study }) {
+  if (study.source === "compare-page") return <ComparePageDetails study={study} />;
   const sites = arr(obj(study.result.data).sites);
   return <div className="mt-2 space-y-1 text-[0.62rem] text-muted-foreground">
     {typeof study.result.dataRange === "string" && <p>Window: {study.result.dataRange}</p>}
@@ -106,11 +100,26 @@ function ComparisonDetails({ study }: { study: Study }) {
   </div>;
 }
 
+function ComparePageDetails({ study }: { study: Study }) {
+  const sites = arr(study.result.sites);
+  const interval = obj(study.result.interval);
+  return <div className="mt-2 space-y-1 text-[0.62rem] text-muted-foreground">
+    <p>Snapshot saved {savedOn(study.createdAt)}{typeof interval.start === "string" ? ` · window from ${interval.start.slice(0, 16).replace("T", " ")} UTC` : ""}{interval.durationHours !== undefined ? `, ${text(interval.durationHours)} h` : ""}</p>
+    <ul className="space-y-1">{sites.map((s, i) => {
+      const r = obj(s.result);
+      const smooth = typeof r.horizonSource === "string" && r.horizonSource.includes("smooth");
+      return <li key={i} className="text-bone/90">{text(s.siteId)}: {r.error ? "no result" : <>sun {pct(r.sunlightPercent)}, Earth {pct(r.earthVisibilityPercent)}</>}
+        {typeof r.horizonSource === "string" && <span className="text-muted-foreground"> · {r.horizonSource}{smooth ? " (shares are upper bounds)" : ""}</span>}
+      </li>;
+    })}</ul>
+  </div>;
+}
+
 export function StudyList() {
   const studies = useExpeditions((s) => s.studies);
   if (studies.length === 0) {
     return <p className="text-[0.66rem] leading-relaxed text-muted-foreground">
-      No saved studies yet. Use <span className="text-bone">Save to expedition</span> on a <Link href="/compare" className="text-retro-purple underline-offset-2 hover:underline">site comparison</Link> or under a Mission Control ranking.
+      No saved studies yet. Use <span className="text-bone">Save to expedition</span> under a Mission Control comparison or ranking.
     </p>;
   }
   return <ul className="space-y-1.5">{studies.map((s) => <StudyRow key={s.id} study={s} />)}</ul>;

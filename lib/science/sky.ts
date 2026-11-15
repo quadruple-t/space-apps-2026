@@ -1,6 +1,6 @@
 /**
  * The single implementation of Sun/Earth sky evaluation used by BOTH the /api/v1/science/*
- * handlers and Freeplay's client graphs (lib/lunar-data.ts). Ephemeris interpolation lives
+ * handlers and Open Exploration's client graphs (lib/lunar-data.ts). Ephemeris interpolation lives
  * in lib/ephemeris, mask interpolation in lib/terrain/mask; this module combines them so the
  * visibility decision (`elevation > horizon at azimuth`) exists in exactly one place.
  */

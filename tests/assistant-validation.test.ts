@@ -89,7 +89,7 @@ describe("tool-call validation", () => {
     for (const bad of ["tomorrow", "1e9", "2027-13-45", "", 5, null, "2027-03-01; drop"]) expect(parseIsoUtc(bad)).toBeNull();
   });
 
-  it("defaults time to the Freeplay mission time and refuses (not clamps) out-of-coverage dates", () => {
+  it("defaults time to the Open Exploration mission time and refuses (not clamps) out-of-coverage dates", () => {
     const now = v("get_sun_earth_position", { useCurrentSite: true });
     expect(now.ok && now.request).toMatchObject({ timeIso: "2027-03-02T06:00:00.000Z" });
     const early = v("get_sun_earth_position", { useCurrentSite: true, time: "2025-06-01T00:00:00Z" });
@@ -149,7 +149,7 @@ describe("tool-call validation", () => {
     expect(errCode(v("compare_sites", { siteIds: ["saved-ridge", "saved-ridge"] }, ctxWithSavedSites))).toBe("invalid_arguments");
   });
 
-  it("validates launch planner arguments and defaults them from the Freeplay state", () => {
+  it("validates launch planner arguments and defaults them from the Open Exploration state", () => {
     const d = v("get_launch_plan", {}, { ...ctxWithCatalogSite, launchIso: "2027-04-01T00:00:00.000Z", trajectoryType: "low-energy", payloadKg: 1200, ispS: 320 });
     expect(d.ok && d.request).toMatchObject({
       tool: "get_launch_plan", launchIso: "2027-04-01T00:00:00.000Z", trajectoryType: "low-energy", payloadKg: 1200, ispS: 320, includeArtemisReference: false,

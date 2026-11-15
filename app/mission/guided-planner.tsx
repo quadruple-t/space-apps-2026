@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { FreeplayApp } from "@/app/freeplay/freeplay-app";
+import { FreeplayApp } from "@/app/open-exploration/freeplay-app";
 import type { FreeplaySite } from "@/data/sites";
 import { useFreeplay, type LayerId } from "@/lib/freeplay-store";
 import { LessonCard, lessonActionClass, lessonCheckClass, type LessonStage } from "./lesson-card";
-import { GUIDED_LESSONS, STORY_STOPS } from "./tutorial-content";
+import { COMPARISON_PRESET, GUIDED_LESSONS, STORY_STOPS } from "./tutorial-content";
+import { siteForLesson, viewForLesson } from "./lesson-setup";
+import { LessonRoadmap } from "./lesson-roadmap";
 import type { TutorialData } from "./use-tutorial-data";
 import { CandidateComparison } from "./candidate-comparison";
 import { SitePreview } from "./site-preview";
@@ -16,9 +18,11 @@ const siteKey = (site: FreeplaySite) => `${site.latitudeDeg},${site.longitudeDeg
 const mark = (done: boolean) => (done ? "✓" : "○");
 
 /** A staged Guided Mission lesson beside only the map or chart needed for the current action. */
-export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange, onGuidedExit }: {
+export function GuidedPlanner({ tutorial, lessonIndex, completedLessons, onLessonComplete, onLessonChange, onGuidedExit }: {
   tutorial: TutorialData;
   lessonIndex: number;
+  completedLessons: ReadonlySet<number>;
+  onLessonComplete: (index: number) => void;
   onLessonChange: (index: number) => void;
   onGuidedExit: () => void;
 }) {
@@ -44,7 +48,7 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange, onGuidedE
       || Boolean(stop.name && spec.name === stop.name));
   };
   const candidateStops = tutorial.tourStops.filter((stop) => storySpecForStop(stop)?.group === "Artemis III candidate");
-  const presetStops = ["apollo-11", "luna-9"].flatMap((id) => {
+  const presetStops = COMPARISON_PRESET.stopIds.flatMap((id) => {
     const spec = STORY_STOPS.find((stop) => stop.id === id);
     const match = spec && tutorial.tourStops.find((stop) => stop.catalogId === spec.catalogId || stop.name === spec.name || stop.id === spec.catalogId);
     return match ? [match] : [];
@@ -75,6 +79,8 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange, onGuidedE
     : lesson.id === "candidates" ? site !== null && compared.size >= 2
     : ["look", "move", "camera", "horizon"].every(() => false);
 
+  // Next, Back and the roadmap all arrive here, so a skipped lesson opens with the site, view and
+  // fresh task state it would have had when reached in order. The drive is prepared by the parent.
   const goToLesson = (next: number) => {
     if (next >= GUIDED_LESSONS.length) {
       onLessonChange(next);
@@ -83,11 +89,9 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange, onGuidedE
     const target = GUIDED_LESSONS[next];
     const store = useFreeplay.getState();
     if (target.screen !== "drive") {
-      const chapterStart = target.chapterId !== lesson.chapterId
-        ? target.chapterId === "ch3-lunar-base" ? candidateStops[0] ?? tutorial.tourStops[0] : tutorial.tourStops[0]
-        : undefined;
+      const chapterStart = siteForLesson({ target, fromChapter: lesson.chapterId, currentSite: store.site, tourStops: tutorial.tourStops, candidateStops });
       if (chapterStart) store.selectSite(chapterStart, false);
-      store.setView(target.screen === "orbit" ? "orbit" : "globe");
+      store.setView(viewForLesson(target));
       const current = chapterStart ?? store.site;
       setCompared(new Set(current ? [siteKey(current)] : []));
       setClockBaseline(store.elapsedHours);
@@ -110,7 +114,7 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange, onGuidedE
       {collapsed ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
     </button>
     <div className={collapsed ? "hidden lg:block" : ""}>
-      <LessonCard lesson={lesson} chapter={chapter} missionStory={selectedStoryStop && site ? { title: selectedStoryStop.name, body: selectedStoryStop.note } : null} stage={stage} complete={complete} onPrevious={stage !== "story" || lessonIndex > 0 ? previous : undefined} onStageChange={setStage} onNext={() => goToLesson(lessonIndex + 1)} nextLabel={lessonIndex === GUIDED_LESSONS.length - 1 ? "Finish Guided Mission" : "Next lesson"} exampleContent={<LessonExampleActivity lesson={lesson} stops={tutorial.tourStops} candidates={presetStops} />}>
+      <LessonCard lesson={lesson} chapter={chapter} missionStory={selectedStoryStop && site ? { title: selectedStoryStop.name, body: selectedStoryStop.note } : null} stage={stage} complete={complete} onPrevious={stage !== "story" || lessonIndex > 0 ? previous : undefined} onStageChange={setStage} onNext={() => { onLessonComplete(lessonIndex); goToLesson(lessonIndex + 1); }} nextLabel={lessonIndex === GUIDED_LESSONS.length - 1 ? "Finish Guided Mission" : "Next lesson"} exampleContent={<LessonExampleActivity lesson={lesson} stops={tutorial.tourStops} candidates={presetStops} />}>
         {stage === "try" && lesson.id === "pick-site" && <>
           <label className="sr-only" htmlFor="story-site-stop">Choose a stop</label>
           <select id="story-site-stop" value={site?.id ?? ""} onChange={(event) => { const selected = siteForStop(event.target.value); if (selected) useFreeplay.getState().selectSite(selected, false); }} className="hud-input mt-1 text-sm normal-case tracking-normal">
@@ -140,7 +144,11 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange, onGuidedE
     tourSites: tutorial.tourStops,
   };
 
-  return <div className="fixed inset-0 z-50 h-dvh overflow-hidden bg-void">
-    <FreeplayApp aside={aside} guidedPanels={guidedPanels} guidedMode onGuidedExit={onGuidedExit} />
+  // FreeplayApp sizes itself to the viewport; inside the tutorial it fills the space above the roadmap instead.
+  return <div className="fixed inset-0 z-50 flex h-dvh flex-col overflow-hidden bg-void">
+    <div className="relative min-h-0 flex-1 [&>div]:h-full">
+      <FreeplayApp aside={aside} guidedPanels={guidedPanels} assistantEnabled={false} guidedMode onGuidedExit={onGuidedExit} />
+    </div>
+    <LessonRoadmap current={lessonIndex} completed={completedLessons} onSelect={goToLesson} />
   </div>;
 }

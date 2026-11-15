@@ -22,12 +22,12 @@ export type SavedSiteRef = {
   radiusKm: number;
 };
 
-/** The slice of Freeplay state the tools need to resolve "this site", "now", presets and planner settings. */
+/** The slice of Open Exploration state the tools need to resolve "this site", "now", presets and planner settings. */
 export type ToolContext = {
   site: { name: string; latitudeDeg: number; longitudeDeg: number; kind: string; catalogId?: string; catalogPointVerified?: boolean } | null;
   missionStartIso: string;
   missionDurationHours: number;
-  /** Current Freeplay mission time (not the wall clock). */
+  /** Current Open Exploration mission time (not the wall clock). */
   currentTimeMs: number;
   /** The user's saved presets, for list_saved_sites, compare_sites and show_in_freeplay. */
   savedSites?: SavedSiteRef[];
@@ -48,7 +48,7 @@ export type Location =
   | { kind: "catalog"; siteId: string; label: string }
   | { kind: "point"; latDeg: number; lonDeg: number; label: string };
 
-/** A validated request to change the Freeplay view. Every field is optional; at least one is set. */
+/** A validated request to change the Open Exploration view. Every field is optional; at least one is set. */
 export type UiPlan = {
   screen?: (typeof UI_SCREENS)[number];
   page?: (typeof UI_PAGES)[number];
@@ -164,10 +164,10 @@ const coverageError = (what: string): Validation => ({
   error: { code: "out_of_coverage", message: `${what} is outside stored coverage (${COVERAGE_START_ISO.slice(0, 10)} to ${COVERAGE_END_ISO.slice(0, 10)}).`, mustSay: NO_COVERAGE_WORDING },
 });
 
-/** The same rule Freeplay uses to pick siteId vs lat/lon (see lib/drive-link.ts). */
+/** The same rule Open Exploration uses to pick siteId vs lat/lon (see lib/drive-link.ts). */
 function currentSiteLocation(ctx: ToolContext): Location | Validation {
   const s = ctx.site;
-  if (!s) return { ok: false, error: { code: "no_site_selected", message: "No site is selected in Freeplay. Ask the user to click the Moon or pick a preset, or name a catalog site." } };
+  if (!s) return { ok: false, error: { code: "no_site_selected", message: "No site is selected in Open Exploration. Ask the user to click the Moon or pick a preset, or name a catalog site." } };
   if (s.catalogId && s.catalogPointVerified !== false) return { kind: "catalog", siteId: s.catalogId, label: `${s.name} (catalog site ${s.catalogId})` };
   return { kind: "point", latDeg: s.latitudeDeg, lonDeg: s.longitudeDeg, label: `${s.name} (${s.latitudeDeg.toFixed(3)}°, ${s.longitudeDeg.toFixed(3)}°E)` };
 }
@@ -298,7 +298,7 @@ function comparisonEntry(raw: unknown, ctx: ToolContext): { siteId: string; save
   if (raw === "current") {
     const loc = currentSiteLocation(ctx);
     if (isValidation(loc)) return loc;
-    if (loc.kind !== "catalog") return bad("The current Freeplay site is not a catalog site. Use its saved preset id, or get_sunlight_and_earth_visibility with useCurrentSite for it.");
+    if (loc.kind !== "catalog") return bad("The current Open Exploration site is not a catalog site. Use its saved preset id, or get_sunlight_and_earth_visibility with useCurrentSite for it.");
     return { siteId: loc.siteId, saved: false };
   }
   if (ctx.savedSites?.some((s) => s.id === raw)) return { siteId: raw, saved: true };
@@ -359,7 +359,7 @@ function validateRank(args: Record<string, unknown>, ctx: ToolContext): Validati
   };
 }
 
-/** show_in_freeplay: only whitelisted Freeplay controls, with enums and bounds checked here, never trusting the model. */
+/** show_in_freeplay: only whitelisted Open Exploration controls, with enums and bounds checked here, never trusting the model. */
 function validateUiPlan(args: Record<string, unknown>, ctx: ToolContext): Validation {
   const plan: UiPlan = {};
   for (const [key, list] of [
@@ -601,7 +601,7 @@ export function validateToolCall(name: unknown, rawArgs: unknown, ctx: ToolConte
       return isValidation(location) ? location : { ok: true, request: { tool: name, location } };
     }
     case "get_launch_plan": {
-      if (!ctx.site) return { ok: false, error: { code: "no_site_selected", message: "No site is selected in Freeplay, so there is no landing site to plan a launch to. Ask the user to click the Moon or pick a preset first." } };
+      if (!ctx.site) return { ok: false, error: { code: "no_site_selected", message: "No site is selected in Open Exploration, so there is no landing site to plan a launch to. Ask the user to click the Moon or pick a preset first." } };
       const launch = args.launchTime === undefined ? (ctx.launchIso ? Date.parse(ctx.launchIso) : Date.parse(ctx.missionStartIso)) : parseIsoUtc(args.launchTime);
       if (launch === null || !Number.isFinite(launch)) return bad("launchTime must be an ISO 8601 timestamp such as 2027-03-01T12:00:00Z");
       if (launch < COVERAGE_START_MS || launch > COVERAGE_END_MS) return coverageError(`Launch time ${new Date(launch).toISOString()}`);

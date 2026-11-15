@@ -52,7 +52,7 @@ function ContextLine() {
   const site = useFreeplay((s) => s.site);
   const minute = useFreeplay((s) => (s.playing ? null : Math.floor(currentTimeMs(s) / 60_000)));
   const time = minute === null ? "playing" : new Date(minute * 60_000).toISOString().slice(0, 16).replace("T", " ") + " UTC";
-  return <p className="type-data mt-0.5 truncate text-[0.58rem] text-muted-foreground" title="The assistant sees this Freeplay state with each question">
+  return <p className="type-data mt-0.5 truncate text-[0.58rem] text-muted-foreground" title="The assistant sees this Open Exploration state with each question">
     {site ? `${site.name} · ${site.latitudeDeg.toFixed(2)}°, ${site.longitudeDeg.toFixed(2)}°` : "No site selected"} · {time}
   </p>;
 }
@@ -95,14 +95,14 @@ function Bubble({ message, canUndo }: { message: UiMessage; canUndo: boolean }) 
 
 export type AssistantPanelProps = {
   onClose: () => void;
-  /** "dock" is the Freeplay side panel; "floating" is a self-contained card for a corner bubble. */
+  /** "dock" is the Open Exploration side panel; "floating" is a self-contained card for a corner bubble. */
   variant?: "dock" | "floating";
   /** Questions offered before the first message. */
   suggestions?: string[];
   suggestionsTitle?: string;
-  /** Workspace shortcuts (Freeplay view changes); `null` hides them. */
+  /** Workspace shortcuts (Open Exploration view changes); `null` hides them. */
   starterActions?: typeof STARTER_ACTIONS | null;
-  /** Replaces the Freeplay site/time line in the header. */
+  /** Replaces the Open Exploration site/time line in the header. */
   contextLabel?: string;
   /** Extra app data sent with each question (not shown in the chat), evaluated when the question is sent. */
   getContext?: () => string | undefined;

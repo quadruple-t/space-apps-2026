@@ -36,6 +36,11 @@ const SEGMENT = "type-data flex items-center gap-1.5 whitespace-nowrap border-l 
 const SEGMENT_IDLE = "text-muted-foreground hover:text-bone";
 const SEGMENT_ON = "bg-retro-purple/20 text-bone";
 
+/** Right-hand panel launchers (assistant, expedition) share one look so they read as a pair. */
+const TOOL = "inline-flex h-8 items-center gap-2 rounded border px-3 type-data text-[0.62rem] uppercase";
+const TOOL_IDLE = "border-line text-muted-foreground hover:border-retro-purple/50 hover:text-bone";
+const TOOL_ON = "border-retro-purple/60 bg-retro-purple/15 text-bone";
+
 /** Links to the surface view using the selected place and current mission time. */
 function SurfaceLink() {
   const site = useFreeplay((s) => s.site);
@@ -47,9 +52,10 @@ function SurfaceLink() {
   </Link>;
 }
 
-export function FreeplayApp({ aside, guidedPanels, guidedMode = false, onGuidedExit }: {
+export function FreeplayApp({ aside, guidedPanels, assistantEnabled = true, guidedMode = false, onGuidedExit }: {
   aside?: ReactNode;
   guidedPanels?: { layers?: { show: boolean; showCatalog?: boolean; layerIds?: LayerId[] }; tourSites?: FreeplaySite[]; dimContent?: boolean };
+  assistantEnabled?: boolean;
   guidedMode?: boolean;
   onGuidedExit?: () => void;
 }) {
@@ -67,8 +73,8 @@ export function FreeplayApp({ aside, guidedPanels, guidedMode = false, onGuidedE
   const toggleAssistant = () => { if (!assistantOpen) setExpeditionOpen(false); setAssistantOpen(!assistantOpen); };
   const sidebarOpen = !guidedMode && assistantOpen;
   usePlaybackClock();
-  // Non-guided Freeplay loads the open expedition (or this browser's draft) and autosaves it.
-  // Guided Mission shares the Freeplay store but never attaches, so its resets are never saved.
+  // Non-guided Open Exploration loads the open expedition (or this browser's draft) and autosaves it.
+  // Guided Mission shares the Open Exploration store but never attaches, so its resets are never saved.
   useEffect(() => {
     if (guidedMode) return;
     const expeditions = useExpeditions.getState();
@@ -97,18 +103,22 @@ export function FreeplayApp({ aside, guidedPanels, guidedMode = false, onGuidedE
             </div>
             <SurfaceLink />
           </div>
-          <ExpeditionControl open={expeditionOpen} onToggle={toggleExpedition} />
-          <button id={LAUNCHER_ID} type="button" onClick={toggleAssistant} aria-expanded={assistantOpen} aria-controls={assistantOpen ? PANEL_ID : undefined}
-            aria-label={assistantOpen ? "Close Mission Control assistant" : "Open Mission Control assistant"}
-            className={`inline-flex h-8 items-center gap-2 rounded border px-3 type-data text-[0.62rem] uppercase ${assistantOpen ? "border-retro-purple/60 bg-retro-purple/15 text-bone" : "border-line text-muted-foreground hover:border-retro-purple/50 hover:text-bone"}`}>
-            <Bot size={14} className="shrink-0" />Assistant
-          </button>
         </>}
       </div>
-      {!guidedMode && <div className="type-data min-w-0 truncate text-[0.62rem] text-muted-foreground">
-        {site
-          ? <><span className="text-bone">{site.name}</span> · {site.latitudeDeg.toFixed(3)}°, {site.longitudeDeg.toFixed(3)}° E · r {site.radiusKm} km</>
-          : "Choose a place on the Moon"}
+      {!guidedMode && <div className="ml-auto flex min-w-0 max-w-full items-center gap-3">
+        <div className="type-data min-w-0 truncate text-[0.62rem] text-muted-foreground">
+          {site
+            ? <><span className="text-bone">{site.name}</span> · {site.latitudeDeg.toFixed(3)}°, {site.longitudeDeg.toFixed(3)}° E · r {site.radiusKm} km</>
+            : "Choose a place on the Moon"}
+        </div>
+        {/* Both side panels dock on the right, so their launchers sit together at the right end, directly above them. */}
+        <div role="group" aria-label="Workspace panels" className="flex shrink-0 items-center gap-1.5">
+          {assistantEnabled && <button id={LAUNCHER_ID} type="button" onClick={toggleAssistant} aria-expanded={assistantOpen} aria-controls={assistantOpen ? PANEL_ID : undefined} aria-label={assistantOpen ? "Close mission assistant" : "Open mission assistant"}
+            className={`${TOOL} ${assistantOpen ? TOOL_ON : TOOL_IDLE}`}>
+            <Bot size={14} className="shrink-0" />Assistant
+          </button>}
+          <ExpeditionControl open={expeditionOpen} onToggle={toggleExpedition} />
+        </div>
       </div>}
     </header>
     <div className="relative flex min-h-0 flex-1">

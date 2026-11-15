@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import type { Sample } from "@/lib/illumination"
 import type { Placement } from "@/lib/drive-placements"
-import { analyseHardware, windowsFrom } from "@/lib/hardware-analysis"
+import { analyseHardware, explainSolarNow, SOLAR_ARRAY_RATED_KW, solarShortfall, windowsFrom } from "@/lib/hardware-analysis"
 import { makeGrid } from "@/lib/terrain/dem"
 
 function gridFrom(size: number, radiusKm: number, f: (e: number, n: number) => number) {
@@ -83,5 +83,37 @@ describe("placements outside the loaded terrain", () => {
     expect(result.solar.map((s) => s.id)).toEqual(["in"])
     expect(result.comms).toHaveLength(0)
     expect(result.outside).toEqual(["out", "far"])
+  })
+})
+
+describe("solar shortfall against rated output", () => {
+  it("splits the gap into night and terrain shadow", () => {
+    const day = samples().slice(0, 24)
+    const end = day[0].t + 24 * H
+    const open = analyseHardware(gridFrom(65, 1, () => 0), 0, day, [at("solar")], end).solar
+    const ridged = analyseHardware(gridFrom(65, 1, (e) => (e > 280 && e < 340 ? 150 : 0)), 0, day, [at("solar")], end).solar
+    const o = solarShortfall(open), r = solarShortfall(ridged)
+    expect(o.potentialKWh).toBeCloseTo(SOLAR_ARRAY_RATED_KW * 24, 6)
+    expect(o.terrainKWh).toBeCloseTo(0, 6)
+    expect(o.nightHours).toBeGreaterThan(10)
+    expect(o.nightHours).toBeLessThan(14)
+    expect(r.terrainKWh).toBeGreaterThan(5)
+    expect(r.terrainHours).toBeGreaterThan(1)
+    expect(r.nightKWh).toBeCloseTo(o.nightKWh, 6)
+    expect(r.generatedKWh + r.nightKWh + r.terrainKWh).toBeCloseTo(r.potentialKWh, 6)
+  })
+})
+
+describe("explainSolarNow", () => {
+  it("names the reason each array is short of rated output", () => {
+    const reasons = explainSolarNow([
+      { outsideTerrain: false, sunElevationDeg: -5, horizonDeg: 0, visible: 0 },
+      { outsideTerrain: false, sunElevationDeg: 3, horizonDeg: 6, visible: 0 },
+      { outsideTerrain: false, sunElevationDeg: 6, horizonDeg: 6, visible: 0.5 },
+      { outsideTerrain: true, sunElevationDeg: null, horizonDeg: null, visible: 0 },
+      { outsideTerrain: false, sunElevationDeg: 20, horizonDeg: 2, visible: 1 },
+    ])
+    expect(reasons.map((r) => r.kind)).toEqual(["outside", "night", "terrain", "partial", "full"])
+    expect(reasons.find((r) => r.kind === "partial")?.text).toContain("50%")
   })
 })

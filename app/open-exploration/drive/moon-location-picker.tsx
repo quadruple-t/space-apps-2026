@@ -206,7 +206,7 @@ export function MoonLocationPicker({ selectedSite, onSelect, onNavigate, onConti
   return <div className="absolute inset-0 z-30 overflow-y-auto bg-void/55 backdrop-blur-[3px]">
     <div className="mx-auto flex min-h-full max-w-[1240px] flex-col justify-center p-3 sm:p-6 lg:p-8">
       <header className="mb-4 flex flex-wrap items-end justify-between gap-3 sm:mb-5">
-        <div><div className="type-data text-[0.62rem] uppercase tracking-[0.19em] text-retro-purple">Freeplay setup · step 1 of 2</div><h1 className="type-heading mt-2 text-2xl text-bone sm:text-4xl">Choose your side of the Moon.</h1><p className="mt-2 max-w-2xl text-xs leading-relaxed text-muted-foreground sm:text-sm">Pick a lunar region, then begin descent. The simulation will fly to your selected coordinates and reveal the local conditions on arrival.</p></div>
+        <div><div className="type-data text-[0.62rem] uppercase tracking-[0.19em] text-retro-purple">Open Exploration setup · step 1 of 2</div><h1 className="type-heading mt-2 text-2xl text-bone sm:text-4xl">Choose your side of the Moon.</h1><p className="mt-2 max-w-2xl text-xs leading-relaxed text-muted-foreground sm:text-sm">Pick a lunar region, then begin descent. The simulation will fly to your selected coordinates and reveal the local conditions on arrival.</p></div>
         <div className={`type-data text-[0.6rem] uppercase tracking-[0.12em] ${selectedSite.provenance === "scientific" ? "text-retro-blue" : "text-retro-red"}`}>{selectedSite.provenance === "scientific" ? "LOLA terrain · JPL Horizons" : "Illustrative region data"}</div>
       </header>
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(340px,0.75fr)]">

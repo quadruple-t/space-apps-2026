@@ -5,7 +5,7 @@ shapes sunlight and direct-to-Earth line of sight at candidate landing sites.
 
 Built for the NASA Space Apps Challenge 2026.
 
-> Freeplay uses stored JPL Horizons ephemerides and available precomputed LOLA horizon masks. Coverage varies by location; unsupported points use a labelled smooth-sphere horizon. The rendered 3D surface is procedural and is not the terrain model used for horizon calculations. Story Mode runs the simulation at featured catalog sites; Mission Comparison is an empty layout.
+> Open Exploration uses stored JPL Horizons ephemerides and available precomputed LOLA horizon masks. Coverage varies by location; unsupported points use a labelled smooth-sphere horizon. The rendered 3D surface is procedural and is not the terrain model used for horizon calculations. Story Mode runs the simulation at featured catalog sites; Mission Comparison is an empty layout.
 
 ## Getting started
 
@@ -37,11 +37,10 @@ npm run lint       # ESLint (Next.js + React Compiler rules)
 | Route      | Purpose                                                   |
 | ---------- | --------------------------------------------------------- |
 | `/`        | Overview and how to use Lunaris360                         |
-| `/mission` | Story Mode: six interactive lessons inside Freeplay |
+| `/mission` | Story Mode: six interactive lessons inside Open Exploration |
 | `/how-it-works` | Debrief: lunar science, methods and data sources (`/mission-control` redirects here) |
-| `/freeplay` | Freeplay mission planner: Cesium Moon globe (Moon Trek imagery, LROC overlays, catalog sites, user-named presets), an orbit + graphs view driven by the stored ephemeris and LOLA horizon masks, and a launch-window planner that draws the transfer on the orbit diagram |
-| `/freeplay/drive` | Freeplay surface drive: site and coordinate selection, time controls, first-person/orbit navigation, JPL Horizons Sun/Earth positions, horizon-aware 24-hour metrics where data is available (`/explore` redirects here). Opens at the site and time selected in Freeplay. |
-| `/compare` | Mission Comparison shell with an empty state; multi-site comparison is not implemented yet |
+| `/open-exploration` | Open Exploration mission planner: Cesium Moon globe (Moon Trek imagery, LROC overlays, catalog sites, user-named presets), an orbit + graphs view driven by the stored ephemeris and LOLA horizon masks, and a launch-window planner that draws the transfer on the orbit diagram |
+| `/open-exploration/drive` | Open Exploration surface drive: site and coordinate selection, time controls, first-person/orbit navigation, JPL Horizons Sun/Earth positions, horizon-aware 24-hour metrics where data is available (`/explore` and the old `/freeplay` paths redirect to Open Exploration). Opens at the site and time selected in Open Exploration. |
 
 ## Project structure
 
@@ -73,22 +72,22 @@ For marketing and partner material, use [`docs/brand/BRAND_GUIDE.md`](docs/brand
 
 ## Simulation architecture
 
-The landing page preview and Freeplay share the code-driven Three.js scene. Freeplay provides region selection, coordinate sampling, first-person/orbit camera controls and a UTC simulation clock. Scientific calculations are served through `/api/v1/` and read stored data from Firestore:
+The landing page preview and Open Exploration share the code-driven Three.js scene. Open Exploration provides region selection, coordinate sampling, first-person/orbit camera controls and a UTC simulation clock. Scientific calculations are served through `/api/v1/` and read stored data from Firestore:
 
 - **Ephemerides:** Stored JPL Horizons series provide Sun and Earth positions from 2026 through 2030 for the main series, plus historical chunks for supported sites. The API calculates local azimuth/elevation and timeline samples for the selected point.
 - **Horizon masks:** Precomputed LOLA DEM masks are used for supported sites and polar grid cells. Locations without a terrain mask use a smooth-sphere horizon; results label that source and describe the sunlight and visibility shares as upper bounds.
 - **Rendered terrain:** `scenes/lunar/terrain.ts` and `integrations/terrain/moon-samples.ts` provide procedural scene geometry and scaffold samples. This visualization is not a LOLA DEM rendering, even when the science calculation has a LOLA mask.
-- **Illustrative previews:** `data/hero-scene.ts` configures conceptual hero readouts; `lib/horizon.ts` supplies illustrative horizon examples for landing-page graphics. These values are separate from Freeplay's science API.
+- **Illustrative previews:** `data/hero-scene.ts` configures conceptual hero readouts; `lib/horizon.ts` supplies illustrative horizon examples for landing-page graphics. These values are separate from Open Exploration's science API.
 - **Scene configuration:** `data/hero-scene.ts` holds the Sun and Earth angles shared by the 3D scene and
   the conceptual hero HUD.
-- **Freeplay (`/freeplay`):** loads the monthly `ephemeris` chunks and `science/horizon` masks from `/api/v1` and evaluates hourly Sun/Earth positions in the browser with `lib/ephemeris` (`lib/lunar-data.ts`). Globe imagery and categorized overlays are stored Firebase snapshots of NASA Moon Trek and LROC Lunaserv products at the recorded overview resolution (see `docs/SOURCES.md` §7).
-- **Surface drive:** `/freeplay/drive` calls the versioned science API. The API uses public Firestore reads for catalog and science data; user-owned endpoints use authenticated Firebase tokens and Admin SDK access.
+- **Open Exploration (`/open-exploration`):** loads the monthly `ephemeris` chunks and `science/horizon` masks from `/api/v1` and evaluates hourly Sun/Earth positions in the browser with `lib/ephemeris` (`lib/lunar-data.ts`). Globe imagery and categorized overlays are stored Firebase snapshots of NASA Moon Trek and LROC Lunaserv products at the recorded overview resolution (see `docs/SOURCES.md` §7).
+- **Surface drive:** `/open-exploration/drive` calls the versioned science API. The API uses public Firestore reads for catalog and science data; user-owned endpoints use authenticated Firebase tokens and Admin SDK access.
 
 ## Performance and accessibility
 
 - The 3D scene loads client-side via `next/dynamic`. A static SVG horizon renders first and remains as
   the fallback when WebGL is unavailable or the scene errors.
-- The cinematic scenes render static shadows; Freeplay refreshes the shadow map only when the Sun position changes.
+- The cinematic scenes render static shadows; Open Exploration refreshes the shadow map only when the Sun position changes.
   Low-end and small devices get a lighter mesh and a lower DPR cap.
 - `prefers-reduced-motion` freezes the camera, disables reveals and the hero entrance, and switches the
   canvas to on-demand rendering.
@@ -132,9 +131,9 @@ npx -y firebase-tools@15.36.0 deploy --only firestore:rules,firestore:indexes \
 project) when set, otherwise Application Default Credentials from `gcloud auth application-default login` as
 taran.duba3@gmail.com. The target line printed before writing says which one is used.
 
-## Mission Control assistant (Freeplay)
+## Mission Control assistant (Open Exploration)
 
-Freeplay has an in-app assistant (header button **Mission Control**) that answers questions about the mission being built and about lunar terrain. It calls read-only tools that wrap `/api/v1` (catalog sites, saved presets, chapters, the `science/*` celestial, horizon, metrics, timeline, rank, composition and compare endpoints, and the meteor-stream facts) plus browser-side launch-plan and solar-power estimates, and never answers site, Sun/Earth, horizon, launch or power facts from model memory. Every answer carries a collapsible **Sources** line (site, horizon source, data range), and fallback-horizon or failed lookups always show a fixed notice. One extra tool, `show_in_freeplay`, lets it change the Freeplay view to support an answer (screen including the launch planner and Mission comparison, selected catalog site, saved preset or point and globe fly-to, mission time, duration and radius, playback, any of the globe layers, meteor stream, catalog pins, graph tab, panel assumptions, launch planner settings, comparison slots, graph focus and metric rows, and a button to the drive page). Its fields are whitelisted and validated, it returns no science data, and each changed reply shows a **View changed** list with **Restore previous view**.
+Open Exploration has an in-app assistant (header button **Mission Control**) that answers questions about the mission being built and about lunar terrain. It calls read-only tools that wrap `/api/v1` (catalog sites, saved presets, chapters, the `science/*` celestial, horizon, metrics, timeline, rank, composition and compare endpoints, and the meteor-stream facts) plus browser-side launch-plan and solar-power estimates, and never answers site, Sun/Earth, horizon, launch or power facts from model memory. Every answer carries a collapsible **Sources** line (site, horizon source, data range), and fallback-horizon or failed lookups always show a fixed notice. One extra tool, `show_in_freeplay`, lets it change the Open Exploration view to support an answer (screen including the launch planner and Mission comparison, selected catalog site, saved preset or point and globe fly-to, mission time, duration and radius, playback, any of the globe layers, meteor stream, catalog pins, graph tab, panel assumptions, launch planner settings, comparison slots, graph focus and metric rows, and a button to the drive page). Its fields are whitelisted and validated, it returns no science data, and each changed reply shows a **View changed** list with **Restore previous view**.
 
 - Model access is **Firebase AI Logic** (Gemini Developer API) through `firebase/ai`. The persona, rules, output format and tool descriptions live in a **server prompt template** in Firebase, not in the client bundle. The source of truth is `docs/ai/prompt-templates/mission-control-v1-2-0.prompt`; it must be pasted into the console (steps below) and re-pasted when edited.
 - Tool parameter schemas are declared in code (`lib/assistant/tool-schemas.ts`) beside their validators (`lib/assistant/tool-validation.ts`). Tools run in the browser against same-origin `/api/v1`, with at most 4 tool rounds per question.
@@ -255,7 +254,7 @@ are not point-for-point numerical equivalents. Meteor exposure in comparisons is
 the same relative 2026 reference geometry shown by the meteor layer, not an impact
 forecast. Sources and limitations are documented in [the data inventory](docs/SOURCES.md).
 
-The app is an educational planning and visualization tool, not an operational mission system. Data coverage and assumptions are exposed in Freeplay; the procedural display terrain should not be interpreted as measured topography.
+The app is an educational planning and visualization tool, not an operational mission system. Data coverage and assumptions are exposed in Open Exploration; the procedural display terrain should not be interpreted as measured topography.
 
 Not affiliated with or endorsed by NASA.
 

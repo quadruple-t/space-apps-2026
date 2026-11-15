@@ -1,10 +1,10 @@
-# Freeplay integration contract
+# Open Exploration integration contract
 
 ## Ownership and safe integration points
 
-Freeplay owns `app/explore/freeplay.tsx`, the reusable lunar scene in `scenes/lunar/`, the display side of simulation state, and this adapter boundary. The landing page, navigation, mission tutorial, comparison experience, global design tokens, and authoritative science calculations are owned elsewhere. Teammates can link to `/explore` and import the provider types without changing the page UI.
+Open Exploration owns `app/explore/freeplay.tsx`, the reusable lunar scene in `scenes/lunar/`, the display side of simulation state, and this adapter boundary. The landing page, navigation, mission tutorial, comparison experience, global design tokens, and authoritative science calculations are owned elsewhere. Teammates can link to `/explore` and import the provider types without changing the page UI.
 
-The scene components (`LunarScene`, `Terrain`, `Sun`, `Earth`, and `CameraRig`) are presentation components. They accept angles and view settings as props and do not compute ephemerides or visibility. `Freeplay` is the single source of truth for the selected site, UTC timestamp, camera mode, playback, celestial state, and mission metrics.
+The scene components (`LunarScene`, `Terrain`, `Sun`, `Earth`, and `CameraRig`) are presentation components. They accept angles and view settings as props and do not compute ephemerides or visibility. `Open Exploration` is the single source of truth for the selected site, UTC timestamp, camera mode, playback, celestial state, and mission metrics.
 
 ## Provider interface
 
@@ -47,5 +47,5 @@ Once supplied, add a `TerrainDataset` type and loader at this boundary. Confirm 
 1. Add the real provider implementation behind `ScienceProvider`.
 2. Supply verified sites and a documented terrain dataset/loader.
 3. Replace demo values with provider calls; retain `DATA UNAVAILABLE` states on null/error responses.
-4. Pass returned terrain, celestial positions, horizon, and mission metrics through Freeplay state to the scene/HUD.
+4. Pass returned terrain, celestial positions, horizon, and mission metrics through Open Exploration state to the scene/HUD.
 5. Compare rendered terrain occlusion with provider visibility at controlled locations/times; do not modify provider calculations in the renderer.

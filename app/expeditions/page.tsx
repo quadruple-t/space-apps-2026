@@ -13,7 +13,7 @@ export default function ExpeditionsPage() {
     <>
       <PageIntro title="My expeditions" lede="Your saved planning work." status={null}>
         <p>
-          An expedition keeps a Freeplay workspace: its sites, time window, layers, notes, saved comparisons and
+          An expedition keeps a Open Exploration workspace: its sites, time window, layers, notes, saved comparisons and
           Mission Control chat. Signing in is optional; without an account your work autosaves in this browser.
         </p>
       </PageIntro>
