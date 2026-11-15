@@ -7,7 +7,7 @@ const quietButton = "inline-flex min-h-10 items-center gap-2 rounded px-2 py-2 t
 export type LessonStage = "story" | "example" | "try";
 
 /** One Guided Mission lesson, shown as a story, an example, then a short task. */
-export function LessonCard({ lesson, chapter, stage, complete, onPrevious, onStageChange, onNext, nextLabel = "Next lesson", children, exampleContent }: {
+export function LessonCard({ lesson, chapter, stage, complete, onPrevious, onStageChange, onNext, nextLabel = "Next lesson", children, exampleContent, missionStory }: {
   lesson: GuidedLesson;
   chapter?: StoryChapter;
   stage: LessonStage;
@@ -18,6 +18,7 @@ export function LessonCard({ lesson, chapter, stage, complete, onPrevious, onSta
   nextLabel?: string;
   children?: ReactNode;
   exampleContent?: ReactNode;
+  missionStory?: { title: string; body: string } | null;
 }) {
   const number = GUIDED_LESSONS.indexOf(lesson) + 1;
   const label = chapter ?? CHAPTER_LABELS[lesson.chapterId];
@@ -44,10 +45,10 @@ export function LessonCard({ lesson, chapter, stage, complete, onPrevious, onSta
     {stage === "example" && <section aria-label="Example" className="mt-4 rounded-lg border border-retro-blue/30 bg-retro-blue/5 p-4">
       <p className="type-data text-xs uppercase text-retro-blue">Example</p>
       {exampleContent ?? <p className="mt-2 text-base leading-relaxed text-bone">{lesson.example}</p>}
-      {chapter && <details className="mt-4 border-t border-line/80 pt-3">
+      {(missionStory || chapter) && <details className="mt-4 border-t border-line/80 pt-3">
         <summary className="cursor-pointer text-sm text-muted-foreground hover:text-bone">Read the mission story</summary>
-        <p className="mt-2 text-sm font-medium text-bone">{chapter.debrief.headline}</p>
-        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{chapter.debrief.whatHappened}</p>
+        <p className="mt-2 text-sm font-medium text-bone">{missionStory?.title ?? chapter?.debrief.headline}</p>
+        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{missionStory?.body ?? chapter?.debrief.whatHappened}</p>
       </details>}
     </section>}
 
