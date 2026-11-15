@@ -17,7 +17,7 @@ export function GuidedMissionExperience() {
   const [drive, setDrive] = useState<{ site?: LunarSite; utc: string } | null>(null);
   const tutorial = useTutorialData();
 
-  // Story Mode runs in Freeplay's own store, so it starts from Freeplay's opening state.
+  // Guided Mission runs in Freeplay's own store, so it starts from the opening planner state.
   const start = () => {
     useFreeplay.getState().setStart(GUIDED_START_UTC);
     useFreeplay.setState((state) => ({
@@ -49,11 +49,11 @@ export function GuidedMissionExperience() {
   if (lessonIndex !== null) return <GuidedPlanner tutorial={tutorial} lessonIndex={lessonIndex} onLessonChange={changeLesson} />;
 
   return <>
-      <PageIntro index="01" title="Story Mode" lede="Start with Apollo 11 in 1969. Hear the story, see an example, then try each mission decision yourself." status={`${GUIDED_LESSONS.length} short lessons`}>
+      <PageIntro index="01" title="Guided Mission" lede="Start with Apollo 11 in 1969. Hear the story, see an example, then try each mission decision yourself." status={`${GUIDED_LESSONS.length} short lessons`}>
         <div className="flex flex-wrap gap-3">
           <Button size="lg" disabled={tutorial.status === "loading"} onClick={start}>
             <Play fill="currentColor" />
-            {tutorial.status === "loading" ? "Preparing the Moon" : "Start the story"}
+            {tutorial.status === "loading" ? "Preparing the Moon" : "Begin Guided Mission"}
           </Button>
         </div>
         {tutorial.status === "unavailable" && <p role="status" className="mt-4 text-sm text-retro-red">The site list is unavailable right now. You can still explore a point on the Moon.</p>}

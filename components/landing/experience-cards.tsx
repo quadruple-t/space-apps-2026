@@ -14,7 +14,7 @@ export function ExperienceCards() {
         <Reveal>
           <SectionHeading id="explore-title" title="Three ways to explore.">
             <p>
-              Start with the guided Story Mode, or choose a place and explore the Moon yourself.
+              Start with the Guided Mission, or choose a place and explore the Moon yourself.
             </p>
           </SectionHeading>
         </Reveal>

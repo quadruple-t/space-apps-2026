@@ -17,7 +17,7 @@ export type NavLink = { label: string; href: string };
 export const NAV_LINKS: NavLink[] = [
   { label: "Overview", href: "/" },
   { label: "How It Works", href: "/how-it-works" },
-  { label: "Story Mode", href: "/mission" },
+  { label: "Guided Mission", href: "/mission" },
   { label: "Open Exploration", href: "/freeplay" },
 ];
 
@@ -38,11 +38,11 @@ export const EXPERIENCES: Experience[] = [
   {
     id: "mission",
     index: "01",
-    title: "Story Mode",
+    title: "Guided Mission",
     subtitle: "Understand the environment.",
     description: "Learn about Apollo landings, robotic explorers, and future lunar-base regions through short stories, examples, and guided actions.",
     topics: ["Sunlight", "Moon terrain", "View of Earth", "Future base regions"],
-    cta: "Start Story Mode",
+    cta: "Begin Guided Mission",
     href: "/mission",
   },
   {
@@ -95,7 +95,7 @@ export const DATA_SOURCES: DataSource[] = [
 
 export const FOOTER_LINKS = {
   experiences: [
-    { label: "Story Mode", href: "/mission" },
+    { label: "Guided Mission", href: "/mission" },
     { label: "Open Exploration", href: "/freeplay/drive" },
     { label: "Mission Comparison", href: "/compare" },
   ],

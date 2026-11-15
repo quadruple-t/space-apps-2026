@@ -53,9 +53,9 @@ export function FreeplayApp({ aside, guidedPanels, assistantEnabled = true, guid
     <header className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-3 py-2 sm:px-4">
       <div className="flex items-center gap-3">
         {guidedMode ? <>
-          <Link href="/mission" aria-label="Exit Story Mode" className="grid size-9 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><ArrowLeft size={17} /></Link>
+          <Link href="/mission" aria-label="Exit Guided Mission" className="grid size-9 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><ArrowLeft size={17} /></Link>
           <div>
-            <h1 className="type-heading text-sm text-bone">Story Mode</h1>
+            <h1 className="type-heading text-sm text-bone">Guided Mission</h1>
           </div>
         </> : <>
           <h1 className="type-heading text-sm text-bone sm:text-base">Open Exploration</h1>

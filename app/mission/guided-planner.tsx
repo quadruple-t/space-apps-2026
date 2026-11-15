@@ -12,7 +12,7 @@ import type { TutorialData } from "./use-tutorial-data";
 const siteKey = (site: FreeplaySite) => `${site.latitudeDeg},${site.longitudeDeg}`;
 const mark = (done: boolean) => (done ? "✓" : "○");
 
-/** A staged Story Mode lesson beside only the map or chart needed for the current action. */
+/** A staged Guided Mission lesson beside only the map or chart needed for the current action. */
 export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
   tutorial: TutorialData;
   lessonIndex: number;
@@ -85,12 +85,12 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
   };
 
   const siteForStop = (id: string) => tutorial.tourStops.find((stop) => stop.id === id || stop.catalogId === id);
-  const aside = <aside ref={asideRef} aria-live="polite" aria-label="Story Mode lesson" className={`absolute inset-x-2 bottom-2 z-30 overflow-y-auto rounded-xl border border-retro-purple/40 bg-[#100e20]/95 p-4 shadow-[0_18px_70px_rgba(4,2,18,.78)] backdrop-blur-xl ${stage === "try" ? "max-h-[90%]" : "max-h-[68%]"} lg:static lg:max-h-none lg:w-[23rem] lg:shrink-0 lg:rounded-none lg:border-0 lg:border-l lg:border-line lg:shadow-none`}>
+  const aside = <aside ref={asideRef} aria-live="polite" aria-label="Guided Mission lesson" className={`absolute inset-x-2 bottom-2 z-30 overflow-y-auto rounded-xl border border-retro-purple/40 bg-[#100e20]/95 p-4 shadow-[0_18px_70px_rgba(4,2,18,.78)] backdrop-blur-xl ${stage === "try" ? "max-h-[90%]" : "max-h-[68%]"} lg:static lg:max-h-none lg:w-[23rem] lg:shrink-0 lg:rounded-none lg:border-0 lg:border-l lg:border-line lg:shadow-none`}>
     <button type="button" onClick={() => setCollapsed((value) => !value)} aria-expanded={!collapsed} aria-label={collapsed ? "Expand lesson" : "Collapse lesson"} className="absolute right-3 top-3 z-10 grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone lg:hidden">
       {collapsed ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
     </button>
     <div className={collapsed ? "hidden lg:block" : ""}>
-      <LessonCard lesson={lesson} chapter={chapter} stage={stage} complete={complete} onPrevious={stage !== "story" || lessonIndex > 0 ? previous : undefined} onStageChange={setStage} onNext={() => goToLesson(lessonIndex + 1)} nextLabel={lessonIndex === GUIDED_LESSONS.length - 1 ? "Finish Story Mode" : "Next lesson"}>
+      <LessonCard lesson={lesson} chapter={chapter} stage={stage} complete={complete} onPrevious={stage !== "story" || lessonIndex > 0 ? previous : undefined} onStageChange={setStage} onNext={() => goToLesson(lessonIndex + 1)} nextLabel={lessonIndex === GUIDED_LESSONS.length - 1 ? "Finish Guided Mission" : "Next lesson"}>
         {stage === "try" && lesson.id === "pick-site" && <>
           <label className="sr-only" htmlFor="story-site-stop">Choose a stop</label>
           <select id="story-site-stop" value={site?.id ?? ""} onChange={(event) => { const selected = siteForStop(event.target.value); if (selected) useFreeplay.getState().selectSite(selected, false); }} className="hud-input mt-1 text-sm normal-case tracking-normal">

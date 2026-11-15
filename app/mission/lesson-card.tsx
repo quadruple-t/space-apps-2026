@@ -6,7 +6,7 @@ import { CHAPTER_LABELS, GUIDED_LESSONS, SCREEN_LABELS, type GuidedLesson } from
 const quietButton = "inline-flex min-h-10 items-center gap-2 rounded px-2 py-2 type-data text-xs font-medium text-muted-foreground";
 export type LessonStage = "story" | "example" | "try";
 
-/** One Story Mode lesson, shown as a story, an example, then a short task. */
+/** One Guided Mission lesson, shown as a story, an example, then a short task. */
 export function LessonCard({ lesson, chapter, stage, complete, onPrevious, onStageChange, onNext, nextLabel = "Next lesson", children }: {
   lesson: GuidedLesson;
   chapter?: StoryChapter;
