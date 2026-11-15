@@ -128,8 +128,10 @@ Recommended order:
 
 ## 7. Freeplay globe imagery and overlays
 
-Map tiles only; no analysis uses them. Both services send `Access-Control-Allow-Origin: *`, so the browser
-loads them directly (checked 2026-11-14). Defined in `scenes/cesium/moon-layers.ts`.
+Display imagery only; no analysis uses these color images. The original service
+identifiers below are imported by `scripts/archive-globe.ts`. The globe loads their
+stored Firestore copies rather than requesting the upstream services at runtime.
+Source definitions remain in `scenes/cesium/moon-layers.ts`.
 
 | Layer | Service | Identifier |
 |---|---|---|
@@ -138,6 +140,60 @@ loads them directly (checked 2026-11-14). Defined in `scenes/cesium/moon-layers.
 | Illumination % (polar) | LROC Lunaserv WMS 1.1.1 (`https://wms.im-ldi.com/`, EPSG:4326) | `luna_polar_illumination_pct` |
 | Permanently shadowed regions | LROC Lunaserv WMS | `luna_psr_81s` |
 | Elevation (color shaded relief) | LROC Lunaserv WMS | `luna_wac_dtm` |
+
+Catalog landing, impact/rover, and Artemis reference-point overlays use `/api/v1/catalog/sites`.
+Heritage boundaries and PSR resource-context polygons use the existing `/api/v1/zones`
+collection and its source citations. Cold-trap polygons select PSR zones whose stored
+Diviner `coldTrapFraction` is greater than zero; the footprint is the full PSR polygon,
+not a delineation of ice or of its coldest subregion. These overlays do not establish
+confirmed ice, ore grades, reserves, or mining suitability. Heritage circles retain their
+stored kilometre radii; Artemis markers are reference points rather than region boundaries.
+
+Additional science imagery identifiers were verified in Lunaserv GetCapabilities on
+2026-11-14. `scripts/data-pipeline/curated/globeMaps.json` retains each product's
+published abstract and credit; source manifests are seeded alongside other data sources.
+
+| Overlay | Lunaserv WMS identifier | Interpretation / coverage |
+|---|---|---|
+| Titanium oxide | `luna_wac_tio2_color` | LROC TiO₂ weight %, 70°S–70°N |
+| Iron oxide | `luna_kaguya_feo` | Kaguya FeO weight %, 50°S–50°N |
+| Thorium | `luna_lp_deconvolved_thorium` | Lunar Prospector spatial deconvolution, 2 ppd |
+| Olivine | `luna_kaguya_olivine` | Kaguya mineral abundance, 50°S–50°N |
+| Plagioclase | `luna_kaguya_plagioclase` | Kaguya mineral abundance, 50°S–50°N |
+| Clinopyroxene | `luna_kaguya_clinopyroxene` | Kaguya mineral abundance, 50°S–50°N |
+| Silicates | `luna_diviner_silicate` | Christiansen-feature wavelength, not ore grade |
+| Ice-stability depth | `luna_diviner_sp_ice_depth_today` | Modeled south-polar stability, not ice detection |
+| Maximum thermal anomaly | `luna_diviner_tbol_max` | Zonal mean subtracted; −25 to +25 K |
+| Minimum thermal anomaly | `luna_diviner_tbol_min` | Zonal mean subtracted; −10 to +10 K |
+| Impact history | `luna_copernican_craters` | Craters >10 km, <~1.1 Ga; 60°S–60°N |
+
+The meteor exposure model uses TUM's seven 2026 reference radiants/epochs, stored
+in `curated/meteorStreams.json`. Stage `61_globe_layers.py` produces derived
+IAU_MOON sub-radiants and writes the `meteor-streams-2026` fact sheet through the
+same curated/seed convention as other fact sheets. SourceRefs distinguish TUM
+inputs from NAIF-derived geometry. The browser reads this sheet via the existing
+facts API and draws `max(0, normal · radiant)` on a smooth sphere. It ignores
+velocity aberration, radiant drift, gravitational focusing, and terrain shielding.
+The overlay is tied to the selected reference epoch, not the simulation clock.
+Brightness represents relative incidence only; neither an impact rate nor a storm
+forecast is inferred. Uncolored regions may receive other shower/sporadic impacts.
+A numerical test compares derived sub-radiants to Cesium's IAU orientation evaluator.
+
+Firebase archive: `catalog/globe-assets-v1` records the bounded display snapshots,
+source request URLs, image dimensions and geographic bounds, and content hashes.
+Images and the collected-data bundle use 240 KiB Firestore Bytes documents under
+`catalog/globe-chunk-*`, with manifests under `catalog/globe-asset-*`. The API
+reassembles and verifies lengths and SHA-256 before serving data. Existing catalog
+rules permit public reads and deny browser writes. Only the offline importer writes.
+The app keeps source imagery separate from numerical analysis inputs.
+
+Most stored maps cover the globe at 2048 × 1024. The south-pole slope image covers
+its source tile bounds at 4096 × 256. Unmapped source areas remain unmapped;
+these snapshots do not add coverage or precision. The selected scope excludes
+full-resolution upstream archives that were never downloaded locally.
+`collected-data` archives all original static seed documents, curated source data,
+locally cached source responses/tiles, and citations; user data and credentials are
+excluded. `scripts/data-pipeline/globe-archive.lock.json` is the import manifest.
 
 The globe's star background is Cesium's bundled Tycho-2 sky box.
 
@@ -177,6 +233,10 @@ Generated by `scripts/data-pipeline/80_validate.py` from `curated/dataSources.js
 | NASA SP-4029 Apollo by the Numbers, Apollo 11 summary |  | Orloff, R.W., NASA SP-4029 | https://www.nasa.gov/wp-content/uploads/static/history/SP-4029/Apollo_11a_Summary.htm |
 | USGS Gazetteer of Planetary Nomenclature |  | IAU WGPSN / USGS Astrogeology | https://planetarynames.wr.usgs.gov/ |
 | Shadowline curated site, preset, fact and story tables | 2026-11-14 | docs/research/*.md and docs/SOURCES.md |  |
+| LROC Lunaserv lunar composition, thermal, ice-stability and crater overlays | GetCapabilities snapshot 2026-11-14 | Product-specific credits and references in docs/SOURCES.md §7 | https://wms.im-ldi.com/?service=WMS&request=GetCapabilities |
+| TUM Lunar and Planetary Exploration, 2026 meteoroid stream geometry (updated 4 May 2026) | 2026 reference snapshots | TUM Lunar and Planetary Exploration, 2026 meteoroid stream geometry (updated 4 May 2026) | https://www.asg.ed.tum.de/en/lpe/forschung/mondeinschlagsblitze/meteoroid-stream-geometry/ |
+| NASA/JPL NAIF pck00011, IAU_MOON orientation model (2009 coefficients) | pck00011 | NASA/JPL NAIF pck00011, IAU_MOON orientation model (2009 coefficients) | https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/pck00011.tpc |
+| Firebase globe display snapshots and collected scientific data archive | 1 | Original source citations in docs/SOURCES.md §7; import provenance in scripts/data-pipeline/globe-archive.lock.json |  |
 
 ### Every cited page, paper and document
 
@@ -189,6 +249,7 @@ Generated by `scripts/data-pipeline/80_validate.py` from `curated/dataSources.js
 | A | FRED, Japan / U.S. Foreign Exchange Rate, annual (AEXJPUS) | https://fred.stlouisfed.org/graph/fredgraph.csv?id=AEXJPUS |
 | A | Fisher et al. 2017, Icarus 292:74-85, doi:10.1016/j.icarus.2017.03.023 | https://ntrs.nasa.gov/citations/20170003782 |
 | A | George et al., LPSC 2026 abstract #1901 (Artemis III region refinement) | https://www.hou.usra.edu/meetings/lpsc2026/pdf/1901.pdf |
+| A | Greenhagen et al. (2010), Global Silicate Mineralogy of the Moon from the Diviner Lunar Radiometer | https://doi.org/10.1126/science.1192196 |
 | A | Grumman Apollo News Reference, LM Electrical Power | https://www.apollojournals.org/alsj/LM11_Electric_ppEP1-5.pdf |
 | A | House Science, Space and Technology Committee hearing charter, 1 Apr 2025 (CLPS) | https://republicans-science.house.gov/_cache/files/0/8/08794b1b-508d-4b7a-8008-341e51828609/3A2F66B634F78F4A4A5430D8B5C1C68D2A0EDD05462C88DC1E0AC8149943A700.sst-hearing-charter---leveraging-commercial-innovation-for-lunar-exploration-a-review-of-nasas-clps-initiative.pdf |
 | A | ISRO monthly summary, August 2023 | https://www.isro.gov.in/media_isro/pdf/Monthly_summary/MonthlySummary_August2023Eng.pdf |
@@ -202,6 +263,7 @@ Generated by `scripts/data-pipeline/80_validate.py` from `curated/dataSources.js
 | A | JPL Horizons manual | https://ssd.jpl.nasa.gov/horizons/manual.html |
 | A | Kopp & Lean 2011, GRL 38 L01706, doi:10.1029/2010GL045777 | https://espo.nasa.gov/node/30086 |
 | A | LOLA GDR cylindrical LDEM_64 / LDEM_512 (LRO-L-LOLA-4-GDR-V1.0) | https://imbrium.mit.edu/DATA/LOLA_GDR/CYLINDRICAL/IMG/ |
+| A | LROC Lunaserv WMS GetCapabilities, lunar science map product metadata | https://wms.im-ldi.com/?service=WMS&request=GetCapabilities |
 | A | LROC RDR shapefile, Anthropogenic Features on the Moon (last updated 2026-08-14) | https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_ANTHROPOGENIC_OBJECTS |
 | A | LROC WAC south polar illumination maps, 100 m (Speyerer & Robinson 2013, Icarus 222:122-136) | https://data.lroc.im-ldi.com/lroc/view_rdr/WAC_POLE_ILL_PCT_SOUTH |
 | A | LROC, Beresheet impact site (images/1101) | https://lroc.im-ldi.com/images/1101 |
@@ -219,12 +281,15 @@ Generated by `scripts/data-pipeline/80_validate.py` from `curated/dataSources.js
 | A | LROC, RESILIENCE impact site (images/1456) | https://lroc.im-ldi.com/images/1456 |
 | A | LROC, SLIM landing site (images/1358) | https://lroc.im-ldi.com/images/1358 |
 | A | LROC, Vikram impact site (images/1131) | https://lroc.im-ldi.com/images/1131 |
+| A | Lawrence et al. (2007), Global spatial deconvolution of Lunar Prospector Th abundances | https://doi.org/10.1029/2006GL028530 |
+| A | Lemelin et al. (2016), Global map products from the Kaguya Multiband Imager at 512 ppd: Minerals, FeO and OMAT, LPSC 2994 | https://www.hou.usra.edu/meetings/lpsc2016/pdf/2994.pdf |
 | A | Li et al. 2018, PNAS 115(36), doi:10.1073/pnas.1802345115 | https://pmc.ncbi.nlm.nih.gov/articles/6130389 |
 | A | NASA (2011, Rev A 28 Oct 2011), Recommendations to Space-Faring Entities: How to Protect and Preserve the Historic and Scientific Value of U.S. Government Lunar Artifacts | https://www.nasa.gov/pdf/617743main_NASA-USG_LUNAR_HISTORIC_SITES_RevA-508.pdf |
 | A | NASA Astrobotic Peregrine press kit | https://www.nasa.gov/wp-content/uploads/2023/12/np-2023-12-017-jsc-clps-astrobotic-press-kit-update-508.pdf |
 | A | NASA Firefly Blue Ghost Mission 1 press kit | https://www.nasa.gov/wp-content/uploads/2025/01/np-2025-01-001-jsc-clps-firefly-press-kit-screen-508-1-10-25-final.pdf |
 | A | NASA IM-1 press kit | https://www.nasa.gov/wp-content/uploads/2024/01/np-2023-12-016-jsc-clps-im-press-kit-web-508.pdf |
 | A | NASA IM-2 press kit | https://nasa.gov/wp-content/uploads/2025/02/np-2025-02-005-jsc-clps-intuitive-machines-press-kit-508-2-25-25.pdf |
+| A | NASA Meteoroid Environment Office, Shower Meteoroid Environment | https://www.nasa.gov/meteoroid-environment-office/shower-meteoroid-environment/ |
 | A | NASA NDL briefing on the IM-1 mission (NTRS 20240004236) | https://ntrs.nasa.gov/api/citations/20240004236/downloads/MSS%202024_NDL%20Lunar%20Mission.pdf |
 | A | NASA OIG IG-24-013, NASA's Commercial Lunar Payload Services Initiative | https://oig.nasa.gov/wp-content/uploads/2024/06/final-report-ig-24-013-nasas-commercial-lunar-payload-services-initiative.pdf |
 | A | NASA OTPS, Lunar Landing and Operations Policy Analysis (30 Sep 2022) | https://www.nasa.gov/wp-content/uploads/2022/10/lunar_landing_and_operations_policy_analysis_final_report_24oct2022_tagged_0.pdf |
@@ -242,6 +307,7 @@ Generated by `scripts/data-pipeline/80_validate.py` from `curated/dataSources.js
 | A | NASA, receives some data before Intuitive Machines ends lunar mission | https://www.nasa.gov/news-release/nasa-receives-some-data-before-intuitive-machines-ends-lunar-mission/ |
 | A | NASA, selects first commercial Moon landing services (2019) | https://www.nasa.gov/news-release/nasa-selects-first-commercial-moon-landing-services-for-artemis-program/ |
 | A | NASA, update on Artemis III Moon landing regions (28 Oct 2024) | https://www.prnewswire.com/news-releases/nasa-provides-update-on-artemis-iii-moon-landing-regions-302288659.html |
+| A | NASA/JPL NAIF pck00011, IAU_MOON orientation model (2009 coefficients) | https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/pck00011.tpc |
 | A | NSSDC Earth fact sheet | https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html |
 | A | NSSDC Moon fact sheet | https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html |
 | A | NSSDCA, Apollo 11 Lunar Module / EASEP (1969-059C) | https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1969-059C |
@@ -261,6 +327,9 @@ Generated by `scripts/data-pipeline/80_validate.py` from `curated/dataSources.js
 | A | PIB (Govt. of India), Chandrayaan-3 statement, 3 Aug 2023 | https://www.pib.gov.in/PressReleasePage.aspx?PRID=1945483 |
 | A | Paige et al. 2010, Science 330:479 (USGS publication record) | https://www.usgs.gov/publications/diviner-lunar-radiometer-observations-cold-traps-moons-south-polar-region |
 | A | SLDEM2015 (Barker et al. 2016, Icarus 273:346-355) | https://pgda.gsfc.nasa.gov/products/54 |
+| A | Sato et al. (2017), Lunar Mare TiO2 Abundances Estimated from UV/Vis Reflectance | https://doi.org/10.1016/j.icarus.2017.06.013 |
+| A | Siegler et al. (2016), Lunar true polar wander inferred from polar hydrogen | https://doi.org/10.1038/nature17166 |
+| A | TUM Lunar and Planetary Exploration, 2026 meteoroid stream geometry (updated 4 May 2026) | https://www.asg.ed.tum.de/en/lpe/forschung/mondeinschlagsblitze/meteoroid-stream-geometry/ |
 | A | USGS Gazetteer of Planetary Nomenclature, Cabeus B (feature 8058) | https://planetarynames.wr.usgs.gov/Feature/Cabeus%20B |
 | A | USGS Gazetteer of Planetary Nomenclature, Mons Mouton (feature 16070; adopted 13 May 2022) | https://planetarynames.wr.usgs.gov/Feature/16070 |
 | A | USGS Gazetteer of Planetary Nomenclature, Slater (feature 15325) | https://planetarynames.wr.usgs.gov/Feature/Slater |

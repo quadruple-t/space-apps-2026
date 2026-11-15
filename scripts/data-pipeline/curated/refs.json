@@ -101,5 +101,14 @@
   "horizonsManual": {"label": "JPL Horizons manual", "url": "https://ssd.jpl.nasa.gov/horizons/manual.html", "tier": "A"},
   "wacIll": {"label": "LROC WAC south polar illumination maps, 100 m (Speyerer & Robinson 2013, Icarus 222:122-136)", "url": "https://data.lroc.im-ldi.com/lroc/view_rdr/WAC_POLE_ILL_PCT_SOUTH", "tier": "A"},
   "sldem2015": {"label": "SLDEM2015 (Barker et al. 2016, Icarus 273:346-355)", "url": "https://pgda.gsfc.nasa.gov/products/54", "tier": "A"},
-  "lolaGdr": {"label": "LOLA GDR cylindrical LDEM_64 / LDEM_512 (LRO-L-LOLA-4-GDR-V1.0)", "url": "https://imbrium.mit.edu/DATA/LOLA_GDR/CYLINDRICAL/IMG/", "tier": "A"}
+  "lolaGdr": {"label": "LOLA GDR cylindrical LDEM_64 / LDEM_512 (LRO-L-LOLA-4-GDR-V1.0)", "url": "https://imbrium.mit.edu/DATA/LOLA_GDR/CYLINDRICAL/IMG/", "tier": "A"},
+  "tumMeteor2026": {"label": "TUM Lunar and Planetary Exploration, 2026 meteoroid stream geometry (updated 4 May 2026)", "url": "https://www.asg.ed.tum.de/en/lpe/forschung/mondeinschlagsblitze/meteoroid-stream-geometry/", "tier": "A"},
+  "naifPck11": {"label": "NASA/JPL NAIF pck00011, IAU_MOON orientation model (2009 coefficients)", "url": "https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/pck00011.tpc", "tier": "A"},
+  "lunaservScienceMaps": {"label": "LROC Lunaserv WMS GetCapabilities, lunar science map product metadata", "url": "https://wms.im-ldi.com/?service=WMS&request=GetCapabilities", "tier": "A"},
+  "lrocTitanium2017": {"label": "Sato et al. (2017), Lunar Mare TiO2 Abundances Estimated from UV/Vis Reflectance", "url": "https://doi.org/10.1016/j.icarus.2017.06.013", "tier": "A"},
+  "kaguyaMinerals2016": {"label": "Lemelin et al. (2016), Global map products from the Kaguya Multiband Imager at 512 ppd: Minerals, FeO and OMAT, LPSC 2994", "url": "https://www.hou.usra.edu/meetings/lpsc2016/pdf/2994.pdf", "tier": "A"},
+  "lpThorium2007": {"label": "Lawrence et al. (2007), Global spatial deconvolution of Lunar Prospector Th abundances", "url": "https://doi.org/10.1029/2006GL028530", "tier": "A"},
+  "divinerSilicates2010": {"label": "Greenhagen et al. (2010), Global Silicate Mineralogy of the Moon from the Diviner Lunar Radiometer", "url": "https://doi.org/10.1126/science.1192196", "tier": "A"},
+  "iceStability2016": {"label": "Siegler et al. (2016), Lunar true polar wander inferred from polar hydrogen", "url": "https://doi.org/10.1038/nature17166", "tier": "A"},
+  "nasaMeteorShowerEnvironment": {"label": "NASA Meteoroid Environment Office, Shower Meteoroid Environment", "url": "https://www.nasa.gov/meteoroid-environment-office/shower-meteoroid-environment/", "tier": "A"}
 }

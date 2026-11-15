@@ -1,0 +1,14 @@
+{
+  "id": "lunaserv-science-overlays",
+  "label": "LROC Lunaserv lunar composition, thermal, ice-stability and crater overlays",
+  "kind": "map",
+  "version": "GetCapabilities snapshot 2026-11-14",
+  "citation": "Product-specific credits and references in docs/SOURCES.md §7",
+  "doi": null,
+  "url": "https://wms.im-ldi.com/?service=WMS&request=GetCapabilities",
+  "license": null,
+  "usedFor": [
+    "globe titanium, FeO, thorium, olivine, plagioclase, clinopyroxene, silicate, thermal-anomaly, ice-stability and impact-history overlays"
+  ],
+  "retrievedAt": "2026-11-14"
+}
