@@ -53,6 +53,6 @@ describe("applyUiPlan and restoreView", () => {
   it("only builds a page link when a site is selected", () => {
     expect(applyUiPlan({ page: "drive" }, null).link).toBeUndefined();
     useFreeplay.getState().selectCustom(-85, 20);
-    expect(applyUiPlan({ page: "approach" }, null).link?.href).toContain("/freeplay/approach");
+    expect(applyUiPlan({ page: "drive" }, null).link?.href).toContain("/freeplay/drive");
   });
 });

@@ -74,7 +74,7 @@ const DECLARATIONS: Record<ToolName, TemplateFunctionDeclaration["parameters"]> 
   show_in_freeplay: Schema.object({
     properties: {
       screen: Schema.enumString({ enum: [...UI_SCREENS], description: "Freeplay screen to show: globe (Moon map) or orbit (Sun/Earth orbit view with graphs)." }),
-      page: Schema.enumString({ enum: [...UI_PAGES], description: "Offer a button to the surface drive or the mission sunlight (approach) page for the selected site and time. Does not leave the chat." }),
+      page: Schema.enumString({ enum: [...UI_PAGES], description: "Offer a button to the surface drive for the selected site and time. Does not leave the chat." }),
       siteId: Schema.string({ description: "Catalog site id from list_catalog_sites to select on the globe and fly to." }),
       latDeg: Schema.number({ description: "Latitude in degrees, -90 to 90, to select a custom point. Use with lonDeg, never with siteId." }),
       lonDeg: Schema.number({ description: "East-positive longitude in degrees, -180 to 360. Use with latDeg." }),

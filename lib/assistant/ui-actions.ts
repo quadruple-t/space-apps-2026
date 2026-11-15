@@ -6,7 +6,7 @@
  * tool-validation.ts); everything here goes through the same store actions the Freeplay UI itself uses.
  */
 import { catalogToFreeplay, type CatalogSite, type FreeplaySite } from "@/data/sites";
-import { approachHref, driveHref } from "@/lib/drive-link";
+import { driveHref } from "@/lib/drive-link";
 import { currentTimeMs, useFreeplay } from "@/lib/freeplay-store";
 import type { UiChange } from "./tool-results";
 import type { UiPlan } from "./tool-validation";
@@ -65,12 +65,10 @@ export function applyUiPlan(plan: UiPlan, catalog: CatalogSite | null): UiChange
   let link: UiChange["link"];
   if (plan.page) {
     const now = useFreeplay.getState();
-    if (!now.site) changes.push("No site is selected, so no drive or sunlight page link was made");
+    if (!now.site) changes.push("No site is selected, so no drive page link was made");
     else {
       const t = currentTimeMs(now);
-      link = plan.page === "drive"
-        ? { label: `Open surface drive at ${now.site.name}`, href: driveHref(now.site, t) }
-        : { label: `Open mission sunlight for ${now.site.name}`, href: approachHref(now.site, t) };
+      link = { label: `Open surface drive at ${now.site.name}`, href: driveHref(now.site, t) };
     }
   }
   return { changes, ...(link ? { link } : {}) };

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-/** Keep legacy science links working while Mission Control is the primary destination. */
+/** Keep legacy science links working. */
 export default function ScienceRedirect() {
-  redirect("/mission-control");
+  redirect("/how-it-works");
 }

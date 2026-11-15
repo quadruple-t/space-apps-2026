@@ -73,7 +73,7 @@ export const TOOL_PROGRESS: Record<ToolName, string> = {
 
 /** Values the show_in_freeplay tool may set. Mirrors the Freeplay store; the validator rejects anything else. */
 export const UI_SCREENS = ["globe", "orbit"] as const;
-export const UI_PAGES = ["drive", "approach"] as const;
+export const UI_PAGES = ["drive"] as const;
 export const UI_LAYERS = ["slope", "illumination", "psr", "elevation"] as const;
 export const UI_SPEEDS = [1, 10, 100, 1000] as const;
 export const UI_GRAPH_TABS = ["daily", "yearly"] as const;

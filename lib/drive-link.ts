@@ -41,11 +41,3 @@ export function timeFromDriveParams(p: Params): Date | null {
 export function lunarSiteFor(site: FreeplaySite): LunarSite {
   return siteFromDriveParams(new URLSearchParams(driveHref(site, 0).split("?")[1]))!
 }
-
-/** The approach planner (/freeplay/approach) prefilled with the Freeplay site and time. */
-export function approachHref(site: FreeplaySite | null, timeMs: number): string {
-  if (!site) return "/freeplay/approach"
-  const q = new URLSearchParams({ lat: String(site.latitudeDeg), lon: String(site.longitudeDeg), name: site.name, t: new Date(timeMs).toISOString() })
-  if (site.catalogId) q.set("siteId", site.catalogId)
-  return `/freeplay/approach?${q}`
-}

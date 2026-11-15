@@ -1,17 +1,11 @@
 import type { Metadata } from "next";
-import { IntroductionSection } from "@/components/landing/introduction-section";
-import { ScienceSection } from "@/components/landing/science-section";
+import { MissionControlContent } from "@/app/mission-control/page";
 
 export const metadata: Metadata = {
   title: "How It Works",
-  description: "How Lunaris360 turns lunar terrain and Sun-Earth geometry into an explorable mission environment.",
+  description: "Explore the lunar science, data sources and methods behind Lunaris360.",
 };
 
 export default function HowItWorksPage() {
-  return (
-    <>
-      <IntroductionSection />
-      <ScienceSection />
-    </>
-  );
+  return <MissionControlContent />;
 }
