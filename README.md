@@ -120,8 +120,10 @@ npx -y firebase-tools@15.36.0 deploy --only firestore:rules,firestore:indexes \
   --project shadowline-2t12 --account taran.duba3@gmail.com
 ```
 
-**Seed production:** first run `gcloud auth application-default login` as taran.duba3@gmail.com, then
-`npm run seed:prod -- --yes`. The project id comes from `.firebaserc`.
+**Seed production:** `npm run seed:prod -- --yes`. The project id comes from `.firebaserc`. Credentials: the
+`FIREBASE_SERVICE_ACCOUNT_JSON` service account (from the environment or `.env.local`, and it must belong to that
+project) when set, otherwise Application Default Credentials from `gcloud auth application-default login` as
+taran.duba3@gmail.com. The target line printed before writing says which one is used.
 
 ## Mission Control assistant (Freeplay)
 
