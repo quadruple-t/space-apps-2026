@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
@@ -9,6 +10,20 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { NAV_LINKS } from "@/data/site";
 import { cn } from "@/lib/utils";
+
+// Account UI loads after hydration so the Firebase SDK stays out of every page's first load.
+// The placeholders match the loaded slot sizes, so nothing shifts.
+const AccountMenu = dynamic(() => import("@/components/auth/account-menu").then((m) => m.AccountMenu), {
+  ssr: false,
+  loading: () => <div aria-hidden className="hidden h-10 w-24 md:block" />,
+});
+const MobileAccountSection = dynamic(
+  () => import("@/components/auth/account-menu").then((m) => m.MobileAccountSection),
+  { ssr: false, loading: () => <div aria-hidden className="h-[4.75rem] border-t border-line" /> },
+);
+const SignInDialog = dynamic(() => import("@/components/auth/sign-in-dialog").then((m) => m.SignInDialog), {
+  ssr: false,
+});
 
 export function Navbar() {
   const pathname = usePathname();
@@ -67,6 +82,7 @@ export function Navbar() {
         </ul>
 
         <div className="flex items-center gap-2">
+          <AccountMenu className="hidden md:flex" />
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon-lg" className="md:hidden" aria-label="Open navigation menu">
@@ -94,10 +110,12 @@ export function Navbar() {
                   </li>
                 ))}
               </ul>
+              <MobileAccountSection />
             </SheetContent>
           </Sheet>
         </div>
       </nav>
+      <SignInDialog />
     </header>
   );
 }

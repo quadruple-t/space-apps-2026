@@ -1,6 +1,6 @@
 /**
  * Converters and write-payload builders for owner-only user data
- * (users/{uid}, progress/state, sessions, reports). Writes use serverTimestamp() for
+ * (users/{uid}, progress/state, sessions, reports, expeditions). Writes use serverTimestamp() for
  * time fields; reads use estimated server timestamps so pending local writes still have
  * an ISO time.
  */
@@ -23,6 +23,26 @@ import {
   type TimeWindow,
   type UserDoc,
 } from "@/lib/model/types";
+import type { FreeplaySite } from "@/data/sites";
+import {
+  sanitizeChat,
+  sanitizeSites,
+  sanitizeStudy,
+  sanitizeWorkspace,
+  toStorableJson,
+} from "@/lib/expeditions/snapshot";
+import {
+  EXPEDITION_LIMITS,
+  EXPEDITION_VERSION,
+  STUDY_KINDS,
+  STUDY_SOURCES,
+  type Expedition,
+  type ExpeditionMeta,
+  type ExpeditionWorkspace,
+  type StoredChatMessage,
+  type Study,
+  type StudyInput,
+} from "@/lib/expeditions/types";
 import { InvalidUserDataError } from "./errors";
 import { normalizeProgress } from "./progressLogic";
 import { Reader, toIso, type Data } from "./read";
@@ -210,3 +230,119 @@ export const savedReportConverter: FirestoreDataConverter<SavedReport> = {
     return savedReportFromData(snap.id, snapData(snap, options), snap.ref.path);
   },
 };
+
+// ---------------------------------------------------------------
+// users/{uid}/expeditions/{id} (+ studies/{id}, chat/transcript)
+// Reads go through the lib/expeditions sanitizers so an old or damaged document degrades to
+// defaults instead of throwing; writes whitelist the keys firestore.rules allows.
+// ---------------------------------------------------------------
+
+export function expeditionName(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed || trimmed.length > EXPEDITION_LIMITS.nameChars) {
+    throw new InvalidUserDataError(`Expedition name must be 1-${EXPEDITION_LIMITS.nameChars} characters.`);
+  }
+  return trimmed;
+}
+
+function notesValue(notes: string): string {
+  if (notes.length > EXPEDITION_LIMITS.notesChars) {
+    throw new InvalidUserDataError(`Notes are limited to ${EXPEDITION_LIMITS.notesChars} characters.`);
+  }
+  return notes;
+}
+
+/** Full expedition document for create. */
+export function newExpeditionToData(name: string, content: { notes: string; workspace: ExpeditionWorkspace; sites: FreeplaySite[] }): Data {
+  return {
+    version: EXPEDITION_VERSION,
+    name: expeditionName(name),
+    notes: notesValue(content.notes),
+    workspace: workspaceToData(content.workspace),
+    sites: sanitizeSites(content.sites).map(stripUndefined),
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    lastOpenedAt: serverTimestamp(),
+  };
+}
+
+/** Partial update (merge write); always bumps updatedAt. */
+export function expeditionPatchToData(patch: { name?: string; notes?: string; workspace?: ExpeditionWorkspace; sites?: FreeplaySite[]; opened?: boolean }): Data {
+  const data: Data = { version: EXPEDITION_VERSION, updatedAt: serverTimestamp() };
+  if (patch.name !== undefined) data.name = expeditionName(patch.name);
+  if (patch.notes !== undefined) data.notes = notesValue(patch.notes);
+  if (patch.workspace) data.workspace = workspaceToData(patch.workspace);
+  if (patch.sites) {
+    if (patch.sites.length > EXPEDITION_LIMITS.sites) throw new InvalidUserDataError(`An expedition holds up to ${EXPEDITION_LIMITS.sites} sites.`);
+    data.sites = sanitizeSites(patch.sites).map(stripUndefined);
+  }
+  if (patch.opened) data.lastOpenedAt = serverTimestamp();
+  return data;
+}
+
+function workspaceToData(ws: ExpeditionWorkspace): Data {
+  const clean = sanitizeWorkspace(ws);
+  return stripUndefined({ ...clean, site: clean.site ? stripUndefined(clean.site) : null });
+}
+
+function stripUndefined<T extends object>(o: T): T {
+  return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as T;
+}
+
+export function expeditionMetaFromData(id: string, d: Data): ExpeditionMeta {
+  const name = typeof d.name === "string" && d.name.trim() ? d.name.slice(0, EXPEDITION_LIMITS.nameChars) : "Untitled expedition";
+  const updatedAt = toIso(d.updatedAt) ?? NOW_FALLBACK();
+  return {
+    id,
+    name,
+    createdAt: toIso(d.createdAt) ?? updatedAt,
+    updatedAt,
+    lastOpenedAt: toIso(d.lastOpenedAt) ?? updatedAt,
+  };
+}
+
+export function expeditionFromData(id: string, d: Data): Expedition {
+  return {
+    ...expeditionMetaFromData(id, d),
+    notes: typeof d.notes === "string" ? d.notes.slice(0, EXPEDITION_LIMITS.notesChars) : "",
+    workspace: sanitizeWorkspace(d.workspace),
+    sites: sanitizeSites(d.sites),
+  };
+}
+
+export const expeditionConverter: FirestoreDataConverter<Expedition> = {
+  toFirestore(): DocumentData {
+    throw new Error("Write expeditions through expeditionService");
+  },
+  fromFirestore(snap: QueryDocumentSnapshot, options?: SnapshotOptions): Expedition {
+    return expeditionFromData(snap.id, snapData(snap, options));
+  },
+};
+
+export function studyLabel(label: string): string {
+  const trimmed = label.trim();
+  if (!trimmed || trimmed.length > EXPEDITION_LIMITS.studyLabelChars) {
+    throw new InvalidUserDataError(`Study label must be 1-${EXPEDITION_LIMITS.studyLabelChars} characters.`);
+  }
+  return trimmed;
+}
+
+export function studyToData(input: StudyInput): Data {
+  if (!(STUDY_KINDS as readonly string[]).includes(input.kind)) throw new InvalidUserDataError(`Unknown study kind ${input.kind}.`);
+  if (!(STUDY_SOURCES as readonly string[]).includes(input.source)) throw new InvalidUserDataError(`Unknown study source ${input.source}.`);
+  const inputs = toStorableJson(input.inputs), result = toStorableJson(input.result);
+  if (!inputs || !result) throw new InvalidUserDataError("This result is too large or complex to save.");
+  return { kind: input.kind, source: input.source, label: studyLabel(input.label), inputs, result, createdAt: serverTimestamp() };
+}
+
+export function studyFromData(id: string, d: Data): Study | null {
+  return sanitizeStudy({ ...d, id, createdAt: toIso(d.createdAt) ?? NOW_FALLBACK() });
+}
+
+export function chatToData(messages: StoredChatMessage[]): Data {
+  return { version: EXPEDITION_VERSION, messages: sanitizeChat(messages), updatedAt: serverTimestamp() };
+}
+
+export function chatFromData(d: Data): StoredChatMessage[] {
+  return sanitizeChat(d.messages);
+}
