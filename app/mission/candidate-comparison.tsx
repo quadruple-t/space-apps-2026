@@ -62,6 +62,11 @@ export function CandidateComparison({ sites, locked = false }: { sites: Freeplay
   const durationHours = useFreeplay((state) => state.durationHours);
   const selectedSite = useFreeplay((state) => state.site);
   const setSite = useFreeplay((state) => state.selectSite);
+  const setView = useFreeplay((state) => state.setView);
+  const inspectSite = (site: FreeplaySite) => {
+    setSite(site, false);
+    setView("orbit");
+  };
   const first = sites.find((site) => site.id === firstId) ?? sites[0] ?? null;
   const second = sites.find((site) => site.id === secondId) ?? sites.find((site) => site.id !== first?.id) ?? null;
   const firstResult = useCandidateMetrics(first, startIso, durationHours);
@@ -85,13 +90,13 @@ export function CandidateComparison({ sites, locked = false }: { sites: Freeplay
     {!locked && [{ value: first.id, label: "Place A", otherId: second.id, set: setFirstId }, { value: second.id, label: "Place B", otherId: first.id, set: setSecondId }].map((choice) => <label key={choice.label} className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground"><span className="w-12 shrink-0">{choice.label}</span><select aria-label={`${choice.label} candidate`} value={choice.value} onChange={(event) => {
       const next = sites.find((site) => site.id === event.target.value);
       choice.set(event.target.value);
-      if (next) setSite(next, false);
+      if (next) inspectSite(next);
     }} className="hud-input min-w-0 flex-1 text-xs normal-case tracking-normal">
       {sites.map((site) => <option key={site.id} value={site.id} disabled={site.id === choice.otherId}>{site.name}</option>)}
     </select></label>)}
     <div className="grid grid-cols-2 gap-2">
-      <SitePlacard label="Place A" site={first} metrics={firstResult.metrics} loading={firstResult.loading} error={firstResult.error} active={selectedSite?.id === first.id} onSelect={() => setSite(first, false)} />
-      <SitePlacard label="Place B" site={second} metrics={secondResult.metrics} loading={secondResult.loading} error={secondResult.error} active={selectedSite?.id === second.id} onSelect={() => setSite(second, false)} />
+      <SitePlacard label="Place A" site={first} metrics={firstResult.metrics} loading={firstResult.loading} error={firstResult.error} active={selectedSite?.id === first.id} onSelect={() => inspectSite(first)} />
+      <SitePlacard label="Place B" site={second} metrics={secondResult.metrics} loading={secondResult.loading} error={secondResult.error} active={selectedSite?.id === second.id} onSelect={() => inspectSite(second)} />
     </div>
     {firstResult.metrics && secondResult.metrics && <div className="rounded border border-retro-blue/25 bg-retro-blue/5 p-2">
       <p className="type-data text-[.55rem] uppercase tracking-wide text-retro-blue">Trade-off readout</p>

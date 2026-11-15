@@ -36,9 +36,12 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange, onGuidedE
   const stage = stages[lessonIndex] ?? "story";
   const setStage = (nextStage: LessonStage) => setStages((current) => ({ ...current, [lessonIndex]: nextStage }));
 
-  const storySpecForStop = (stop: FreeplaySite) => {
-    const id = stop.id.replace(/^(?:catalog-|approx-|tour-)/, "");
-    return STORY_STOPS.find((spec) => spec.id === id || spec.catalogId === id || spec.catalogId === stop.catalogId || spec.name === stop.name);
+  const storySpecForStop = (stop: Partial<FreeplaySite> | null | undefined) => {
+    if (!stop) return undefined;
+    const id = typeof stop.id === "string" ? stop.id.replace(/^(?:catalog-|approx-|tour-)/, "") : "";
+    return STORY_STOPS.find((spec) => Boolean(id && (spec.id === id || spec.catalogId === id))
+      || Boolean(stop.catalogId && spec.catalogId === stop.catalogId)
+      || Boolean(stop.name && spec.name === stop.name));
   };
   const candidateStops = tutorial.tourStops.filter((stop) => storySpecForStop(stop)?.group === "Artemis III candidate");
   const presetStops = ["apollo-11", "luna-9"].flatMap((id) => {
@@ -61,6 +64,9 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange, onGuidedE
   }, [lessonIndex, stage]);
 
   const chapter = tutorial.chapters[lesson.chapterId];
+  const selectedStoryStop = site && STORY_STOPS.find((stop) =>
+    stop.catalogId === site.catalogId || stop.name === site.name || stop.id === site.id.replace(/^(?:catalog-|approx-|tour-)/, ""),
+  );
   const clockMoved = elapsedHours !== clockBaseline;
   const complete = lesson.id === "pick-site" ? site !== null
     : lesson.id === "overlays" ? layers.slope.on
@@ -98,18 +104,18 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange, onGuidedE
     else onLessonChange(-1);
   };
 
-  const siteForStop = (id: string) => tutorial.tourStops.find((stop) => stop.id === id || stop.catalogId === id);
+  const siteForStop = (id: string) => tutorial.tourStops.find((stop) => Boolean(stop && (stop.id === id || stop.catalogId === id)));
   const aside = <aside ref={asideRef} aria-live="polite" aria-label="Guided Mission lesson" className={`absolute inset-x-2 bottom-2 z-30 overflow-y-auto rounded-xl border border-retro-purple/40 bg-[#100e20]/95 p-4 shadow-[0_18px_70px_rgba(4,2,18,.78)] backdrop-blur-xl ${stage === "try" ? "max-h-[90%]" : "max-h-[68%]"} lg:static lg:max-h-none lg:w-[23rem] lg:shrink-0 lg:rounded-none lg:border-0 lg:border-l lg:border-line lg:shadow-none`}>
     <button type="button" onClick={() => setCollapsed((value) => !value)} aria-expanded={!collapsed} aria-label={collapsed ? "Expand lesson" : "Collapse lesson"} className="absolute right-3 top-3 z-10 grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone lg:hidden">
       {collapsed ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
     </button>
     <div className={collapsed ? "hidden lg:block" : ""}>
-      <LessonCard lesson={lesson} chapter={chapter} stage={stage} complete={complete} onPrevious={stage !== "story" || lessonIndex > 0 ? previous : undefined} onStageChange={setStage} onNext={() => goToLesson(lessonIndex + 1)} nextLabel={lessonIndex === GUIDED_LESSONS.length - 1 ? "Finish Guided Mission" : "Next lesson"} exampleContent={<LessonExampleActivity lesson={lesson} stops={tutorial.tourStops} candidates={presetStops} />}>
+      <LessonCard lesson={lesson} chapter={chapter} missionStory={selectedStoryStop && site ? { title: selectedStoryStop.name, body: selectedStoryStop.note } : null} stage={stage} complete={complete} onPrevious={stage !== "story" || lessonIndex > 0 ? previous : undefined} onStageChange={setStage} onNext={() => goToLesson(lessonIndex + 1)} nextLabel={lessonIndex === GUIDED_LESSONS.length - 1 ? "Finish Guided Mission" : "Next lesson"} exampleContent={<LessonExampleActivity lesson={lesson} stops={tutorial.tourStops} candidates={presetStops} />}>
         {stage === "try" && lesson.id === "pick-site" && <>
           <label className="sr-only" htmlFor="story-site-stop">Choose a stop</label>
           <select id="story-site-stop" value={site?.id ?? ""} onChange={(event) => { const selected = siteForStop(event.target.value); if (selected) useFreeplay.getState().selectSite(selected, false); }} className="hud-input mt-1 text-sm normal-case tracking-normal">
             <option value="">Choose from the ten highlighted stops</option>
-            {tutorial.tourStops.map((stop, index) => {
+            {tutorial.tourStops.filter((stop): stop is FreeplaySite => Boolean(stop && typeof stop.id === "string" && typeof stop.name === "string")).map((stop, index) => {
               const spec = storySpecForStop(stop);
               const group = spec?.group === "Historic landing" ? "historic" : spec?.group === "Artemis III candidate" ? "future candidate" : "no past landing";
               return <option key={stop.id} value={stop.id}>{index + 1}. {stop.name} · {group}</option>;
