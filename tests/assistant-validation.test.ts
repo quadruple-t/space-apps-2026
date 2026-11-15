@@ -44,6 +44,29 @@ describe("tool-call validation", () => {
     expect(errCode(v("get_horizon_profile", { useCurrentSite: true }, ctxNoSite))).toBe("no_site_selected");
   });
 
+  it("treats placeholder values as 'not given' (models fill optional arguments with null, empty strings, false, 0)", () => {
+    const filled = { useCurrentSite: true, siteId: "", latDeg: 0, lonDeg: 0, time: "", durationHours: 0, stepMinutes: 0, start: null };
+    for (const tool of ["get_horizon_profile", "get_sun_earth_position", "get_sunlight_and_earth_visibility", "get_sun_earth_rise_set"]) {
+      const r = v(tool, filled);
+      expect(r.ok, tool).toBe(true);
+      expect(r.ok && r.request).toMatchObject({ location: { kind: "catalog", siteId: "apollo-17" } });
+    }
+    const dur = v("get_sunlight_and_earth_visibility", { useCurrentSite: true, durationHours: 0 });
+    expect(dur.ok && dur.request).toMatchObject({ durationHours: 709 });
+    const named = v("get_horizon_profile", { useCurrentSite: false, siteId: "apollo-11", latDeg: 0, lonDeg: 0 });
+    expect(named.ok && named.request).toMatchObject({ location: { kind: "catalog", siteId: "apollo-11" } });
+  });
+
+  it("still refuses genuinely ambiguous locations and says what was provided", () => {
+    const both = v("get_horizon_profile", { useCurrentSite: true, siteId: "apollo-11" });
+    expect(errCode(both)).toBe("invalid_arguments");
+    expect(!both.ok && both.error.message).toMatch(/You provided: useCurrentSite, siteId/);
+    expect(errCode(v("get_horizon_profile", { useCurrentSite: true, latDeg: 12, lonDeg: 0 }))).toBe("invalid_arguments");
+    // A lone (0, 0) with no other location mode is a real point, not a placeholder.
+    const origin = v("get_horizon_profile", { latDeg: 0, lonDeg: 0 });
+    expect(origin.ok && origin.request).toMatchObject({ location: { kind: "point", latDeg: 0, lonDeg: 0 } });
+  });
+
   it("does not send an unverified catalog point as a catalog id", () => {
     const ctx = { ...ctxWithCatalogSite, site: { ...ctxWithCatalogSite.site!, catalogPointVerified: false } };
     const r = v("get_horizon_profile", { useCurrentSite: true }, ctx);

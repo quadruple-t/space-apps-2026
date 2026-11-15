@@ -22,6 +22,8 @@ export type SourceRecord = {
   horizonLabel: string | null;
   dataRange: string | null;
   error?: string;
+  /** The model sent invalid arguments. Not a data failure: hidden from Sources and retried by the model. */
+  internal?: boolean;
   /** Fixed wording that must accompany this result (shown as a notice by the UI). */
   mustSay: string[];
 };
@@ -75,11 +77,21 @@ function ok(tool: ToolName, id: string, parts: { site: string | null; horizon?: 
   return JSON.stringify(response).length > MAX_TOOL_RESULT_CHARS ? failure(tool, id, { code: "result_too_large", message: "The result was too large to return; ask for a narrower window or fewer sites." }, parts.site) : outcome;
 }
 
+const INTERNAL_CODES = new Set(["invalid_arguments", "unknown_tool"]);
+
 export function failure(tool: ToolName | "unknown", id: string, error: ToolError, site: string | null = null): ToolOutcome {
+  const label = tool === "unknown" ? "Unknown tool" : TOOL_LABELS[tool];
+  if (INTERNAL_CODES.has(error.code)) {
+    // The model's own mistake (bad or placeholder arguments): let it correct itself, and do not show it as a data failure.
+    return {
+      response: { ok: false, tool, error: { code: error.code, message: error.message }, instruction: "Your arguments were invalid. Read the error, correct the arguments and call the tool again. Do not mention this to the user unless you cannot fix it." },
+      record: { id, tool, label, ok: false, internal: true, site, horizonKind: null, horizonLabel: null, dataRange: null, error: error.message, mustSay: [] },
+    };
+  }
   const mustSay = error.mustSay ?? failureWording(error.message);
   return {
     response: { ok: false, tool, error: { code: error.code, message: error.message }, mustSay: [mustSay], instruction: "Tell the user plainly that this lookup failed or has no coverage. Do not answer from your own knowledge." },
-    record: { id, tool, label: tool === "unknown" ? "Unknown tool" : TOOL_LABELS[tool], ok: false, site, horizonKind: null, horizonLabel: null, dataRange: null, error: error.message, mustSay: [mustSay] },
+    record: { id, tool, label, ok: false, site, horizonKind: null, horizonLabel: null, dataRange: null, error: error.message, mustSay: [mustSay] },
   };
 }
 

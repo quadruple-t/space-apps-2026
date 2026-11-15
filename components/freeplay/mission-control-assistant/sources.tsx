@@ -1,7 +1,9 @@
 import type { SourceRecord } from "@/lib/assistant/tool-results";
 
 /** Collapsible "Sources" line: one row per data lookup behind the answer (site, horizon source, data range). */
-export function Sources({ records }: { records: SourceRecord[] }) {
+export function Sources({ records: all }: { records: SourceRecord[] }) {
+  // Invalid-argument attempts the model corrected are not data lookups, so they are not sources.
+  const records = all.filter((r) => !r.internal);
   if (records.length === 0) return null;
   return <details className="mt-2 text-[0.65rem] text-muted-foreground">
     <summary className="type-data cursor-pointer rounded uppercase tracking-[0.1em] hover:text-bone focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">

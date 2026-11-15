@@ -83,6 +83,8 @@ export const NO_COVERAGE_WORDING =
   "That time is outside the stored JPL Horizons ephemeris (2026-01-01 to 2030-12-31 UTC), so there is no data for it.";
 export const TOOL_LIMIT_WORDING =
   `I reached the limit of ${MAX_TOOL_ROUNDS} data lookups for one question, so this answer may be incomplete. Ask a narrower follow-up to continue.`;
+export const INVALID_REQUEST_WORDING =
+  "Mission Control couldn't form a valid data request for that question, so it has no data to answer from. Try rephrasing, or select a site first.";
 export const UNGROUNDED_WORDING =
   "This reply did not use a data lookup. Check any figures against the app before relying on them.";
 export function failureWording(message: string): string {

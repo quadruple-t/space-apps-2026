@@ -103,6 +103,7 @@ export const useAssistant = create<AssistantState>((set, get) => ({
           onText: (draft) => { watchdog.poke(); set({ draft, status: draft ? "streaming" : "thinking", progress: null }); },
           onToolStart: (progress) => { watchdog.poke(); dbg("tool start", progress, at()); set({ status: "tool", progress, announce: progress }); },
           onToolEnd: (record) => { watchdog.poke(); dbg("tool end", { tool: record.tool, ok: record.ok, error: record.error }, at()); set({ status: "thinking" }); },
+          onToolCall: (name, args) => dbg("tool call", name, args),
           onRequest: (round) => { watchdog.poke(); dbg("model request", { round }, at()); },
           onResponse: (info) => { watchdog.poke(); dbg("model response", info, at()); },
         },

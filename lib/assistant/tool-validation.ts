@@ -88,7 +88,10 @@ function parseLocation(args: Record<string, unknown>, ctx: ToolContext): Locatio
   const hasLat = args.latDeg !== undefined && args.latDeg !== null;
   const hasLon = args.lonDeg !== undefined && args.lonDeg !== null;
   const modes = Number(wantsCurrent) + Number(hasId) + Number(hasLat || hasLon);
-  if (modes !== 1) return bad("Give exactly one location: useCurrentSite=true, or siteId, or both latDeg and lonDeg");
+  if (modes !== 1) {
+    const given = LOCATION_KEYS.filter((k) => args[k] !== undefined && args[k] !== null);
+    return bad(`Give exactly one location: useCurrentSite=true, or siteId, or both latDeg and lonDeg, and leave the other location arguments out entirely (no empty strings or 0 placeholders). You provided: ${given.join(", ") || "no location"}.`);
+  }
   if (wantsCurrent) return currentSiteLocation(ctx);
   if (hasId) {
     if (typeof args.siteId !== "string" || !ID_RE.test(args.siteId)) return bad("siteId must be a catalog site id (letters, digits, - and _ only)");
@@ -100,6 +103,25 @@ function parseLocation(args: Record<string, unknown>, ctx: ToolContext): Locatio
   if (lonDeg < -180 || lonDeg > 360) return bad("lonDeg must be between -180 and 360 (east-positive)");
   const lat = Number(latDeg.toFixed(4)), lon = Number(lonDeg.toFixed(4));
   return { kind: "point", latDeg: lat, lonDeg: lon, label: `point ${lat.toFixed(3)}°, ${lon.toFixed(3)}°E` };
+}
+
+/**
+ * Models often fill optional parameters with placeholders (null, "", false, 0). Those mean "not given", so they
+ * are dropped before validating. (0, 0) coordinates are dropped only when another location mode is also present.
+ */
+function cleanArgs(raw: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(raw)) {
+    if (v === null || v === undefined || v === "") continue;
+    if (k === "useCurrentSite" && v === false) continue;
+    if ((k === "durationHours" || k === "stepMinutes") && v === 0) continue;
+    out[k] = v;
+  }
+  if ((out.useCurrentSite === true || out.siteId !== undefined) && out.latDeg === 0 && out.lonDeg === 0) {
+    delete out.latDeg;
+    delete out.lonDeg;
+  }
+  return out;
 }
 
 const isValidation = (v: unknown): v is Validation => typeof v === "object" && v !== null && "ok" in v;
@@ -135,7 +157,7 @@ function fitWindow(startMs: number, rawHours: unknown, ctx: ToolContext): { hour
 export function validateToolCall(name: unknown, rawArgs: unknown, ctx: ToolContext): Validation {
   if (!isToolName(name)) return { ok: false, error: { code: "unknown_tool", message: "That tool does not exist." } };
   if (rawArgs !== undefined && rawArgs !== null && (typeof rawArgs !== "object" || Array.isArray(rawArgs))) return bad("Arguments must be an object");
-  const args = (rawArgs ?? {}) as Record<string, unknown>;
+  const args = cleanArgs((rawArgs ?? {}) as Record<string, unknown>);
   const extra = Object.keys(args).filter((k) => !ALLOWED_KEYS[name].includes(k));
   if (extra.length) return bad(`Unknown argument(s): ${extra.slice(0, 5).join(", ")}`);
 

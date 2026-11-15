@@ -1,6 +1,6 @@
 /** Input cap, history cap, client-side rate limit and the deterministic per-turn notices. */
 import {
-  MAX_HISTORY_MESSAGES, MAX_HISTORY_MESSAGE_CHARS, MAX_INPUT_CHARS, RATE_MAX_IN_WINDOW,
+  INVALID_REQUEST_WORDING, MAX_HISTORY_MESSAGES, MAX_HISTORY_MESSAGE_CHARS, MAX_INPUT_CHARS, RATE_MAX_IN_WINDOW,
   RATE_MIN_INTERVAL_MS, RATE_WINDOW_MS, TOOL_LIMIT_WORDING, UNGROUNDED_WORDING,
 } from "./constants";
 import type { SourceRecord } from "./tool-results";
@@ -48,10 +48,15 @@ const NUMERIC_CLAIM = /\d(?:[\d.,]*)\s?(?:°|%|km\b|hours?\b|hrs?\b|minutes?\b|m
  */
 export function turnNotices(records: SourceRecord[], reply: string, opts: { toolLimitHit?: boolean } = {}): string[] {
   const notices = new Set<string>();
-  for (const r of records) r.mustSay.forEach((s) => notices.add(s));
+  for (const r of records) if (!r.internal) r.mustSay.forEach((s) => notices.add(s));
+  // The model could not form a valid request at all: say so rather than leaving a silent, empty answer.
+  if (records.some((r) => r.internal) && !records.some((r) => r.ok)) notices.add(INVALID_REQUEST_WORDING);
   if (opts.toolLimitHit) notices.add(TOOL_LIMIT_WORDING);
   if (!records.some((r) => r.ok) && NUMERIC_CLAIM.test(reply)) notices.add(UNGROUNDED_WORDING);
-  return [...notices];
+  // Skip a notice the reply already states verbatim, so the same sentence is not shown twice.
+  const squash = (t: string) => t.toLowerCase().replace(/\s+/g, " ").trim();
+  const said = squash(reply);
+  return [...notices].filter((n) => !said.includes(squash(n)));
 }
 
 /**

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { runTurn, type ChatLike } from "@/lib/assistant/agent-loop";
-import { FALLBACK_WORDING, MAX_CALLS_PER_ROUND, MAX_TOOL_ROUNDS, TOOL_LIMIT_WORDING, UNGROUNDED_WORDING, failureWording } from "@/lib/assistant/constants";
+import { FALLBACK_WORDING, INVALID_REQUEST_WORDING, MAX_CALLS_PER_ROUND, MAX_TOOL_ROUNDS, TOOL_LIMIT_WORDING, UNGROUNDED_WORDING, failureWording } from "@/lib/assistant/constants";
 import { capHistory, createRateLimiter, createWatchdog, normalizeInput, turnNotices } from "@/lib/assistant/guards";
 import { shapeMetrics } from "@/lib/assistant/tool-results";
 import type { ToolOutcome } from "@/lib/assistant/tool-results";
@@ -56,7 +56,9 @@ describe("runTurn", () => {
     expect(execute).toHaveBeenCalledTimes(MAX_TOOL_ROUNDS);
     expect(requests).toHaveLength(MAX_TOOL_ROUNDS + 1);
     expect(r).toMatchObject({ toolLimitHit: true, rounds: MAX_TOOL_ROUNDS, text: TOOL_LIMIT_WORDING });
-    expect(turnNotices(r.records, r.text, { toolLimitHit: true })).toContain(TOOL_LIMIT_WORDING);
+    // The reply already states the limit, so the notice is not repeated; with a different reply it is added.
+    expect(turnNotices(r.records, r.text, { toolLimitHit: true })).toEqual([]);
+    expect(turnNotices(r.records, "Here is a partial answer.", { toolLimitHit: true })).toContain(TOOL_LIMIT_WORDING);
   });
 
   it("bounds parallel calls within one round", async () => {
@@ -171,5 +173,34 @@ describe("inactivity watchdog", () => {
     const log: string[] = [];
     await runTurn({ chat, userText: "q", ctx: ctxWithCatalogSite, execute: async (_c, id) => okOutcome(id), events: { onRequest: (r) => log.push(`req${r}`), onResponse: (i) => log.push(`res${i.round}:${i.functionCalls.join("+")}`) } });
     expect(log).toEqual(["req0", "res0:list_story_chapters", "req1", "res1:"]);
+  });
+});
+
+describe("model argument mistakes are not shown as data failures", () => {
+  it("marks invalid-argument results internal: retry instruction, no failure wording, hidden from notices", async () => {
+    const out = await executeToolCall({ name: "get_sun_earth_rise_set", args: {} }, "c1", ctxWithCatalogSite, { get: vi.fn() as unknown as ScienceGet });
+    expect(out.record).toMatchObject({ ok: false, internal: true, mustSay: [] });
+    expect(out.response).not.toHaveProperty("mustSay");
+    expect(String(out.response.instruction)).toMatch(/correct the arguments and call the tool again/);
+    expect((out.response.error as { message: string }).message).toMatch(/You provided: no location/);
+    expect(turnNotices([out.record], "")).toEqual([INVALID_REQUEST_WORDING]);
+  });
+
+  it("shows no notice when the model corrects itself and a later call succeeds", async () => {
+    const get = (async () => metricsApi("LOLA DEM")) as unknown as ScienceGet;
+    const { chat } = mockModel([
+      { calls: [{ name: "get_sunlight_and_earth_visibility", args: { siteId: "apollo-17", useCurrentSite: true } }] },
+      { calls: [{ name: "get_sunlight_and_earth_visibility", args: { useCurrentSite: true } }] },
+      { text: "About 72% sunlit." },
+    ]);
+    const r = await runTurn({ chat, userText: "q", ctx: ctxWithCatalogSite, execute: (c, id, ctx, deps) => executeToolCall(c, id, ctx, { ...deps, get }) });
+    expect(r.records.map((x) => [x.ok, x.internal ?? false])).toEqual([[false, true], [true, false]]);
+    expect(turnNotices(r.records, r.text)).toEqual([]);
+  });
+
+  it("does not repeat a notice the reply already contains", () => {
+    const rec = { id: "1", tool: "get_horizon_profile" as const, label: "x", ok: true, site: null, horizonKind: "smooth-sphere-fallback" as const, horizonLabel: null, dataRange: null, mustSay: [FALLBACK_WORDING] };
+    expect(turnNotices([rec], `Result. ${FALLBACK_WORDING.toUpperCase()}  `)).toEqual([]);
+    expect(turnNotices([rec], "Result.")).toEqual([FALLBACK_WORDING]);
   });
 });

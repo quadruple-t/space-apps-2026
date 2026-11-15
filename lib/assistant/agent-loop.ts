@@ -21,6 +21,8 @@ export type TurnEvents = {
   onText?: (text: string) => void;
   onToolStart?: (progressLabel: string) => void;
   onToolEnd?: (record: SourceRecord) => void;
+  /** Diagnostics: the model asked for a tool, with its raw arguments. */
+  onToolCall?: (name: string, args: unknown) => void;
   /** Diagnostics: a model request starts (round 0 is the user's message). */
   onRequest?: (round: number) => void;
   /** Diagnostics: a model response finished streaming. */
@@ -67,6 +69,7 @@ export async function runTurn(p: TurnParams): Promise<TurnResult> {
 
     const parts = await Promise.all(calls.map(async (call, index): Promise<Part> => {
       const id = `call-${++callCounter}`;
+      events?.onToolCall?.(call.name, call.args);
       if (isToolName(call.name)) events?.onToolStart?.(TOOL_PROGRESS[call.name]);
       const outcome = index >= MAX_CALLS_PER_ROUND
         ? failure(isToolName(call.name) ? call.name : "unknown", id, { code: "invalid_arguments", message: `Too many tool calls in one round (limit ${MAX_CALLS_PER_ROUND}).` })
