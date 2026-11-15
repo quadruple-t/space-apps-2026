@@ -9,7 +9,7 @@ const delay = (name: string, ms: number) => ({ [name]: `${ms}ms` }) as React.CSS
 
 export function Hero() {
   return (
-    <section aria-labelledby="hero-title" className="relative isolate flex min-h-[100svh] flex-col overflow-hidden">
+    <section id="hero" data-constellation-node="Horizon" aria-labelledby="hero-title" className="relative isolate flex min-h-[100svh] flex-col overflow-hidden">
       <div className="absolute inset-0 -z-10">
         <LunarSceneLoader variant="hero" />
         {/* Legibility scrims — anchor the type to the shadowed foreground. */}

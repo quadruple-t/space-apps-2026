@@ -179,6 +179,9 @@ export const useExpeditions = create<ExpeditionState>((set, get) => ({
 
   setUser: async (uid, change) => {
     if (change === "signedOut" || !uid) {
+      // Keep a local recovery copy first: autosave.flush resolves even when its write fails.
+      const content = currentContent();
+      patchDraft({ workspace: content.workspace, sites: content.sites, chat: content.chat, notes: content.notes });
       // Flush any pending cloud autosave before discarding the open expedition so
       // edits made within the autosave delay are not lost.
       await autosave.flush();

@@ -9,7 +9,7 @@ import { EXPERIENCES } from "@/data/site";
 
 export function ExperienceCards() {
   return (
-    <section id="explore" aria-labelledby="explore-title" className="relative border-t border-line py-24 sm:py-32">
+    <section id="explore" data-constellation-node="Explore" aria-labelledby="explore-title" className="relative border-t border-line py-24 sm:py-32">
       <PageContainer>
         <Reveal>
           <SectionHeading id="explore-title" title="Three ways to explore.">

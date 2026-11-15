@@ -6,6 +6,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { ArrowLeft, Bot, Car, GitCompareArrows, Globe2, Orbit } from "lucide-react";
 import { ExpeditionControl, EXPEDITION_LAUNCHER_ID } from "@/components/expeditions/expedition-control";
 import { ExpeditionPanel } from "@/components/expeditions/expedition-panel";
+import { Logo } from "@/components/brand/logo";
 import { AssistantPanel, LAUNCHER_ID, PANEL_ID } from "@/components/freeplay/assistant-panel";
 import { usePlaybackClock } from "@/components/freeplay/time-controls";
 import type { FreeplaySite } from "@/data/sites";
@@ -70,14 +71,13 @@ export function FreeplayApp({ aside, guidedPanels, assistantEnabled = true, guid
     return () => { void expeditions.detach(); };
   }, [guidedMode]);
 
-  return <div className="flex h-dvh flex-col bg-void pt-(--nav-height)">
-    <header className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-3 py-2 sm:px-4">
+  return <div className={`flex h-dvh flex-col bg-void ${guidedMode ? "pt-0" : "pt-(--nav-height)"}`}>
+    <header className={`flex flex-wrap items-center justify-between gap-2 border-b border-line px-3 sm:px-4 ${guidedMode ? "py-0.5" : "py-2"}`}>
       <div className="flex max-w-full flex-wrap items-center gap-x-3 gap-y-2">
         {guidedMode ? <>
-          <Link href="/mission" aria-label="Exit Guided Mission" className="grid size-9 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><ArrowLeft size={17} /></Link>
-          <div>
-            <h1 className="type-heading text-sm text-bone">Guided Mission</h1>
-          </div>
+          <Link href="/" aria-label="Exit Guided Mission to Lunaris360 home" className="grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><ArrowLeft size={16} /></Link>
+          <Logo compact />
+          <h1 className="type-heading text-sm text-bone">Guided Mission</h1>
         </> : <>
           <h1 className="type-heading text-sm text-bone sm:text-base">Open Exploration</h1>
           <div className="flex max-w-full overflow-x-auto rounded border border-line">
