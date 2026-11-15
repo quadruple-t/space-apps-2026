@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, type PointerEvent } from "react";
 import type { CartesianSeries } from "@/lib/ephemeris";
 import { orbitGeometry, phase, type OrbitGeometry } from "@/lib/orbit";
 import type { FreeplaySite } from "@/data/sites";
@@ -27,11 +27,14 @@ type Props = {
   missionEndMs: number;
   sunUp: boolean | null;
   earthUp: boolean | null;
+  /** Called with a new time (ms) while the user drags the Moon around its orbit. */
+  onSeek?: (tMs: number) => void;
 };
 
 /** Top-down Earth–Moon diagram in a Sun-fixed frame (sunlight from the right). Not to scale. */
-export function OrbitDiagram({ series, site, tMs, missionStartMs, missionEndMs, sunUp, earthUp }: Props) {
+export function OrbitDiagram({ series, site, tMs, missionStartMs, missionEndMs, sunUp, earthUp, onSeek }: Props) {
   const [ref, { width: W, height: H }] = useSize<HTMLDivElement>();
+  const [dragging, setDragging] = useState(false);
   const cx = W * 0.44, cy = H / 2;
   const orbitR = Math.min(W * 0.36, H * 0.4);
   const earthR = Math.max(16, orbitR * 0.14), moonR = Math.max(9, orbitR * 0.07);
@@ -97,13 +100,55 @@ export function OrbitDiagram({ series, site, tMs, missionStartMs, missionEndMs, 
 
   const rays = [0.2, 0.35, 0.5, 0.65, 0.8].map((f) => H * f);
 
+  // Drag-to-scrub: find the time, within half a lunar month of now, whose Moon
+  // direction (seen from Earth) best matches the pointer. Coarse hourly pass, then 5-minute refine.
+  const moonAngleAt = (t: number) => {
+    if (!series.covers(t)) return null;
+    const { sun, earth } = series.at(t);
+    const p = orbitGeometry(sun, earth, 0, 0).moon;
+    return Math.atan2(p.y, p.x);
+  };
+  const angDiff = (a: number, b: number) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
+  const timeAtPointer = (e: PointerEvent<SVGSVGElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const target = Math.atan2(cy - (e.clientY - r.top), e.clientX - r.left - cx);
+    const lo = Math.max(missionStartMs, tMs - MONTH_MS / 2), hi = Math.min(missionEndMs, tMs + MONTH_MS / 2);
+    const best = (from: number, to: number, step: number) => {
+      let bt: number | null = null, bd = Infinity;
+      for (let t = from; t <= to; t += step) {
+        const a = moonAngleAt(t);
+        if (a === null) continue;
+        const d = angDiff(a, target);
+        if (d < bd) { bd = d; bt = t; }
+      }
+      return bt;
+    };
+    const coarse = best(lo, hi, 3_600_000);
+    if (coarse === null) return null;
+    return best(Math.max(lo, coarse - 3_600_000), Math.min(hi, coarse + 3_600_000), 300_000) ?? coarse;
+  };
+  const nearOrbit = (e: PointerEvent<SVGSVGElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    return Math.abs(Math.hypot(e.clientX - r.left - cx, e.clientY - r.top - cy) - orbitR) <= Math.max(28, moonR * 2.5);
+  };
+  const scrub = (e: PointerEvent<SVGSVGElement>) => { const t = timeAtPointer(e); if (t !== null) onSeek?.(t); };
+
   return <div ref={ref} className="relative h-full w-full">
     <div className="pointer-events-none absolute left-3 top-3 z-10 max-w-[70%] border border-retro-purple/35 bg-void/80 px-3 py-2 backdrop-blur-sm">
       <p className="type-data text-[0.6rem] uppercase tracking-[0.14em] text-retro-purple">Concept 72h transfer · {site.name}</p>
-      <p className="type-data mt-1 text-[0.56rem] text-bone/60">{Math.round(flightProgress * 100)}% in flight · scrub mission clock · illustrative, not a flight plan</p>
+      <p className="type-data mt-1 text-[0.56rem] text-bone/60">{Math.round(flightProgress * 100)}% in flight · scrub mission clock{onSeek ? " or drag the Moon" : ""} · illustrative, not a flight plan</p>
     </div>
-    <svg width={W} height={H} role="img" className="block"
-      aria-label={`Earth-Moon orbit diagram, not to scale. A conceptual 72-hour rocket transfer is ${Math.round(flightProgress * 100)} percent complete. Sunlight from the right. Moon ${(distKm / 1000).toFixed(0)} thousand km from Earth, ${ph.name}. Selected site ${sunUp ? "in daylight" : "in darkness"}${earthUp === null ? "" : earthUp ? ", Earth above its horizon" : ", Earth below its horizon"}.`}>
+    <svg width={W} height={H} role="img" className={`block ${onSeek ? (dragging ? "cursor-grabbing touch-none" : "cursor-grab touch-none") : ""}`}
+      onPointerDown={(e) => {
+        if (!onSeek || (e.pointerType === "mouse" && e.button !== 0) || !nearOrbit(e)) return;
+        e.currentTarget.setPointerCapture(e.pointerId);
+        setDragging(true);
+        scrub(e);
+      }}
+      onPointerMove={(e) => { if (dragging) scrub(e); }}
+      onPointerUp={(e) => { if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId); setDragging(false); }}
+      onPointerCancel={() => setDragging(false)}
+      aria-label={`Earth-Moon orbit diagram, not to scale. A conceptual 72-hour rocket transfer is ${Math.round(flightProgress * 100)} percent complete.${onSeek ? " Drag the Moon along its orbit to change the mission time." : ""} Sunlight from the right. Moon ${(distKm / 1000).toFixed(0)} thousand km from Earth, ${ph.name}. Selected site ${sunUp ? "in daylight" : "in darkness"}${earthUp === null ? "" : earthUp ? ", Earth above its horizon" : ", Earth below its horizon"}.`}>
       <defs>
         <marker id="fp-arrow-sun" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill={SUN} /></marker>
         <marker id="fp-arrow-orbit" markerWidth="9" markerHeight="9" refX="6" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill={INK} /></marker>
@@ -152,7 +197,7 @@ export function OrbitDiagram({ series, site, tMs, missionStartMs, missionEndMs, 
 
     <div className="pointer-events-none absolute left-3 top-3 flex max-w-[calc(100%-1.5rem)] flex-col gap-1">
       <span className="w-fit rounded border border-retro-red/50 bg-void/80 px-1.5 py-0.5 type-data text-[0.56rem] uppercase tracking-[0.14em] text-bone">Not to scale</span>
-      <span className="hidden w-fit rounded bg-void/70 px-1 type-data text-[0.58rem] text-muted-foreground sm:block">Top-down from lunar north · Sun-fixed frame · JPL Horizons via Lunaris360 data</span>
+      <span className="hidden w-fit rounded bg-void/70 px-1 type-data text-[0.58rem] text-muted-foreground sm:block">Top-down from lunar north · Sun-fixed frame · JPL Horizons via Lunaris360 data{onSeek ? " · drag the Moon along its orbit to change time" : ""}</span>
     </div>
     <div className="pointer-events-none absolute bottom-3 left-3 mr-3 grid gap-0.5 rounded bg-void/75 px-1.5 py-1 type-data text-[0.6rem] text-muted-foreground">
       <span><span className="text-bone">{ph.name}</span> · {(ph.illuminated * 100).toFixed(0)}% lit from Earth</span>

@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { DevelopmentNotice, PageIntro } from "@/components/experience/page-intro";
 import { HorizonProfile } from "@/components/graphics/horizon-profile";
 import { PageContainer } from "@/components/layout/page-container";
 import { DATA_SOURCES } from "@/data/site";
 import { METHOD_STEPS } from "@/data/science";
 import { MissionFlashcards } from "@/components/mission-control/flashcards";
-import { IntroductionSection } from "@/components/landing/introduction-section";
 
 export const metadata: Metadata = {
-  title: "Debrief",
+  title: "Mission Control",
   description: "How Shadowline will use LOLA terrain and JPL Horizons ephemerides to model lighting and Earth visibility.",
 };
 
@@ -39,10 +39,10 @@ const GLOSSARY = [
   ["Direct-to-Earth", "Communication from the lunar surface straight to Earth, which needs an unobstructed line of sight."],
 ] as const;
 
-export default function SciencePage() {
+export function MissionControlContent() {
   return (
     <>
-      <PageIntro index="02" title="Debrief" lede="Understand the principles that make exploration possible." status="Learning library">
+      <PageIntro index="02" title="How It Works" lede="Understand the science behind lunar exploration." status="Learning library">
         <p>
           Space travel depends on getting the fundamentals right: where energy comes from, how spacecraft orient
           themselves, and how crews stay connected to Earth. Learning these concepts helps turn exploration into
@@ -75,8 +75,6 @@ export default function SciencePage() {
           </div>
         </PageContainer>
       </section>
-
-      <IntroductionSection />
 
       <section aria-labelledby="mission-vocabulary" className="border-t border-line py-16 sm:py-24">
         <PageContainer>
@@ -179,4 +177,8 @@ export default function SciencePage() {
       </section>
     </>
   );
+}
+
+export default function MissionControlRedirect() {
+  redirect("/how-it-works");
 }

@@ -34,7 +34,7 @@ const PIN = {
   selected: starImage("#ff5364", "#fff2f5", 36),
 };
 
-export default function MoonGlobe() {
+export default function MoonGlobe({ guidedSites }: { guidedSites?: FreeplaySite[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<CesiumNS.Viewer | null>(null);
   const cesiumRef = useRef<Cesium | null>(null);
@@ -144,7 +144,7 @@ export default function MoonGlobe() {
         const id = picked?.id instanceof C.Entity ? picked.id.id : null;
         const { savedSites, selectSite, selectCustom, site: current } = useFreeplay.getState();
         if (id && id !== "radius") {
-          const hit = savedSites.find((s) => s.id === id) ?? (current?.id === id ? current : null)
+          const hit = savedSites.find((s) => s.id === id) ?? guidedSites?.find((s) => s.id === id) ?? (current?.id === id ? current : null)
             ?? (useFreeplay.getState().showCatalog ? catalogRef.current.find((s) => s.id === id) : undefined);
           if (hit) { selectSite(hit, true); return; }
         }
@@ -173,7 +173,7 @@ export default function MoonGlobe() {
       cleanup = () => { scene.canvas.removeEventListener("wheel", onWheel); removePostRender(); handler.destroy(); viewer.destroy(); };
     }).catch((e: unknown) => { if (!destroyed) setError(e instanceof Error ? e.message : String(e)); });
     return () => { destroyed = true; cleanup(); viewerRef.current = null; overlays.clear(); };
-  }, []);
+  }, [guidedSites]);
 
   // ── Pins and radius circle ────────────────────────────────────────────────
   useEffect(() => {
@@ -182,7 +182,8 @@ export default function MoonGlobe() {
     // Update entities in place: removing and re-adding the same id in one batch
     // makes Cesium's visualizers drop the new graphics.
     const moon = C.Ellipsoid.MOON;
-    const all: FreeplaySite[] = [...savedSites, ...shownCatalog.filter((c) => !savedSites.some((s) => s.catalogId === c.catalogId))];
+    const sourceSites = guidedSites ?? shownCatalog;
+    const all: FreeplaySite[] = [...savedSites, ...sourceSites.filter((c) => !savedSites.some((s) => s.catalogId && s.catalogId === c.catalogId))];
     if (site && !all.some((s) => s.id === site.id)) all.push(site);
     const keep = new Set(all.map((s) => s.id).concat("radius"));
     for (const e of [...viewer.entities.values]) if (!keep.has(e.id)) viewer.entities.remove(e);
@@ -220,7 +221,7 @@ export default function MoonGlobe() {
     };
     if (radius) Object.assign(radius, circle);
     else viewer.entities.add({ id: "radius", ...circle });
-  }, [ready, site, savedSites, shownCatalog]);
+  }, [ready, site, savedSites, shownCatalog, guidedSites]);
 
   // ── Fly to a saved site when it's chosen (not for points picked in view) ──
   const siteId = site?.id, siteKind = site?.kind;
@@ -234,6 +235,20 @@ export default function MoonGlobe() {
       duration: 1.6,
     });
   }, [ready, siteId, siteKind]);
+
+  // ── Fly to the selected site when something outside the globe asks (the assistant) ──
+  const focusNonce = useFreeplay((s) => s.focusNonce);
+  const handledFocus = useRef(0);
+  useEffect(() => {
+    const C = cesiumRef.current, viewer = viewerRef.current;
+    const s = useFreeplay.getState().site;
+    if (!ready || !C || !viewer || !s || focusNonce === handledFocus.current) return;
+    handledFocus.current = focusNonce;
+    viewer.camera.flyTo({
+      destination: C.Cartesian3.fromDegrees(s.longitudeDeg, s.latitudeDeg, Math.min(3_000_000, Math.max(40_000, s.radiusKm * 1000 * 10)), C.Ellipsoid.MOON),
+      duration: 1.6,
+    });
+  }, [ready, focusNonce]);
 
   // ── Overlay visibility and opacity ────────────────────────────────────────
   useEffect(() => {

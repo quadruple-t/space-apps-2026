@@ -1,19 +1,22 @@
-import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
+import logoImage from "./logo.png";
+import logoMarkImage from "./logo-mark.png";
 
-/**
- * Lunaris360 mark: a lunar disc cut by a ridgeline, with the Sun resting on
- * the horizon — the moment of grazing light the product is about.
- */
+/** Lunaris360 mark: the lunar disc alone, for contexts that supply their own wordmark. */
 export function LogoMark({ className }: { className?: string }) {
-  return <Image src="/lunaris360-logo.png" alt="" aria-hidden width={72} height={72} className={cn("size-8 object-contain", className)} />;
+  return <Image src={logoMarkImage} alt="" aria-hidden className={cn("size-8 object-contain", className)} />;
 }
 
-export function Logo({ className, showWordmark = true }: { className?: string; showWordmark?: boolean }) {
-  return (
+export function Logo({ className, showWordmark = true, compact = false }: { className?: string; showWordmark?: boolean; compact?: boolean }) {
+  if (compact) return (
     <span className={cn("inline-flex items-center gap-2.5 text-bone", className)}>
-      <LogoMark />
-      {showWordmark && <span className="sr-only">Lunaris360</span>}
+      <span className="grid size-12 shrink-0 place-items-center" aria-hidden>
+        <Image src={logoMarkImage} alt="" priority className="block size-full object-contain" />
+      </span>
+      {showWordmark && <span className="font-heading text-[0.95rem] font-bold tracking-[0.14em] [font-variation-settings:'wdth'_125]">LUN<span className="text-retro-red">A</span>RIS360</span>}
     </span>
   );
+
+  return <Image src={logoImage} alt="Lunaris360" priority className={cn("h-auto w-32", className)} />;
 }

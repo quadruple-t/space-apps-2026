@@ -36,7 +36,7 @@ export function Navbar() {
         className="mx-auto flex h-full max-w-[1320px] items-center justify-between gap-6 px-5 sm:px-8 lg:px-12"
       >
         <Link href="/" aria-label="Lunaris360 home" className="rounded-sm">
-          <Logo />
+          <Logo compact />
         </Link>
 
         <ul className="hidden items-center gap-1 md:flex">
@@ -75,7 +75,7 @@ export function Navbar() {
             </SheetTrigger>
             <SheetContent side="right" className="w-[86vw] max-w-sm border-line bg-void p-0">
               <div className="flex h-(--nav-height) items-center border-b border-line px-6">
-                <Logo />
+                <Logo compact />
               </div>
               <SheetTitle className="sr-only">Navigation</SheetTitle>
               <SheetDescription className="sr-only">Open a Lunaris360 page.</SheetDescription>
