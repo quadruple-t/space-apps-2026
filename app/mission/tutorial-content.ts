@@ -1,11 +1,9 @@
 import type { ChapterId } from "@/lib/model/types";
 
-/** Freeplay screen a lesson runs on: the Moon globe, Orbit + Graphs, or the surface drive. */
 export type LessonScreen = "globe" | "orbit" | "drive";
 
 export type GuidedLesson = {
   id: "pick-site" | "overlays" | "sun" | "earth" | "candidates" | "surface";
-  /** Story chapter (storyChapters collection) this lesson belongs to. */
   chapterId: ChapterId;
   screen: LessonScreen;
   title: string;
@@ -25,33 +23,35 @@ export type StoryStopSpec = {
   longitudeDeg?: number;
 };
 
-/** A short, ordered map tour. Candidate and unvisited points are references, not landing records. */
+/** Candidate and unvisited points are clearly presented as references, not landing records. */
 export const STORY_STOPS: StoryStopSpec[] = [
   { id: "apollo-11", catalogId: "apollo-11-tranquility", name: "Apollo 11 · Mare Tranquillitatis", group: "Historic landing", note: "First crewed Moon landing, 1969." },
   { id: "luna-9", catalogId: "luna-9", name: "Luna 9 · Oceanus Procellarum area", group: "Historic landing", note: "First successful soft landing, 1966; location is approximate." },
   { id: "apollo-15", catalogId: "apollo-15-hadley-apennine", name: "Apollo 15 · Hadley–Apennine", group: "Historic landing", note: "A landing beside a winding valley and mountain range, 1971." },
   { id: "apollo-17", catalogId: "apollo-17-taurus-littrow", name: "Apollo 17 · Taurus–Littrow", group: "Historic landing", note: "Last crewed lunar landing, 1972." },
-  { id: "schrodinger-basin", name: "Schrödinger Basin", group: "Unvisited region", note: "A large far-side basin; no historical landing here. Approximate center.", latitudeDeg: -75, longitudeDeg: 132.4 },
-  { id: "peary-crater", name: "Peary Crater", group: "Unvisited region", note: "A crater near the north pole; no historical landing here. Approximate center.", latitudeDeg: 88.6, longitudeDeg: 33 },
-  { id: "haworth-crater", catalogId: "artemis-haworth", name: "Haworth Crater", group: "Unvisited region", note: "No historical landing. The marker is an approximate region reference." },
-  { id: "malapert-massif", catalogId: "artemis-malapert-massif", name: "Malapert Massif", group: "Artemis III candidate", note: "A candidate region, not a selected or confirmed landing site." },
-  { id: "nobile-rim-1", catalogId: "artemis-nobile-rim-1", name: "Nobile Rim 1", group: "Artemis III candidate", note: "A candidate region, not a selected or confirmed landing site." },
-  { id: "mons-mouton", catalogId: "artemis-mons-mouton", name: "Mons Mouton", group: "Artemis III candidate", note: "A candidate region, not a selected or confirmed landing site." },
+  { id: "schrodinger-basin", name: "Schrödinger Basin", group: "Unvisited region", note: "A far-side basin; approximate center, not a landing site.", latitudeDeg: -75, longitudeDeg: 132.4 },
+  { id: "peary-crater", name: "Peary Crater", group: "Unvisited region", note: "A crater near the north pole; approximate center, not a landing site.", latitudeDeg: 88.6, longitudeDeg: 33 },
+  { id: "haworth-crater", catalogId: "artemis-haworth", name: "Haworth Crater", group: "Unvisited region", note: "No historic landing; marker is an approximate region reference." },
+  { id: "malapert-massif", catalogId: "artemis-malapert-massif", name: "Malapert Massif", group: "Artemis III candidate", note: "Candidate region, not a selected or confirmed landing site." },
+  { id: "nobile-rim-1", catalogId: "artemis-nobile-rim-1", name: "Nobile Rim 1", group: "Artemis III candidate", note: "Candidate region, not a selected or confirmed landing site." },
+  { id: "mons-mouton", catalogId: "artemis-mons-mouton", name: "Mons Mouton", group: "Artemis III candidate", note: "Candidate region, not a selected or confirmed landing site." },
 ];
 
-export const SCREEN_LABELS: Record<LessonScreen, string> = { globe: "Moon map", orbit: "Sun & Earth", drive: "Moon surface" };
-
-/** Shown while the chapter records load, or if the catalog is unavailable. */
-export const CHAPTER_LABELS: Record<ChapterId, { title: string; era: string; concept: string }> = {
-  "ch1-first-landing": { title: "First Landing", era: "Apollo era", concept: "Sun angle and lighting" },
-  "ch2-robotic-explorer": { title: "Robotic Explorer", era: "Commercial landers", concept: "Solar power, batteries and Earth comms" },
-  "ch3-lunar-base": { title: "Lunar Base", era: "Artemis era", concept: "Ice, long-duration sunlight and survival" },
+export const SCREEN_LABELS: Record<LessonScreen, string> = {
+  globe: "Moon map",
+  orbit: "Sun & Earth",
+  drive: "Moon surface",
 };
 
-/** Mission start for the story: near the Apollo 11 landing date. */
+export const CHAPTER_LABELS: Record<ChapterId, { title: string; era: string; concept: string }> = {
+  "ch1-first-landing": { title: "First Landing", era: "Apollo era", concept: "Choosing a safe place to land" },
+  "ch2-robotic-explorer": { title: "Robotic Explorers", era: "Modern exploration", concept: "Power and communication" },
+  "ch3-lunar-base": { title: "Mining Lunar Base", era: "Artemis era", concept: "Long-term living and potential resources" },
+};
+
 export const GUIDED_START_UTC = "2026-11-15T23:00:00.000Z";
 
-/** The lessons follow Freeplay's own order: Globe, then Orbit + Graphs, then the surface drive. */
+/** Six short lessons follow Apollo, robotic exploration, then future lunar-base planning. */
 export const GUIDED_LESSONS: readonly GuidedLesson[] = [
   {
     id: "pick-site",
@@ -78,9 +78,9 @@ export const GUIDED_LESSONS: readonly GuidedLesson[] = [
     chapterId: "ch2-robotic-explorer",
     screen: "orbit",
     title: "Follow the sunlight",
-    story: "A landing site can be bright at one time and dark later. The mission team needs to know when sunlight reaches the ground so it can plan power and temperature.",
+    story: "A landing site can be bright at one time and dark later. A robotic explorer needs sunlight for power and warmth.",
     example: "Apollo 11 was planned for a low morning Sun. Long shadows helped astronauts see rocks and craters, but the Sun still had to reach the landing area.",
-    steps: ["Open the Sunlight view.", "Press Play or move the time slider.", "Watch the chart and the sunlight readout change."],
+    steps: ["Press Play or move the time slider.", "Watch the sunlight readout and graph change."],
     why: "A single moment cannot tell the team how long sunlight will last.",
   },
   {
@@ -89,19 +89,19 @@ export const GUIDED_LESSONS: readonly GuidedLesson[] = [
     screen: "orbit",
     title: "Keep a view of Earth",
     story: "A lander needs to send information home. A nearby ridge can block the view of Earth, even when the sky looks open from another place.",
-    example: "At each stop, the Earth view changes with the site's position and terrain. A clear view is helpful, but it does not guarantee a working radio link.",
-    steps: ["Open Earth visibility.", "Move through the chart and notice when Earth is above the horizon."],
+    example: "The Earth-visibility graph shows when terrain blocks the view. A clear view helps, but does not guarantee a working radio link.",
+    steps: ["Choose Earth visibility.", "Move along the graph and notice when Earth is above the horizon."],
     why: "A mission needs both a clear path to Earth and working communications equipment.",
   },
   {
     id: "candidates",
     chapterId: "ch3-lunar-base",
     screen: "orbit",
-    title: "Compare future landing regions",
-    story: "A future base may need sunlight, safe ground, and a route to nearby resources. No single number can name the best place for every mission.",
-    example: "Malapert Massif, Nobile Rim 1, and Mons Mouton are candidate regions. Their map points are approximate references, not official landing coordinates.",
-    steps: ["Choose a second candidate from the list.", "Open Orbit + Graphs.", "Compare sunlight at both places over the same time."],
-    why: "A fair comparison uses the same dates and checks each site's data source.",
+    title: "Compare future base regions",
+    story: "Now plan for a possible long-term lunar base. A base may need steady sunlight, safe ground, communication, and access to places that could contain ice.",
+    example: "Malapert Massif, Nobile Rim 1, and Mons Mouton are candidate regions. Their map points are approximate references, not official landing coordinates or proof of resources.",
+    steps: ["Choose a second candidate.", "Compare sunlight at both places over the same time."],
+    why: "There is no single best place for every mission; each site involves trade-offs.",
   },
   {
     id: "surface",

@@ -40,10 +40,9 @@ export const EXPERIENCES: Experience[] = [
     index: "01",
     title: "Story Mode",
     subtitle: "Understand the environment.",
-    description:
-      "Six interactive lessons guide you through lunar site selection, lighting, Earth visibility and surface navigation.",
-    topics: ["Sunlight", "Moon terrain", "View of Earth"],
-    cta: "Enter Story Mode",
+    description: "Learn about Apollo landings, robotic explorers, and future lunar-base regions through short stories, examples, and guided actions.",
+    topics: ["Sunlight", "Moon terrain", "View of Earth", "Future base regions"],
+    cta: "Start Story Mode",
     href: "/mission",
   },
   {

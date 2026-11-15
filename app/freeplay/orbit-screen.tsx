@@ -19,14 +19,14 @@ function Status({ loading, error, what }: { loading: boolean; error: string | nu
 }
 
 export function OrbitScreen() {
-  const site = useFreeplay((s) => s.site);
-  const setView = useFreeplay((s) => s.setView);
+  const site = useFreeplay((state) => state.site);
+  const setView = useFreeplay((state) => state.setView);
   if (!site) return <div className="grid h-full place-items-center p-4">
     <div className="hud-panel w-full max-w-md p-5 text-center">
       <Globe2 className="mx-auto text-retro-purple" size={22} aria-hidden />
-      <h2 className="type-heading mt-2 text-base text-bone">Pick a site first</h2>
-      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">The orbit view and graphs follow one landing site. Click anywhere on the Moon, or choose one of your saved sites.</p>
-      <button type="button" onClick={() => setView("globe")} className="mt-4 rounded bg-retro-purple px-4 py-2 text-[0.62rem] font-semibold uppercase tracking-[0.1em] text-void hover:bg-[#c2aaff]">Go to the globe</button>
+      <h2 className="type-heading mt-2 text-base text-bone">Choose a place first</h2>
+      <p className="mt-1 text-sm leading-relaxed text-muted-foreground">Choose a place on the Moon map to see how sunlight and Earth visibility change there.</p>
+      <button type="button" onClick={() => setView("globe")} className="mt-4 rounded bg-retro-purple px-4 py-2 text-sm font-semibold text-void hover:bg-[#c2aaff]">Open Moon map</button>
       <PresetsPanel collapsible={false} className="mt-4 max-h-60 text-left" />
     </div>
   </div>;
@@ -34,23 +34,20 @@ export function OrbitScreen() {
 }
 
 function OrbitScreenFor({ site }: { site: FreeplaySite }) {
-  const startIso = useFreeplay((s) => s.startIso);
-  const durationHours = useFreeplay((s) => s.durationHours);
-  const elapsedHours = useFreeplay((s) => s.elapsedHours);
-  const graphTab = useFreeplay((s) => s.graphTab);
+  const startIso = useFreeplay((state) => state.startIso);
+  const durationHours = useFreeplay((state) => state.durationHours);
+  const elapsedHours = useFreeplay((state) => state.elapsedHours);
+  const graphTab = useFreeplay((state) => state.graphTab);
+  const setElapsed = useFreeplay((state) => state.setElapsed);
   const [focus, setFocus] = useState<GraphFocus>("sunlight");
   const tMs = currentTimeMs({ startIso, elapsedHours });
   const startMs = Date.parse(startIso);
-
-  // A day past the mission end so the orbit diagram can draw its motion arrow ahead of the Moon.
   const mission = useLunarWindow(site, startIso, durationHours + 30);
   const year = useLunarWindow(site, startIso, 365 * 24, graphTab === "yearly");
   const missionEndMs = startMs + durationHours * 3_600_000;
-  const missionData = mission.data;
-  const samples = useMemo(() => missionData?.samples.filter((s) => s.t <= missionEndMs) ?? null, [missionData, missionEndMs]);
+  const samples = useMemo(() => mission.data?.samples.filter((sample) => sample.t <= missionEndMs) ?? null, [mission.data, missionEndMs]);
   const index = samples?.length ? Math.min(samples.length - 1, elapsedHours) : 0;
   const now = samples?.length ? sampleAt(samples, index) : null;
-
   const activeFocus = graphTab === "yearly" && focus === "power" ? "sunlight" : focus;
   const topics: { id: GraphFocus; label: string; Icon: typeof Sun }[] = [
     { id: "sunlight", label: "Sunlight", Icon: Sun },
@@ -94,7 +91,8 @@ function OrbitScreenFor({ site }: { site: FreeplaySite }) {
         <div className="mt-3 h-[min(48dvh,420px)] min-h-64">
           {mission.data
             ? <OrbitDiagram series={mission.data.series} site={site} tMs={tMs} missionStartMs={startMs} missionEndMs={missionEndMs}
-                sunUp={now ? sunUp(now) : null} earthUp={now ? earthUp(now) : null} />
+                sunUp={now ? sunUp(now) : null} earthUp={now ? earthUp(now) : null}
+                onSeek={(time) => setElapsed((time - startMs) / 3_600_000)} />
             : <Status loading={mission.loading} error={mission.error} what="orbit positions" />}
         </div>
       </details>

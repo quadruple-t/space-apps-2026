@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import type { LunarSite } from "@/integrations/science/types";
 import { currentTimeMs, useFreeplay } from "@/lib/freeplay-store";
 import { GuidedPlanner } from "./guided-planner";
-import { GUIDED_LESSONS, GUIDED_START_UTC, SURFACE_LESSON } from "./tutorial-content";
+import { GUIDED_LESSONS, GUIDED_START_UTC } from "./tutorial-content";
 import { toDriveSite, useTutorialData, withTerrainRecord } from "./use-tutorial-data";
 
 export function GuidedMissionExperience() {
@@ -38,18 +38,17 @@ export function GuidedMissionExperience() {
     const store = useFreeplay.getState();
     store.setPlaying(false);
     const utc = new Date(currentTimeMs(store)).toISOString();
-    const picked = store.site ?? tutorial.featured[SURFACE_LESSON.chapterId]?.[0];
+    const picked = store.site ?? tutorial.tourStops[0];
     if (!picked) { setDrive({ utc }); setLessonIndex(next); return; }
     void withTerrainRecord(toDriveSite(picked, tutorial.catalog)).then((site) => { setDrive({ site, utc }); setLessonIndex(next); });
   };
 
-  if (lessonIndex !== null && GUIDED_LESSONS[lessonIndex].screen === "drive") return <div className="fixed inset-0 z-50 h-dvh overflow-hidden bg-void">
+  if (lessonIndex !== null && GUIDED_LESSONS[lessonIndex]?.screen === "drive") return <div className="fixed inset-0 z-50 h-dvh overflow-hidden bg-void">
     <SurfaceDrive guided tutorial={tutorial} startSite={drive?.site} startUtc={drive?.utc} onBack={() => setLessonIndex(lessonIndex - 1)} />
   </div>;
-  if (lessonIndex !== null) return <GuidedPlanner tutorial={tutorial} lessonIndex={lessonIndex} onLessonChange={changeLesson} candidatesCompared={drive !== null} />;
+  if (lessonIndex !== null) return <GuidedPlanner tutorial={tutorial} lessonIndex={lessonIndex} onLessonChange={changeLesson} />;
 
-  return (
-    <>
+  return <>
       <PageIntro index="01" title="Story Mode" lede="Start with Apollo 11 in 1969. Hear the story, see an example, then try each mission decision yourself." status={`${GUIDED_LESSONS.length} short lessons`}>
         <div className="flex flex-wrap gap-3">
           <Button size="lg" disabled={tutorial.status === "loading"} onClick={start}>
@@ -69,6 +68,5 @@ export function GuidedMissionExperience() {
           </div>
         </PageContainer>
       </section>
-    </>
-  );
+  </>;
 }
