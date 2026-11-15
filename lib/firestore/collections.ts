@@ -11,6 +11,7 @@ export const COLLECTIONS = {
   ephemerisGlobal: "ephemerisGlobal",
   terrainGrid: "terrainGrid",
   psrLayer: "psrLayer",
+  compositionGrid: "compositionGrid",
   demo: "demo",
   catalog: "catalog",
   users: "users",
@@ -29,6 +30,7 @@ export const STATIC_COLLECTIONS = [
   COLLECTIONS.ephemerisGlobal,
   COLLECTIONS.terrainGrid,
   COLLECTIONS.psrLayer,
+  COLLECTIONS.compositionGrid,
   COLLECTIONS.demo,
   COLLECTIONS.catalog,
 ] as const;

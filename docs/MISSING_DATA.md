@@ -35,6 +35,11 @@ Everything below is left `null` (or labelled `basis: "assumption"`) in the seed.
 - **Two degenerate PSR polygons**: 2 of the 1,531 polygons in `LPSR_80S_20MPP_ADJ_1km2.SHP` have no valid polygon area after repair and are not in `psrLayer`.
 - **Hayne et al. (2015)** and **Sanin et al. (2017, LEND)** products: not located.
 
+### Composition and buildability
+- **Composition resolution**: `compositionGrid/lp-grs-2deg` is the Lunar Prospector GRS 2° equal-area product (about 60 km pixels). No site-scale composition (Clementine/Kaguya multispectral FeO and TiO2 maps) is stored, and those maps do not cover the poles anyway.
+- **Minerals and ore grades**: only oxide weight percent is stored. Ilmenite content, mineral modes and extraction yields are not.
+- **Geotechnical properties**: no regolith bearing capacity, cohesion, depth or block-abundance data. "Buildability" in `/api/v1/science/rank` is slope over a 100 m baseline only.
+
 ### Time coverage
 - Ephemerides are stored for 2026-01-01 to 2030-12-31 plus +-7 d windows around catalog landings from 1966. Dates outside those spans are not available without a new pipeline run.
 - No lunar landing attempt was found between 26 Oct and 14 Nov 2026 (The Space Review checked through 26 Oct; web search on 14 Nov found only slips to 2027). Re-check before any later seeding.
