@@ -33,7 +33,8 @@ import { currentTimeMs, useFreeplay } from "@/lib/freeplay-store";
 import { SOLAR_CONSTANT_W_M2 } from "@/lib/illumination";
 import { azElFromCartesian, siteFrame } from "@/lib/ephemeris";
 import { AU_KM } from "@/lib/science/sky";
-import { MAIN_SERIES_END } from "@/lib/lunar-data";
+import { fetchTerrainHorizon, MAIN_SERIES_END, MAIN_SERIES_START, type TerrainHorizon } from "@/lib/lunar-data";
+import { calculateMissionWindow, missionWindowStart } from "@/lib/mission-window";
 import { discVisibleFraction, EARTH_RADIUS_DEG, heightAtLocal, horizonElevationDeg, horizonProfile, skyAtLocal, slopeAtLocal } from "@/lib/terrain/dem";
 
 const LunarScene = dynamic(() => import("@/scenes/lunar/lunar-scene"), { ssr: false });
@@ -51,7 +52,26 @@ const distanceLabel = (m: number) => m >= 1000 ? `${(m / 1000).toFixed(2)} km` :
 
 function Readout({ label, value, tone = "neutral" }: { label: string; value: string; tone?: "neutral" | "red" | "blue" }) {
   const color = tone === "red" ? "text-retro-red" : tone === "blue" ? "text-retro-blue" : "text-bone";
-  return <div className="hud-readout"><div className="text-xs leading-snug text-muted-foreground">{label}</div><div className={`type-data mt-1 text-base ${color}`}>{value}</div></div>;
+  return <div className="hud-readout !px-2 !py-1.5"><div className="text-[0.62rem] leading-tight text-muted-foreground">{label}</div><div className={`type-data mt-0.5 text-[0.8rem] ${color}`}>{value}</div></div>;
+}
+
+function MissionWindowPanel({ metrics, loading, error, onRetry }: { metrics: MissionMetrics | null; loading: boolean; error: string | null; onRetry?: () => void }) {
+  const smooth = metrics?.horizonSource?.includes("smooth horizon");
+  const status = loading ? "Loading" : error ? "Unavailable" : smooth ? "Estimate" : "Live";
+  const value = (number: number | undefined, unit: string) => number === undefined ? "—" : `${number}${unit}`;
+  return <section aria-label="Mission window" className="hud-panel p-3">
+    <div className="flex items-center justify-between gap-2"><div className="type-data text-[0.58rem] uppercase tracking-[0.14em] text-retro-purple">Mission window · next 24 h</div><span className="type-data rounded border border-retro-red/35 px-1.5 py-0.5 text-[0.5rem] uppercase text-retro-red">{status}</span></div>
+    {metrics?.intervalStart && <p className="mt-1 type-data text-[0.54rem] text-muted-foreground">From {metrics.intervalStart.slice(0, 16).replace("T", " ")} UTC · 10-minute steps</p>}
+    {loading && <p role="status" className="mt-2 text-xs text-muted-foreground">Loading mission window…</p>}
+    {error && <p role="alert" className="mt-2 text-xs text-destructive">{error}{onRetry && <> <button type="button" onClick={onRetry} className="underline">Try again</button></>}</p>}
+    <div className="mt-2 grid grid-cols-2 gap-1">
+      <Readout label="Sunlit duration" value={value(metrics?.sunlightHours, " h")} tone="red" />
+      <Readout label="Sunlit share" value={value(metrics?.sunlightPercent, "%")} tone="red" />
+      <Readout label="Earth visibility" value={value(metrics?.earthVisibilityPercent, "%")} tone="blue" />
+      <Readout label="Longest blackout" value={value(metrics?.longestBlackoutHours, " h")} tone="blue" />
+    </div>
+    {metrics && <p className="mt-2 text-[0.54rem] text-muted-foreground">{metrics.horizonSource} · site centre.{smooth ? " Visibility is an upper-bound estimate." : ""}</p>}
+  </section>;
 }
 
 /** `guided` runs the Guided Mission's closing activity at the site and mission time chosen in Freeplay. */
@@ -78,11 +98,10 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
   const [calendarMonth, setCalendarMonth] = useState(() => new Date(Date.UTC(start.time.getUTCFullYear(), start.time.getUTCMonth(), 1)));
   const [zoom, setZoom] = useState(1);
   const [celestial, setCelestial] = useState<CelestialState | null>(null);
-  const [metrics, setMetrics] = useState<MissionMetrics | null>(null);
-  const [loading, setLoading] = useState(true);
   const [dataError, setDataError] = useState(false);
   const [mapOpen, setMapOpen] = useState(false);
   const [mobileTelemetryOpen, setMobileTelemetryOpen] = useState(false);
+  const [telemetryHidden, setTelemetryHidden] = useState(false);
   const [tutorialActions, setTutorialActions] = useState<Set<string>>(new Set());
   const [horizon, setHorizon] = useState<{ siteId: string; peak: { elevationDeg: number; azimuthDeg: number } | null } | null>(null);
   const [guidedComplete, setGuidedComplete] = useState(false);
@@ -106,8 +125,6 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
   const [recenterKey, setRecenterKey] = useState(0);
   const reducedMotion = useReducedMotion();
   const celestialRequest = useRef(0);
-  const metricRequest = useRef(0);
-  const metricsCache = useRef(new globalThis.Map<string, MissionMetrics>());
   const [deviceTier] = useState<"low" | "high">(() => typeof window !== "undefined" && window.innerWidth >= 768 && (navigator.hardwareConcurrency ?? 8) > 4 ? "high" : "low");
 
   const recordTutorialAction = useCallback((action: string) => {
@@ -122,10 +139,30 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
   const tile = dem.tile;
 
   // Sun and Earth: the stored Horizons series decoded in the browser, else the science API.
-  const series = useEphemerisWindow(timestamp.getTime());
+  const ephemeris = useEphemerisWindow(timestamp.getTime());
+  const series = ephemeris.series;
   const localSky = useLocalSky(series, environmentSite.latitudeDeg, environmentSite.longitudeDeg, tile?.centerM ?? 0, timestamp.getTime());
   const sky = useMemo(() => localSky ? { sun: localSky.sun, earth: localSky.earth } : celestial ? { sun: celestial.sun, earth: celestial.earth } : null, [localSky, celestial]);
   const hasLocalSky = localSky !== null;
+
+  const horizonKey = `${environmentSite.provenance}|${environmentSite.id}|${environmentSite.latitudeDeg}|${environmentSite.longitudeDeg}`;
+  const [windowHorizon, setWindowHorizon] = useState<{ key: string; data: TerrainHorizon } | null>(null);
+  useEffect(() => {
+    let alive = true;
+    const siteRef = { latitudeDeg: environmentSite.latitudeDeg, longitudeDeg: environmentSite.longitudeDeg,
+      ...(environmentSite.provenance === "scientific" ? { catalogId: environmentSite.id } : {}) };
+    void fetchTerrainHorizon(siteRef).then((data) => { if (alive) setWindowHorizon({ key: horizonKey, data }); });
+    return () => { alive = false; };
+    // The site's relevant fields are folded into horizonKey.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [horizonKey]);
+  const currentHorizon = windowHorizon?.key === horizonKey ? windowHorizon.data : null;
+  const windowStart = missionWindowStart(timestamp.getTime());
+  const metrics = useMemo(() => series && currentHorizon ? calculateMissionWindow(series, environmentSite, currentHorizon, windowStart) : null,
+    [series, currentHorizon, environmentSite, windowStart]);
+  const outsideWindowCoverage = windowStart < Date.parse(MAIN_SERIES_START) || windowStart + 86_400_000 > SERIES_END_MS;
+  const windowError = !metrics && outsideWindowCoverage ? "The next 24 hours are outside the stored ephemeris range." : !metrics ? ephemeris.error : null;
+  const windowLoading = !metrics && !windowError;
 
   const activeTerrain = useMemo(() => interpolateTerrain(terrainGridForSite(activeSite), activeSite.latitudeDeg, activeSite.longitudeDeg), [activeSite]);
   const scaffoldElevation = environmentSite.provenance === "scientific" && environmentSite.elevationMeters != null ? environmentSite.elevationMeters : activeTerrain.elevationMeters;
@@ -257,25 +294,6 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
       if (request === celestialRequest.current) { setCelestial(null); setDataError(true); }
     }
   }, []);
-  const updateMetrics = useCallback(async (selectedSite: LunarSite, day: string) => {
-    const request = ++metricRequest.current;
-    const cacheKey = `${selectedSite.id}:${day}`;
-    const cached = metricsCache.current.get(cacheKey);
-    if (cached) { setMetrics(cached); setLoading(false); setDataError(false); return; }
-    setLoading(true);
-    setDataError(false);
-    const startIso = `${day}T00:00:00.000Z`;
-    try {
-      const result = await scienceProvider.getMissionMetrics(selectedSite, startIso, 24);
-      if (result) metricsCache.current.set(cacheKey, result);
-      if (request === metricRequest.current) setMetrics(result);
-    } catch {
-      if (request === metricRequest.current) { setMetrics(null); setDataError(true); }
-    } finally {
-      if (request === metricRequest.current) setLoading(false);
-    }
-  }, []);
-
   // The API is only the fallback for the sky (outside the stored series or while it loads);
   // it is throttled during playback so fast time does not flood the server.
   useEffect(() => {
@@ -283,11 +301,6 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
     const timer = window.setTimeout(() => { void updateCelestial(environmentSite, timestamp); }, playing ? 250 : 0);
     return () => { window.clearTimeout(timer); celestialRequest.current += 1; };
   }, [environmentSite, timestamp, updateCelestial, hasLocalSky, playing]);
-  // 24-hour metrics refresh when playback pauses rather than for every simulated day.
-  useEffect(() => {
-    if (playing) return;
-    void updateMetrics(environmentSite, utcDay);
-  }, [environmentSite, utcDay, updateMetrics, playing]);
   useEffect(() => {
     if (!guided) return;
     let current = true;
@@ -399,7 +412,6 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
   const slopeReadout = measured && probe ? { label: `Slope · ~${Math.round(tile.spacingM)} m baseline`, value: `${probe.slopeDeg.toFixed(1)}°` } : { label: `Slope · ${scaffoldLabel}`, value: `${scaffoldSlope.toFixed(1)}°` };
   const sunStatus = probe?.sunVisible == null ? null : probe.sunVisible > 0.99 ? "In view" : probe.sunVisible > 0 ? "Partly hidden" : probe.sun && probe.sun.elevationDeg < 0 ? "Below horizon" : "Behind terrain";
   const terrainSourceText = measured ? `Terrain: LROC GLD100 heights (Lunaserv) · ${tile.radiusKm} km radius` : dem.loading ? "Loading measured terrain…" : "Procedural terrain (illustrative)";
-  const skySourceText = hasLocalSky ? "Sky: JPL Horizons (stored)" : "Sky: JPL Horizons via API";
   const togglePlanner = () => setPlannerOpen((open) => { if (open) setBuildType(null); else { setMapOpen(false); setMobileTelemetryOpen(false); setDatePickerOpen(false); } return !open; });
 
   return <main className="relative isolate h-dvh w-full overflow-hidden bg-void text-bone" aria-label="Lunaris360 lunar simulation">
@@ -429,7 +441,7 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
       </div>
       <div className="flex min-w-0 items-center gap-2 rounded-lg border border-line/80 bg-void/75 px-3 py-2 shadow-xl backdrop-blur-xl sm:px-4">
         <span className="relative flex size-2">{!reducedMotion && <span className="absolute inline-flex size-full animate-ping rounded-full bg-retro-red opacity-50" />}<span className="relative inline-flex size-2 rounded-full bg-retro-red" /></span>
-        <div className="min-w-0"><div className="type-data text-[0.56rem] uppercase tracking-[0.12em] text-retro-red">{phase === "transfer" ? "Transferring" : phase === "descent" ? "Descending" : dem.loading ? "Loading terrain" : loading && !hasLocalSky ? "Syncing" : dataError && !hasLocalSky ? "Data unavailable" : measured ? `Measured terrain · r ${tile.radiusKm} km` : "Horizons ephemeris"}</div><div className="type-data truncate text-[0.62rem] text-bone sm:text-xs">{activeSite.latitudeDeg.toFixed(2)}° / {activeSite.longitudeDeg.toFixed(2)}° E</div></div>
+        <div className="min-w-0"><div className="type-data text-[0.56rem] uppercase tracking-[0.12em] text-retro-red">{phase === "transfer" ? "Transferring" : phase === "descent" ? "Descending" : dem.loading ? "Loading terrain" : ephemeris.loading && !hasLocalSky ? "Syncing" : dataError && !hasLocalSky ? "Data unavailable" : measured ? `Measured terrain · r ${tile.radiusKm} km` : "Horizons ephemeris"}</div><div className="type-data truncate text-[0.62rem] text-bone sm:text-xs">{activeSite.latitudeDeg.toFixed(2)}° / {activeSite.longitudeDeg.toFixed(2)}° E</div></div>
       </div>
     </header>
 
@@ -500,10 +512,11 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
       </div>
     </div>}
 
-    {phase === "explore" && !mapOpen && !datePickerOpen && <aside className="absolute right-4 top-[5.5rem] z-10 hidden w-[320px] space-y-3 xl:block">
-      <section className="hud-panel p-4">
-        <div className="flex items-center justify-between"><div><div className="type-data text-[0.58rem] uppercase tracking-[0.14em] text-retro-blue">Telemetry</div><h2 className="type-heading mt-1 text-sm text-bone">{measured ? (viewMode === "first-person" ? "At your position" : "At the view centre") : "Local conditions"}</h2></div><Activity size={15} className="text-retro-blue" /></div>
-        <div className="mt-3 grid grid-cols-2 gap-1.5">
+    {phase === "explore" && !mapOpen && !datePickerOpen && telemetryHidden && <button type="button" onClick={() => setTelemetryHidden(false)} aria-label="Show telemetry" className="absolute right-4 top-[5.5rem] z-10 hidden size-10 place-items-center rounded-lg border border-line bg-void/75 text-retro-blue shadow-xl backdrop-blur-xl xl:grid"><Activity size={17} /></button>}
+    {phase === "explore" && !mapOpen && !datePickerOpen && !telemetryHidden && <aside aria-label="Surface telemetry and mission window" className="absolute right-4 top-[5.5rem] z-10 hidden w-[300px] space-y-2 xl:block">
+      <section className="hud-panel p-3">
+        <div className="flex items-center justify-between"><div><div className="type-data text-[0.58rem] uppercase tracking-[0.14em] text-retro-blue">Telemetry</div><h2 className="type-heading mt-1 text-sm text-bone">{measured ? (viewMode === "first-person" ? "At your position" : "At the view centre") : "Local conditions"}</h2></div><button type="button" onClick={() => setTelemetryHidden(true)} aria-label="Hide telemetry" className="grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><X size={15} /></button></div>
+        <div className="mt-2 grid grid-cols-2 gap-1">
           <Readout label="Sun elevation" value={probe?.sun ? angle(probe.sun.elevationDeg) : sky ? angle(sky.sun.elevationDeg) : "—"} tone="red" />
           <Readout label="Sun azimuth" value={probe?.sun ? `${probe.sun.azimuthDeg.toFixed(1)}°` : sky ? `${sky.sun.azimuthDeg.toFixed(1)}°` : "—"} tone="red" />
           <Readout label="Earth elevation" value={probe?.earth ? angle(probe.earth.elevationDeg) : sky ? angle(sky.earth.elevationDeg) : "—"} tone="blue" />
@@ -515,23 +528,14 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
             <Readout label="Sun · local terrain" value={sunStatus ?? "—"} tone="red" />
           </>}
         </div>
-        <div className="mt-3 border-t border-line/80 pt-2 text-[0.58rem] leading-relaxed text-muted-foreground">{dataError && !hasLocalSky ? "Science provider unavailable" : `${skySourceText} · ${terrainSourceText}`}{measured ? ". Local sun status uses only terrain inside the loaded radius." : ""}</div>
+        <div className="mt-2 border-t border-line/80 pt-1.5 text-[0.54rem] leading-relaxed text-muted-foreground">{dataError && !hasLocalSky ? "Science provider unavailable" : terrainSourceText}{measured ? ". Local sun status uses only terrain inside the loaded radius." : ""}</div>
       </section>
-      <section className="hud-panel p-4">
-        <div className="flex items-center justify-between"><div className="type-data text-[0.58rem] uppercase tracking-[0.14em] text-retro-purple">Mission window · 24 h</div><span className="type-data rounded border border-retro-red/35 px-1.5 py-0.5 text-[0.5rem] uppercase text-retro-red">{playing ? "Paused while playing" : metrics?.provenance === "scientific" ? "Computed" : "Unavailable"}</span></div>
-        <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2">
-          <Readout label="Sunlit duration" value={metrics ? `${metrics.sunlightHours} h` : "—"} tone="red" />
-          <Readout label="Sunlit share" value={metrics ? `${metrics.sunlightPercent}%` : "—"} tone="red" />
-          <Readout label="Earth visibility" value={metrics ? `${metrics.earthVisibilityPercent}%` : "—"} tone="blue" />
-          <Readout label="Longest blackout" value={metrics ? `${metrics.longestBlackoutHours} h` : "—"} tone="blue" />
-        </div>
-        <p className="mt-2 text-[0.54rem] text-muted-foreground">{metrics?.horizonSource ?? "Horizon pending"} (site centre, science API).</p>
-      </section>
+      <MissionWindowPanel metrics={metrics} loading={windowLoading} error={windowError} onRetry={!outsideWindowCoverage && ephemeris.error ? ephemeris.retry : undefined} />
     </aside>}
 
     {phase === "explore" && <button type="button" onClick={() => setMobileTelemetryOpen((open) => { if (!open) { setMapOpen(false); setDatePickerOpen(false); } return !open; })} aria-expanded={mobileTelemetryOpen} className="absolute right-3 top-[4.9rem] z-20 grid size-10 place-items-center rounded-lg border border-line bg-void/75 text-retro-blue shadow-xl backdrop-blur-xl xl:hidden" aria-label="Toggle telemetry"><Activity size={17} /></button>}
-    {phase === "explore" && mobileTelemetryOpen && <div className="fixed inset-0 z-[45] grid place-items-center bg-void/65 px-4 py-8 backdrop-blur-sm xl:hidden" onMouseDown={(event) => { if (event.target === event.currentTarget) setMobileTelemetryOpen(false); }}>
-      <aside role="dialog" aria-label="Local lunar conditions" aria-modal="true" className="hud-panel w-[min(340px,calc(100vw-2rem))] space-y-3 p-4">
+    {phase === "explore" && mobileTelemetryOpen && <div className="absolute right-3 top-[7.75rem] z-[45] xl:hidden">
+      <aside role="dialog" aria-label="Local lunar conditions" className="hud-panel w-[min(300px,calc(100vw-1.5rem))] space-y-2 p-3 shadow-xl backdrop-blur-xl">
         <div className="flex items-center justify-between"><div><div className="type-data text-[0.58rem] uppercase tracking-[0.14em] text-retro-blue">Telemetry</div><h2 className="type-heading mt-1 text-sm text-bone">{measured ? (viewMode === "first-person" ? "At your position" : "At the view centre") : "Local conditions"}</h2></div><button type="button" aria-label="Close telemetry" onClick={() => setMobileTelemetryOpen(false)} className="grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><X size={15} /></button></div>
         <div className="grid grid-cols-2 gap-1.5">
           <Readout label="Sun elevation" value={probe?.sun ? angle(probe.sun.elevationDeg) : sky ? angle(sky.sun.elevationDeg) : "—"} tone="red" />
@@ -540,7 +544,8 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
           <Readout label={elevationReadout.label} value={elevationReadout.value} />
           {measured && probe && <><Readout label={slopeReadout.label} value={slopeReadout.value} /><Readout label="Sun · local terrain" value={sunStatus ?? "—"} tone="red" /></>}
         </div>
-        <p className="text-[0.56rem] leading-relaxed text-muted-foreground">{skySourceText} · {terrainSourceText}</p>
+        <p className="text-[0.56rem] leading-relaxed text-muted-foreground">{terrainSourceText}</p>
+        <MissionWindowPanel metrics={metrics} loading={windowLoading} error={windowError} onRetry={!outsideWindowCoverage && ephemeris.error ? ephemeris.retry : undefined} />
       </aside>
     </div>}
 
@@ -591,7 +596,7 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
               <input aria-label="Look sensitivity" type="range" min={0.25} max={2.5} step={0.05} value={lookSensitivity} onChange={(event) => setLookSensitivity(Number(event.target.value))} className="h-1.5 min-w-0 flex-1 cursor-pointer accent-[#a986ff]" />
               <span className="w-8 text-right text-retro-purple">{lookSensitivity.toFixed(2)}×</span>
             </label>
-            <span className="inline-flex min-w-0 items-center gap-1.5 truncate type-data text-[0.52rem] uppercase tracking-[0.1em] text-muted-foreground"><Globe2 size={12} className="shrink-0 text-retro-blue" /><span className="truncate">{terrainSourceText} · {skySourceText}</span></span>
+            <span className="inline-flex min-w-0 items-center gap-1.5 truncate type-data text-[0.52rem] uppercase tracking-[0.1em] text-muted-foreground"><Globe2 size={12} className="shrink-0 text-retro-blue" /><span className="truncate">{terrainSourceText}</span></span>
           </div>
         </div>
       </div>

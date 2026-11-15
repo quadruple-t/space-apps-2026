@@ -17,11 +17,15 @@ export type LocalSky = { sun: AzEl; earth: AzEl; sunRangeAu: number };
  * modules the science API uses), so fast playback can place the Sun and Earth every frame
  * without an API round trip. Keeps the current window until the next one has loaded.
  */
-export function useEphemerisWindow(timeMs: number): CartesianSeries | null {
+export function useEphemerisWindow(timeMs: number) {
   const [series, setSeries] = useState<CartesianSeries | null>(null);
+  const [failedKey, setFailedKey] = useState<string | null>(null);
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
   const inStoredSeries = timeMs >= START_MS && timeMs <= END_MS;
   const nearEdge = !series || timeMs < series.startMs + 5 * DAY_MS || timeMs > series.endMs - 5 * DAY_MS;
   const wantMonth = inStoredSeries && nearEdge ? monthStart(timeMs) : null;
+  const requestKey = wantMonth === null ? null : `${wantMonth}:${attempt}`;
 
   useEffect(() => {
     if (wantMonth === null) return;
@@ -29,12 +33,17 @@ export function useEphemerisWindow(timeMs: number): CartesianSeries | null {
     const start = Math.max(START_MS, Date.UTC(new Date(wantMonth).getUTCFullYear(), new Date(wantMonth).getUTCMonth() - 1, 1));
     const end = Math.min(END_MS, Date.UTC(new Date(wantMonth).getUTCFullYear(), new Date(wantMonth).getUTCMonth() + 3, 1) - 3_600_000);
     loadEphemeris(new Date(start).toISOString(), new Date(end).toISOString())
-      .then((next) => { if (alive) setSeries(next); })
-      .catch(() => { /* the caller falls back to the science API */ });
+      .then((next) => { if (alive) { setSeries(next); setFailedKey(null); setLoadedKey(requestKey); } })
+      .catch(() => { if (alive) setFailedKey(requestKey); });
     return () => { alive = false; };
-  }, [wantMonth]);
+  }, [wantMonth, requestKey]);
 
-  return series && series.covers(timeMs) ? series : null;
+  return {
+    series: series && series.covers(timeMs) ? series : null,
+    loading: requestKey !== null && requestKey !== failedKey && requestKey !== loadedKey,
+    error: !inStoredSeries ? "Outside the stored ephemeris range." : requestKey !== null && requestKey === failedKey ? "Could not load stored ephemeris." : null,
+    retry: () => setAttempt((value) => value + 1),
+  };
 }
 
 /** Sun and Earth seen from the site at `timeMs`, or null when the series is missing or does not cover it. */
