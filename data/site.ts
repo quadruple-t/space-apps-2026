@@ -18,7 +18,7 @@ export const NAV_LINKS: NavLink[] = [
   { label: "Overview", href: "/" },
   { label: "Debrief", href: "/mission-control" },
   { label: "Tutorial", href: "/mission" },
-  { label: "Freeplay", href: "/freeplay" },
+  { label: "Open Explorer", href: "/freeplay" },
 ];
 
 export const LAUNCH_HREF = "/freeplay";
@@ -103,7 +103,7 @@ export const DATA_SOURCES: DataSource[] = [
 export const FOOTER_LINKS = {
   experiences: [
     { label: "Guided Mission", href: "/mission" },
-    { label: "Free Exploration", href: "/freeplay/drive" },
+    { label: "Open Explorer", href: "/freeplay" },
     { label: "Mission Comparison", href: "/compare" },
   ],
   project: [
