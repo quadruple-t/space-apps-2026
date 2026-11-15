@@ -3,7 +3,8 @@
 import { create } from "zustand"
 import { COORD_REF, type FreeplaySite } from "@/data/sites"
 
-export type FreeplayView = "globe" | "orbit"
+/** "orbit" is the Orbit + Graphs screen, "compare" the two-site Mission comparison. */
+export type FreeplayView = "globe" | "orbit" | "compare"
 export type LayerId = "slope" | "illumination" | "psr" | "elevation" | "landings" | "impacts" | "heritage" | "coldTraps" | "resources" | "artemis" | "titanium" | "iron" | "thorium" | "olivine" | "plagioclase" | "pyroxene" | "silicates" | "iceDepth" | "temperatureMax" | "temperatureMin" | "impactHistory" | "meteorStreams"
 export type LayerState = { on: boolean; opacity: number }
 export type GraphTab = "daily" | "yearly"

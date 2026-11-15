@@ -71,34 +71,45 @@ async function loadSeries(db: Db, startMs: number, endMs: number): Promise<Carte
   return new CartesianSeries(snaps.map((snap, index) => ephemerisChunk(chunkIds[index], snap.data()!)));
 }
 
-type Horizon = { mask: HorizonMask; horizonSource: string; slopeDeg: number | null; fromSiteMask: boolean };
+/** `insidePsr` is whether the LOLA terrain-grid cell lies inside a permanently shadowed region; null when unknown. */
+type Horizon = { mask: HorizonMask; horizonSource: string; slopeDeg: number | null; fromSiteMask: boolean; insidePsr: boolean | null };
 
-/** Site LOLA mask, then the LOLA polar grid cell (south of 80°S), then the smooth-sphere horizon. */
-async function loadHorizon(db: Db, terrainSnap: Snap | null, latitude: number, longitude: number): Promise<Horizon> {
-  if (terrainSnap?.exists) {
-    return { mask: horizonFromDoc(terrainSnap.data()!), horizonSource: "LOLA DEM", slopeDeg: terrainSnap.get("slope100mDeg") ?? null, fromSiteMask: true };
-  }
-  if (latitude <= -80) {
+/**
+ * Site LOLA mask, then the LOLA polar grid cell (south of 80°S), then the smooth-sphere horizon.
+ * With `wantPsr`, the grid cell is also read for sites that have their own mask, so `insidePsr` is known for them too.
+ * That is one extra read per site, so only the metrics route asks for it. The cells' nearestPsrKm is not exposed:
+ * the seeded values are all zero, so it carries no information yet.
+ */
+async function loadHorizon(db: Db, terrainSnap: Snap | null, latitude: number, longitude: number, wantPsr = false): Promise<Horizon> {
+  let grid: { mask: HorizonMask | null; source: string; slopeDeg: number | null; insidePsr: boolean | null } | null = null;
+  if (latitude <= -80 && (!terrainSnap?.exists || wantPsr)) {
     const snap = snapToGrid(latitude, longitude);
-    if (snap) {
-      const tileSnap = await db.doc(`terrainGrid/${snap.tileId}`).get();
-      if (tileSnap.exists) {
-        const d = tileSnap.data()!;
-        const cells = Number(d.cellsPerSide) ** 2;
-        const bins = Number(d.bins);
-        const tile = {
-          id: snap.tileId, gridSpacingKm: Number(d.gridSpacingKm), tileOriginXY: d.tileOriginXY,
-          cellsPerSide: Number(d.cellsPerSide), binDeg: Number(d.binDeg), bins,
-          masks: decodeInt16(binary(d.masks)), maskErr: decodeUint8(binary(d.maskErr)),
-          cellStats: decodeCellStats(binary(d.cellStats), decodeInt16(binary(d.masks)), bins, cells),
-          demProducts: d.demProducts ?? [], rayLengthKm: Number(d.rayLengthKm), observerHeightM: Number(d.observerHeightM), computedAt: d.computedAt,
-        };
-        const gridMask = maskFromGridCell(tile, snap.cellIndex);
-        if (gridMask) return { mask: gridMask, horizonSource: `LOLA DEM grid · ${snap.gridSpacingKm} km cell, ${snap.distanceKm.toFixed(1)} km from point`, slopeDeg: tile.cellStats[snap.cellIndex]?.slope100mDeg ?? null, fromSiteMask: false };
-      }
+    const tileSnap = snap ? await db.doc(`terrainGrid/${snap.tileId}`).get() : null;
+    if (snap && tileSnap?.exists) {
+      const d = tileSnap.data()!;
+      const cells = Number(d.cellsPerSide) ** 2;
+      const bins = Number(d.bins);
+      const tile = {
+        id: snap.tileId, gridSpacingKm: Number(d.gridSpacingKm), tileOriginXY: d.tileOriginXY,
+        cellsPerSide: Number(d.cellsPerSide), binDeg: Number(d.binDeg), bins,
+        masks: decodeInt16(binary(d.masks)), maskErr: decodeUint8(binary(d.maskErr)),
+        cellStats: decodeCellStats(binary(d.cellStats), decodeInt16(binary(d.masks)), bins, cells),
+        demProducts: d.demProducts ?? [], rayLengthKm: Number(d.rayLengthKm), observerHeightM: Number(d.observerHeightM), computedAt: d.computedAt,
+      };
+      const cell = tile.cellStats[snap.cellIndex];
+      grid = {
+        mask: maskFromGridCell(tile, snap.cellIndex),
+        source: `LOLA DEM grid · ${snap.gridSpacingKm} km cell, ${snap.distanceKm.toFixed(1)} km from point`,
+        slopeDeg: cell?.slope100mDeg ?? null,
+        insidePsr: cell?.hasData ? cell.insidePsr : null,
+      };
     }
   }
-  return { mask: smoothHorizonMask(), horizonSource: "none — smooth horizon", slopeDeg: null, fromSiteMask: false };
+  if (terrainSnap?.exists) {
+    return { mask: horizonFromDoc(terrainSnap.data()!), horizonSource: "LOLA DEM", slopeDeg: terrainSnap.get("slope100mDeg") ?? null, fromSiteMask: true, insidePsr: grid?.insidePsr ?? null };
+  }
+  if (grid?.mask) return { mask: grid.mask, horizonSource: grid.source, slopeDeg: grid.slopeDeg, fromSiteMask: false, insidePsr: grid.insidePsr };
+  return { mask: smoothHorizonMask(), horizonSource: "none — smooth horizon", slopeDeg: null, fromSiteMask: false, insidePsr: grid?.insidePsr ?? null };
 }
 
 const profileOf = (mask: HorizonMask): HorizonProfile => ({ elevationsDeg: mask.source === "none" ? null : mask.maskElevationDeg, azimuthStepDeg: mask.binDeg });
@@ -197,7 +208,7 @@ export async function scienceGet(db: Db, id: string | undefined, url: URL): Prom
   const series = await loadSeries(db, startMs, availableEndMs);
   if (!series) return errorJson("Ephemeris data unavailable for this interval", 503);
   const terrainSnap = siteId ? await db.doc(`sites/${siteId}/terrain/v1`).get() : null;
-  const { mask, horizonSource, slopeDeg, fromSiteMask } = await loadHorizon(db, terrainSnap, latitude, longitude);
+  const { mask, horizonSource, slopeDeg, fromSiteMask, insidePsr } = await loadHorizon(db, terrainSnap, latitude, longitude, id === "metrics");
   const elevationMeters: number | null = fromSiteMask ? siteSnap?.get("coordinates.elevationM") ?? null : null;
   const frame = siteFrame(latitude, longitude);
   // Shared with the client graphs: lib/science/sky.ts holds the one visibility implementation.
@@ -219,6 +230,7 @@ export async function scienceGet(db: Db, id: string | undefined, url: URL): Prom
     sunlightPercent: Math.round(m.sunShare * 100), sunlightHours: Number((m.sunShare * durationHours).toFixed(1)),
     longestDarknessHours: m.longestDarknessHours, earthVisibilityPercent: Math.round(m.earthShare * 100),
     longestBlackoutHours: m.longestBlackoutHours, ...(slopeDeg !== null ? { slopeDeg } : {}), ...(elevationMeters !== null ? { elevationMeters } : {}),
+    ...(insidePsr !== null ? { insidePsr } : {}),
     intervalStart: fromIso, intervalEnd: toIso, horizonSource,
     assumptions: ["10-minute sampling; run lengths limited to the interval", "Sun and Earth treated as points (centre of disk), no refraction", smooth ? "No terrain mask for this location: smooth-sphere horizon, so lit and visible shares are upper bounds" : "Terrain occlusion from the precomputed horizon mask"],
     provenance: "scientific",
