@@ -32,7 +32,10 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
   const stage = stages[lessonIndex] ?? "story";
   const setStage = (nextStage: LessonStage) => setStages((current) => ({ ...current, [lessonIndex]: nextStage }));
 
-  const storySpecForStop = (stopId: string) => STORY_STOPS.find((spec) => spec.id === stopId || spec.catalogId === stopId);
+  const storySpecForStop = (stopId: string) => {
+    const id = stopId.replace(/^(?:catalog-|approx-|tour-)/, "");
+    return STORY_STOPS.find((spec) => spec.id === id || spec.catalogId === id);
+  };
   const candidateStops = tutorial.tourStops.filter((stop) => storySpecForStop(stop.id)?.group === "Artemis III candidate");
 
   useEffect(() => useFreeplay.subscribe((state, previous) => {
