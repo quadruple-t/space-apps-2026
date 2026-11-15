@@ -1,0 +1,213 @@
+/**
+ * Validation for model-supplied tool calls. Model output is untrusted: tool names are allowlisted,
+ * unknown keys are rejected, ids are pattern-checked, ranges are clamped (and the clamp is reported)
+ * and dates outside stored coverage are refused rather than silently moved.
+ */
+import { SITE_FAMILIES } from "@/lib/model/types";
+import {
+  COVERAGE_END_ISO, COVERAGE_START_ISO, DEFAULT_STEP_MINUTES, MAX_WINDOW_HOURS, MIN_WINDOW_HOURS,
+  NO_COVERAGE_WORDING, isToolName, type ToolName,
+} from "./constants";
+
+/** The slice of Freeplay state the tools need to resolve "this site" and "now". */
+export type ToolContext = {
+  site: { name: string; latitudeDeg: number; longitudeDeg: number; kind: string; catalogId?: string; catalogPointVerified?: boolean } | null;
+  missionStartIso: string;
+  missionDurationHours: number;
+  /** Current Freeplay mission time (not the wall clock). */
+  currentTimeMs: number;
+};
+
+export type Location =
+  | { kind: "catalog"; siteId: string; label: string }
+  | { kind: "point"; latDeg: number; lonDeg: number; label: string };
+
+export type ToolRequest =
+  | { tool: "list_catalog_sites"; query?: string; family?: string }
+  | { tool: "get_catalog_site"; siteId: string }
+  | { tool: "list_story_chapters" }
+  | { tool: "get_sun_earth_position"; location: Location; timeIso: string }
+  | { tool: "get_horizon_profile"; location: Location }
+  | { tool: "get_sunlight_and_earth_visibility"; location: Location; startIso: string; durationHours: number; adjustments: string[] }
+  | { tool: "get_sun_earth_rise_set"; location: Location; startIso: string; stepMinutes: number; adjustments: string[] }
+  | { tool: "compare_sites"; siteIds: string[]; startIso: string; durationHours: number; adjustments: string[] };
+
+export type ToolErrorCode =
+  | "unknown_tool" | "invalid_arguments" | "no_site_selected" | "out_of_coverage" | "site_unverified"
+  | "not_found" | "unavailable" | "timeout" | "result_too_large";
+export type ToolError = { code: ToolErrorCode; message: string; mustSay?: string };
+export type Validation = { ok: true; request: ToolRequest } | { ok: false; error: ToolError };
+
+const ID_RE = /^[a-zA-Z0-9_-]{1,120}$/;
+const ISO_RE = /^\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:?\d{2})?)?$/;
+const HOUR_MS = 3_600_000;
+const COVERAGE_START_MS = Date.parse(COVERAGE_START_ISO);
+const COVERAGE_END_MS = Date.parse(COVERAGE_END_ISO);
+
+const bad = (message: string): Validation => ({ ok: false, error: { code: "invalid_arguments", message } });
+
+const LOCATION_KEYS = ["useCurrentSite", "siteId", "latDeg", "lonDeg"];
+const ALLOWED_KEYS: Record<ToolName, string[]> = {
+  list_catalog_sites: ["query", "family"],
+  get_catalog_site: ["siteId"],
+  list_story_chapters: [],
+  get_sun_earth_position: [...LOCATION_KEYS, "time"],
+  get_horizon_profile: [...LOCATION_KEYS],
+  get_sunlight_and_earth_visibility: [...LOCATION_KEYS, "start", "durationHours"],
+  get_sun_earth_rise_set: [...LOCATION_KEYS, "start", "stepMinutes"],
+  compare_sites: ["siteIds", "start", "durationHours"],
+};
+
+/** Strict ISO 8601 parse. A timestamp without an offset is read as UTC. */
+export function parseIsoUtc(value: unknown): number | null {
+  if (typeof value !== "string" || !ISO_RE.test(value.trim())) return null;
+  let v = value.trim().replace(" ", "T");
+  if (!v.includes("T")) v += "T00:00:00Z";
+  else if (!/(Z|[+-]\d{2}:?\d{2})$/.test(v)) v += "Z";
+  const ms = Date.parse(v);
+  return Number.isFinite(ms) ? ms : null;
+}
+
+const coverageError = (what: string): Validation => ({
+  ok: false,
+  error: { code: "out_of_coverage", message: `${what} is outside stored coverage (${COVERAGE_START_ISO.slice(0, 10)} to ${COVERAGE_END_ISO.slice(0, 10)}).`, mustSay: NO_COVERAGE_WORDING },
+});
+
+/** The same rule Freeplay uses to pick siteId vs lat/lon (see lib/drive-link.ts). */
+function currentSiteLocation(ctx: ToolContext): Location | Validation {
+  const s = ctx.site;
+  if (!s) return { ok: false, error: { code: "no_site_selected", message: "No site is selected in Freeplay. Ask the user to click the Moon or pick a preset, or name a catalog site." } };
+  if (s.catalogId && s.catalogPointVerified !== false) return { kind: "catalog", siteId: s.catalogId, label: `${s.name} (catalog site ${s.catalogId})` };
+  return { kind: "point", latDeg: s.latitudeDeg, lonDeg: s.longitudeDeg, label: `${s.name} (${s.latitudeDeg.toFixed(3)}°, ${s.longitudeDeg.toFixed(3)}°E)` };
+}
+
+function parseLocation(args: Record<string, unknown>, ctx: ToolContext): Location | Validation {
+  const wantsCurrent = args.useCurrentSite === true;
+  if (args.useCurrentSite !== undefined && typeof args.useCurrentSite !== "boolean") return bad("useCurrentSite must be a boolean");
+  const hasId = args.siteId !== undefined && args.siteId !== null;
+  const hasLat = args.latDeg !== undefined && args.latDeg !== null;
+  const hasLon = args.lonDeg !== undefined && args.lonDeg !== null;
+  const modes = Number(wantsCurrent) + Number(hasId) + Number(hasLat || hasLon);
+  if (modes !== 1) return bad("Give exactly one location: useCurrentSite=true, or siteId, or both latDeg and lonDeg");
+  if (wantsCurrent) return currentSiteLocation(ctx);
+  if (hasId) {
+    if (typeof args.siteId !== "string" || !ID_RE.test(args.siteId)) return bad("siteId must be a catalog site id (letters, digits, - and _ only)");
+    return { kind: "catalog", siteId: args.siteId, label: `catalog site ${args.siteId}` };
+  }
+  const { latDeg, lonDeg } = args;
+  if (typeof latDeg !== "number" || typeof lonDeg !== "number" || !Number.isFinite(latDeg) || !Number.isFinite(lonDeg)) return bad("latDeg and lonDeg must both be finite numbers");
+  if (latDeg < -90 || latDeg > 90) return bad("latDeg must be between -90 and 90");
+  if (lonDeg < -180 || lonDeg > 360) return bad("lonDeg must be between -180 and 360 (east-positive)");
+  const lat = Number(latDeg.toFixed(4)), lon = Number(lonDeg.toFixed(4));
+  return { kind: "point", latDeg: lat, lonDeg: lon, label: `point ${lat.toFixed(3)}°, ${lon.toFixed(3)}°E` };
+}
+
+const isValidation = (v: unknown): v is Validation => typeof v === "object" && v !== null && "ok" in v;
+
+/** Optional time argument: defaults to `fallbackMs`. Dates are never clamped, only refused outside coverage. */
+function parseTime(raw: unknown, name: string, fallbackMs: number): number | Validation {
+  if (raw === undefined || raw === null) return fallbackMs;
+  const ms = parseIsoUtc(raw);
+  if (ms === null) return bad(`${name} must be an ISO 8601 timestamp such as 2027-03-01T12:00:00Z`);
+  return ms;
+}
+
+/** Clamp the window to 1–720 h and to the end of stored coverage; every change is reported. */
+function fitWindow(startMs: number, rawHours: unknown, ctx: ToolContext): { hours: number; adjustments: string[] } | Validation {
+  const adjustments: string[] = [];
+  let hours = ctx.missionDurationHours;
+  if (rawHours !== undefined && rawHours !== null) {
+    if (typeof rawHours !== "number" || !Number.isFinite(rawHours)) return bad("durationHours must be a finite number");
+    hours = rawHours;
+  }
+  const requested = hours;
+  hours = Math.min(MAX_WINDOW_HOURS, Math.max(MIN_WINDOW_HOURS, hours));
+  if (hours !== requested) adjustments.push(`durationHours ${requested} was clamped to ${hours} (allowed ${MIN_WINDOW_HOURS}–${MAX_WINDOW_HOURS}).`);
+  if (startMs < COVERAGE_START_MS || startMs > COVERAGE_END_MS - MIN_WINDOW_HOURS * HOUR_MS) return coverageError(`Start ${new Date(startMs).toISOString()}`);
+  const room = (COVERAGE_END_MS - startMs) / HOUR_MS;
+  if (hours > room) {
+    adjustments.push(`The window was shortened from ${hours} h to ${Math.floor(room)} h to end at the last stored data (${COVERAGE_END_ISO}).`);
+    hours = Math.floor(room);
+  }
+  return { hours, adjustments };
+}
+
+export function validateToolCall(name: unknown, rawArgs: unknown, ctx: ToolContext): Validation {
+  if (!isToolName(name)) return { ok: false, error: { code: "unknown_tool", message: "That tool does not exist." } };
+  if (rawArgs !== undefined && rawArgs !== null && (typeof rawArgs !== "object" || Array.isArray(rawArgs))) return bad("Arguments must be an object");
+  const args = (rawArgs ?? {}) as Record<string, unknown>;
+  const extra = Object.keys(args).filter((k) => !ALLOWED_KEYS[name].includes(k));
+  if (extra.length) return bad(`Unknown argument(s): ${extra.slice(0, 5).join(", ")}`);
+
+  switch (name) {
+    case "list_catalog_sites": {
+      const { query, family } = args;
+      if (query !== undefined && query !== null && (typeof query !== "string" || query.length > 60)) return bad("query must be a string of at most 60 characters");
+      if (family !== undefined && family !== null && !(typeof family === "string" && (SITE_FAMILIES as readonly string[]).includes(family))) return bad(`family must be one of: ${SITE_FAMILIES.join(", ")}`);
+      const q = typeof query === "string" ? query.replace(/[\u0000-\u001f\u007f]/g, " ").trim() : "";
+      return { ok: true, request: { tool: name, ...(q ? { query: q } : {}), ...(typeof family === "string" ? { family } : {}) } };
+    }
+    case "get_catalog_site": {
+      if (typeof args.siteId !== "string" || !ID_RE.test(args.siteId)) return bad("siteId must be a catalog site id (letters, digits, - and _ only)");
+      return { ok: true, request: { tool: name, siteId: args.siteId } };
+    }
+    case "list_story_chapters":
+      return { ok: true, request: { tool: name } };
+    case "get_horizon_profile": {
+      const location = parseLocation(args, ctx);
+      return isValidation(location) ? location : { ok: true, request: { tool: name, location } };
+    }
+    case "get_sun_earth_position": {
+      const location = parseLocation(args, ctx);
+      if (isValidation(location)) return location;
+      const t = parseTime(args.time, "time", ctx.currentTimeMs);
+      if (typeof t !== "number") return t;
+      if (t < COVERAGE_START_MS || t > COVERAGE_END_MS) return coverageError(`Time ${new Date(t).toISOString()}`);
+      return { ok: true, request: { tool: name, location, timeIso: new Date(t).toISOString() } };
+    }
+    case "get_sunlight_and_earth_visibility": {
+      const location = parseLocation(args, ctx);
+      if (isValidation(location)) return location;
+      const start = parseTime(args.start, "start", Date.parse(ctx.missionStartIso));
+      if (typeof start !== "number") return start;
+      const win = fitWindow(start, args.durationHours, ctx);
+      if (isValidation(win)) return win;
+      return { ok: true, request: { tool: name, location, startIso: new Date(start).toISOString(), durationHours: win.hours, adjustments: win.adjustments } };
+    }
+    case "get_sun_earth_rise_set": {
+      const location = parseLocation(args, ctx);
+      if (isValidation(location)) return location;
+      const start = parseTime(args.start, "start", ctx.currentTimeMs);
+      if (typeof start !== "number") return start;
+      if (start < COVERAGE_START_MS || start >= COVERAGE_END_MS) return coverageError(`Start ${new Date(start).toISOString()}`);
+      const adjustments: string[] = [];
+      let step = DEFAULT_STEP_MINUTES;
+      if (args.stepMinutes !== undefined && args.stepMinutes !== null) {
+        if (typeof args.stepMinutes !== "number" || !Number.isFinite(args.stepMinutes)) return bad("stepMinutes must be a number");
+        step = Math.min(60, Math.max(1, Math.round(args.stepMinutes)));
+        if (step !== args.stepMinutes) adjustments.push(`stepMinutes ${args.stepMinutes} was adjusted to ${step} (integer 1–60).`);
+      }
+      return { ok: true, request: { tool: name, location, startIso: new Date(start).toISOString(), stepMinutes: step, adjustments } };
+    }
+    case "compare_sites": {
+      const raw = args.siteIds;
+      if (!Array.isArray(raw) || raw.length < 2 || raw.length > 3) return bad("siteIds must list two or three catalog site ids");
+      const ids: string[] = [];
+      for (const item of raw) {
+        if (item === "current") {
+          const loc = currentSiteLocation(ctx);
+          if (isValidation(loc)) return loc;
+          if (loc.kind !== "catalog") return bad("The current Freeplay site is not a catalog site, so it cannot be compared by id. Use get_sunlight_and_earth_visibility with useCurrentSite for it.");
+          ids.push(loc.siteId);
+        } else if (typeof item === "string" && ID_RE.test(item)) ids.push(item);
+        else return bad("Each siteIds entry must be a catalog site id (letters, digits, - and _ only)");
+      }
+      if (new Set(ids).size !== ids.length) return bad("siteIds must be distinct");
+      const start = parseTime(args.start, "start", Date.parse(ctx.missionStartIso));
+      if (typeof start !== "number") return start;
+      const win = fitWindow(start, args.durationHours, ctx);
+      if (isValidation(win)) return win;
+      return { ok: true, request: { tool: name, siteIds: ids, startIso: new Date(start).toISOString(), durationHours: win.hours, adjustments: win.adjustments } };
+    }
+  }
+}

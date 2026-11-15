@@ -125,6 +125,26 @@ npx -y firebase-tools@15.36.0 deploy --only firestore:rules,firestore:indexes \
 **Seed production:** first run `gcloud auth application-default login` as taran.duba3@gmail.com, then
 `npm run seed:prod -- --yes`. The project id comes from `.firebaserc`.
 
+## Mission Control assistant (Freeplay)
+
+Freeplay has an in-app assistant (header button **Mission Control**) that answers questions about the mission being built and about lunar terrain. It calls read-only tools that wrap `/api/v1` (catalog sites, chapters, and the `science/*` celestial, horizon, metrics, timeline and compare endpoints) and never answers site, Sun/Earth or horizon facts from model memory. Every answer carries a collapsible **Sources** line (site, horizon source, data range), and fallback-horizon or failed lookups always show a fixed notice.
+
+- Model access is **Firebase AI Logic** (Gemini Developer API) through `firebase/ai`. The persona, rules, output format and tool descriptions live in a **server prompt template** in Firebase, not in the client bundle. The source of truth is `docs/ai/prompt-templates/mission-control-v1-0-0.prompt`; it must be pasted into the console (steps below) and re-pasted when edited.
+- Tool parameter schemas are declared in code (`lib/assistant/tool-schemas.ts`) beside their validators (`lib/assistant/tool-validation.ts`). Tools run in the browser against same-origin `/api/v1`, with at most 4 tool rounds per question.
+- Code lives in `lib/assistant/` and `components/freeplay/mission-control-assistant/`. This is separate from the `/mission-control` route.
+
+**One-time Firebase setup** (project `shadowline-2t12`):
+
+1. Firebase console > **AI Services > AI Logic** > Get started > choose **Gemini Developer API**. This enables the Firebase AI Logic API and creates a server-side Gemini key. If your web API key has API restrictions, allow *Firebase AI Logic API* (`firebasevertexai.googleapis.com`) on it.
+2. **AI Logic > Prompt templates > Create new template**: ID `mission-control-v1-0-0`. The console has two separate editors, so the `.prompt` file must be split in two (pasting it all into the Configuration box fails with a YAML error such as "end of the stream or a document separator is expected"):
+   - **Configuration (frontmatter)**: only the YAML between the two `---` lines, without the `---` lines. On macOS: `awk 'NR==1{next} /^---$/{exit} {print}' docs/ai/prompt-templates/mission-control-v1-0-0.prompt | pbcopy`
+   - **Prompt**: only the text after the second `---`, starting at `{{role "system"}}`. On macOS: `awk '/^---$/{c++; next} c>=2{print}' docs/ai/prompt-templates/mission-control-v1-0-0.prompt | pbcopy`
+
+   Then save, run a test, and click the lock icon. New templates can take a couple of minutes to propagate.
+3. **App Check**: register the web app with **reCAPTCHA Enterprise**, set `NEXT_PUBLIC_APPCHECK_RECAPTCHA_ENTERPRISE_SITE_KEY`, then enforce App Check for *Firebase AI Logic* (Security > App Check > APIs).
+4. Local development: set `NEXT_PUBLIC_APPCHECK_DEBUG_TOKEN=true`, run `npm run dev`, copy the debug token printed in the browser console and register it under App Check > Apps > Manage debug tokens. Production builds ignore this variable.
+5. Billing: the Gemini Developer API free tier works for development; production traffic needs the Blaze plan. Set a quota or budget alert in Google Cloud and Firebase AI Logic usage limits.
+
 ## Data sources
 
 - [Lunar Orbiter Laser Altimeter (LOLA), PDS Geosciences Node](https://pds-geosciences.wustl.edu/missions/lro/lola.htm) — precomputed horizon masks and polar terrain-grid masks where coverage is available.

@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, type ReactNode } from "react";
 import { Car, Globe2, Orbit, Sun } from "lucide-react";
+import { AssistantDock, AssistantLauncher } from "@/components/freeplay/mission-control-assistant/assistant-dock";
 import { usePlaybackClock } from "@/components/freeplay/time-controls";
 import { approachHref, driveHref } from "@/lib/drive-link";
 import { currentTimeMs, useFreeplay, type FreeplayView } from "@/lib/freeplay-store";
@@ -56,6 +57,7 @@ export function FreeplayApp({ aside }: { aside?: ReactNode }) {
           </button>)}
         </div>
         <FreeplayPageLinks />
+        <AssistantLauncher />
       </div>
       <div className="type-data min-w-0 truncate text-[0.62rem] text-muted-foreground">
         {site
@@ -68,6 +70,7 @@ export function FreeplayApp({ aside }: { aside?: ReactNode }) {
         {view === "globe" ? <GlobeScreen /> : <OrbitScreen />}
       </div>
       {aside}
+      <AssistantDock />
     </div>
   </div>;
 }
