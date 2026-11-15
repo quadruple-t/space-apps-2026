@@ -220,3 +220,15 @@ The server and Freeplay share one implementation of the sky maths: ephemeris int
 The checked-in data pipeline fetches JPL Horizons ephemerides and LOLA/PDS terrain inputs, validates and packs them, and the seed command publishes the versioned dataset to Firestore. Use that pipeline to refresh source data; API requests read the stored dataset. Dataset version and generation time are exposed by `/api/v1/catalog/meta`.
 
 Set `FIREBASE_PROJECT_ID` and either `FIREBASE_SERVICE_ACCOUNT_JSON` or Application Default Credentials for hosted use and authenticated owner routes. Public GET routes use Firebase Web SDK credentials and Firestore public-read rules. In local development, set `NEXT_PUBLIC_FIREBASE_API_KEY` and `NEXT_PUBLIC_FIREBASE_PROJECT_ID` for public reads. For the emulators, set `FIRESTORE_EMULATOR_HOST=127.0.0.1:8080` and `FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099`, then start the Firebase emulators.
+
+
+## Stored globe imagery and collected-data archive
+
+- `GET /api/v1/globe/manifest`: version, scope and stored asset manifests from `catalog/globe-assets-v1`.
+- `GET /api/v1/globe/assets/{id}`: reconstructs a PNG or collected-data gzip from stored catalog chunks. No upstream map service is called.
+- `GET /api/v1/globe/assets/{id}?sha256={hash}`: versioned immutable response; a stale hash returns 404.
+
+Manifest bounds are `[west, south, east, north]` in east-positive degrees. Dimensions
+are the stored display resolution, not the native source resolution. Binary parts
+are validated for ownership, sequence, lengths and checksum; missing/corrupt data
+returns 503. Only public scientific assets are served. Unknown asset IDs return 404.

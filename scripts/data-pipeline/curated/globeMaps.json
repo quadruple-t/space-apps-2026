@@ -1,0 +1,81 @@
+{
+  "maps": [
+    {
+      "id": "luna_copernican_craters",
+      "title": "Lunar Copernican Craters Shapefile",
+      "abstract": "Shapefile of lunar craters (D > 10km) of Copernican age (<1.1Ga) located between 60Â°N and 60Â°S. Copernican craters, which are the youngest lunar craters exhibit high reflectance rays (i.e., \"optically immature\", with OMAT > 0.22). Their classification and characterization plays a significant role in understanding the meteorite flux in the last 3 billion years. For details see: Ravi, S., P. Mahanti, H. Meyer, M.S. Robinson (2016). On the Usefulness of Optical Maturity for Relative Age Classification of Fresh Craters. American Geophysical Union Fall Meeting, San Francisco, CA, December 2016.",
+      "source": "lunaservScienceMaps",
+      "retrievedAt": "2026-11-14"
+    },
+    {
+      "id": "luna_diviner_silicate",
+      "title": "Diviner Global Silicate Mineralology",
+      "abstract": "Diviner Global Composition Christiansen Feature (CF) value map of bulk silicate mineralogy at a scale of 128 ppd. The color map was chosen to highlight compositional variability of common lunar terrains and saturate blue (minimum at 7.80 microns) or red (maximum at 8.55 microns) for unusual compositions. For more information, please refer to: Greenhagen, B. T., Lucey, P. G., Wyatt, M. B., Glotch, T. D., Allen, C. C., Arnold, J. A., Bandfield, J. L., Bowles, N. E., Hanna, K. L. D. Hayne, P. O., & Song, E. (2010). Global silicate mineralogy of the Moon from the Diviner Lunar Radiometer. Science, 329(5998), 1507-1509.",
+      "source": "lunaservScienceMaps",
+      "retrievedAt": "2026-11-14"
+    },
+    {
+      "id": "luna_diviner_sp_ice_depth_today",
+      "title": "Diviner South Pole Ice Depth Stability - Current",
+      "abstract": "South pole map of ice-stability depth for areas where water ice is stable in the current pole orientation at 240 mpp. Ice stability depth is defined as the depth at which water ice will sublimate at a rate of 1 mmGyr^-1. For more information, refer to Siegler, M. A., R. S. Miller, J. T. Keane, M. Laneuville, D. A. Paige, I. Matsuyama, D. J. Lawrence, A. Crotts, and M. J. Poston. (2016). Lunar true polar wander inferred from polar hydrogen. Nature, 531(7595), 480-484. https://doi.org/10.1016/j.icarus.2017.03.023",
+      "source": "lunaservScienceMaps",
+      "retrievedAt": "2026-11-14"
+    },
+    {
+      "id": "luna_diviner_tbol_max",
+      "title": "Diviner Maximum Temperatures",
+      "abstract": "Maximum temperatures anomalies with zonal mean subtracted at 2 ppd. Scale extends from -25 (purple) to 25 K (white). For more information, please refer to: Williams, J. P., Paige, D. A., Greenhagen, B. T., & Sefton-Nash, E. (2017). The global surface temperatures of the moon as measured by the diviner lunar radiometer experiment. Icarus, 283, 300-325.i",
+      "source": "lunaservScienceMaps",
+      "retrievedAt": "2026-11-14"
+    },
+    {
+      "id": "luna_diviner_tbol_min",
+      "title": "Diviner Minimum Temperatures",
+      "abstract": "Minimum temperatures anomalies with zonal mean subtracted at 2 ppd. Scale extends from -10 (purple) to 10 K (white). For more information, please refer to: Williams, J. P., Paige, D. A., Greenhagen, B. T., & Sefton-Nash, E. (2017). The global surface temperatures of the moon as measured by the diviner lunar radiometer experiment. Icarus, 283, 300-325.",
+      "source": "lunaservScienceMaps",
+      "retrievedAt": "2026-11-14"
+    },
+    {
+      "id": "luna_kaguya_clinopyroxene",
+      "title": "Kaguya MI Clinopyroxene Abundance (wt%)",
+      "abstract": "Abundance of clinopyroxene (wt %) mosaic created from topographically-corrected Mineral Mapper reflectance data acquired by the JAXA SELENE/Kaguya mission ranging from -50 deg to 50 deg latitude at 512 ppd. Values are mapped to 9 discrete colors in increments of 0.07% ranging from <= 0.00 (dark blue) to >0.05 (yellow).  For more information, refer to Lemelin, M., Lucey, P.G., L.R. Gaddis, T. Hare, and M. Ohtake (2016) Global map products from the Kaguya Multiband Imager at 512 ppd: Minerals, FeO and OMAT. 47th LPSC, abs. #2994. http://www.hou.usra.edu/meetings/lpsc2016/pdf/2994.pdf. Credit to: JAXA/SELENE",
+      "source": "lunaservScienceMaps",
+      "retrievedAt": "2026-11-14"
+    },
+    {
+      "id": "luna_kaguya_feo",
+      "title": "Kaguya MI FeO Abundance (wt%)",
+      "abstract": "Abundance of FeO (wt%) mosaic created from topographically-corrected Mineral Mapper reflectance data acquired by the JAXA SELENE/Kaguya mission ranging from -50 deg to 50 deg latitude at 512 ppd. Values are mapped to 10 discrete colors in increments of 2.5% ranging from <=2.5 (dark blue) to >22.5 (yellow).  For more information, refer to Lemelin, M., Lucey, P.G., L.R. Gaddis, T. Hare, and M. Ohtake (2016) Global map products from the Kaguya Multiband Imager at 512 ppd: Minerals, FeO and OMAT. 47th LPSC, abs. #2994. http://www.hou.usra.edu/meetings/lpsc2016/pdf/2994.pdf. Credit to: JAXA/SELENE",
+      "source": "lunaservScienceMaps",
+      "retrievedAt": "2026-11-14"
+    },
+    {
+      "id": "luna_kaguya_olivine",
+      "title": "Kaguya MI Olivine Abundance (wt%)",
+      "abstract": "Abundance of olivine (wt%) mosaic created from topographically-corrected Mineral Mapper reflectance data acquired by the JAXA SELENE/Kaguya mission ranging from -50Â° to 50Â° latitude at 512 ppd. Values are mapped to 10 discrete colors in increments of 0.025, ranging from <=0.025 (dark blue) to >0.225 (yellow) For more information, refer to Lemelin, M., Lucey, P.G., L.R. Gaddis, T. Hare, and M. Ohtake (2016) Global map products from the Kaguya Multiband Imager at 512 ppd: Minerals, FeO and OMAT. 47th LPSC, abs. #2994. http://www.hou.usra.edu/meetings/lpsc2016/pdf/2994.pdf Credit to: JAXA/SELENE",
+      "source": "lunaservScienceMaps",
+      "retrievedAt": "2026-11-14"
+    },
+    {
+      "id": "luna_kaguya_plagioclase",
+      "title": "Kaguya MI Plagioclase Abundance (wt%)",
+      "abstract": "Abundance of plagioclase (wt%) mosaic created from topographically-corrected Mineral Mapper reflectance data acquired by the JAXA SELENE/Kaguya mission ranging from -50 deg to 50 deg latitude at 512 ppd. Values are mapped to 11 discrete colors in increments of 0.05% ranging from <=0.05 (dark blue) to 0.95 - 1.0 (yellow).  For more information, refer to Lemelin, M., Lucey, P.G., L.R. Gaddis, T. Hare, and M. Ohtake (2016). Global map products from the Kaguya Multiband Imager at 512 ppd: Minerals, FeO and OMAT. 47th LPSC, abs. #2994. http://www.hou.usra.edu/meetings/lpsc2016/pdf/2994.pdf. Credit to: JAXA/SELENE",
+      "source": "lunaservScienceMaps",
+      "retrievedAt": "2026-11-14"
+    },
+    {
+      "id": "luna_lp_deconvolved_thorium",
+      "title": "Lunar Prospector Th Abundances",
+      "abstract": "Global spatial deconvolution of planetary gamma-ray data for lunar Th abundances as measured by the Lunar Prospector Gamma-ray Spectrometer at 2 pixels per degree. Values range from 0 (black) to 17 (white). For more information, refer to: Lawrence, D. J., R. C. Puetter, R. C. Elphic, W. C. Feldman, J. J. Hagerty, T. H. Prettyman, and P. D. Spudis (2007), Global spatial deconvolution of Lunar Prospector Th abundances, Geophys. Res. Lett., 34, L03201, doi:10.1029/2006GL028530.",
+      "source": "lunaservScienceMaps",
+      "retrievedAt": "2026-11-14"
+    },
+    {
+      "id": "luna_wac_tio2_color",
+      "title": "LROC WAC TiO2 Abundance (wt%) - Color",
+      "abstract": "TiO2 abundance in wt% derived from Wide Angle Camera (WAC) 321/415 nm band ratio, covering 70Â°N-70Â°S and 0Â°E-360Â°E. It was created from the 321 and 415 n m bands of the WAC Hapke Normalized Mosaic from ~124,300 WAC images acquired from January 21, 2010 to May 1st, 2013. Estimate of TiO2 wt% and map creation is from a linear correlation between the TiO2 contents of returned lunar soil samples and the WAC 321/415 nm ratio at the sampling sites, the 321/415 nm ratio map was converted to the TiO2 abundance estimate map. The TiO2 abundances in this map have been binned into 10 1% bins between 2% and 10%. For more details, see Sato, H., Robinson, M.S., Lawrence, S.J., Denevi, B.W., Hapke, H., Jolliff, B.L., Hiesinger, H. (2017) Lunar Mare TiO2 Abundances Estimated from UV/Vis Reflectance, Icarus, doi:10.1016/j.icarus.2017.06.013.",
+      "source": "lunaservScienceMaps",
+      "retrievedAt": "2026-11-14"
+    }
+  ]
+}

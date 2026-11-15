@@ -1,3 +1,4 @@
+import { GLOBE_ARCHIVE_DOC } from "@/lib/globe-archive";
 import { FieldPath, FieldValue } from "firebase-admin/firestore";
 import { adminCredentialsRequired, adminDb, hasAdminCredentials, verifyFirebaseToken } from "@/lib/firebase/admin";
 import { publicReadDb } from "@/lib/firebase/public-read-db";
@@ -38,6 +39,10 @@ export async function GET(request: Request, context: { params: Promise<{ path?: 
     // Public endpoints use the Web SDK and public Firestore rules. This avoids making
     // catalog/science reads depend on a local service-account key or ADC configuration.
     const db = root === "users" ? adminDb() : publicReadDb();
+    if (root === "globe" && id === "manifest" && !child) {
+      const snap = await db.doc(GLOBE_ARCHIVE_DOC).get();
+      return snap.exists ? json(serialize(snap.data())) : errorJson("Globe snapshots have not been imported", 404);
+    }
     if (root === "catalog") {
       if (id === "sites" && !child) {
         const snap = await db.doc("catalog/siteIndex").get();
