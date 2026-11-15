@@ -20,34 +20,16 @@ export const DURATION_PRESETS = [
 ] as const
 
 
-const STORAGE_KEY = "lunaris360-freeplay-v1"
-
-type Persisted = { savedSites: FreeplaySite[]; panelAreaM2: number; panelEfficiency: number }
-
-function loadPersisted(): Partial<Persisted> {
-  try {
-    const raw = typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_KEY) : null
-    return raw ? (JSON.parse(raw) as Partial<Persisted>) : {}
-  } catch {
-    return {}
-  }
-}
-
-function savePersisted(p: Persisted) {
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(p))
-  } catch {
-    // Private mode or blocked storage: saved sites last for this session only.
-  }
-}
+/** Saved sites per expedition; matches EXPEDITION_LIMITS.sites and firestore.rules. */
+export const MAX_SAVED_SITES = 50
 
 type FreeplayState = {
   view: FreeplayView
   /** null until the user picks a point on the globe or one of their saved sites */
   site: FreeplaySite | null
   calloutOpen: boolean
+  /** Saved sites of the open expedition (or the signed-out draft); loaded and saved by lib/expeditions. */
   savedSites: FreeplaySite[]
-  hydrated: boolean
 
   startIso: string
   durationHours: number
@@ -88,8 +70,35 @@ type FreeplayState = {
   setShowCatalog: (show: boolean) => void
   setGraphTab: (t: GraphTab) => void
   setPanel: (areaM2: number, efficiency: number) => void
-  hydrate: () => void
 }
+
+export const DEFAULT_LAYERS: Record<LayerId, LayerState> = {
+  landings: { on: false, opacity: 0.8 },
+  impacts: { on: false, opacity: 0.8 },
+  heritage: { on: false, opacity: 0.8 },
+  coldTraps: { on: false, opacity: 0.8 },
+  resources: { on: false, opacity: 0.8 },
+  artemis: { on: false, opacity: 0.8 },
+  titanium: { on: false, opacity: 0.7 },
+  iron: { on: false, opacity: 0.7 },
+  thorium: { on: false, opacity: 0.7 },
+  olivine: { on: false, opacity: 0.7 },
+  plagioclase: { on: false, opacity: 0.7 },
+  pyroxene: { on: false, opacity: 0.7 },
+  silicates: { on: false, opacity: 0.7 },
+  iceDepth: { on: false, opacity: 0.7 },
+  temperatureMax: { on: false, opacity: 0.7 },
+  temperatureMin: { on: false, opacity: 0.7 },
+  impactHistory: { on: false, opacity: 0.7 },
+  meteorStreams: { on: false, opacity: 0.7 },
+  slope: { on: false, opacity: 0.7 },
+  illumination: { on: false, opacity: 0.75 },
+  psr: { on: false, opacity: 0.9 },
+  elevation: { on: false, opacity: 0.6 },
+}
+export const LAYER_IDS = Object.keys(DEFAULT_LAYERS) as LayerId[]
+export const DEFAULT_METEOR_STREAM = "Geminids"
+export const DEFAULT_PANEL = { areaM2: 1, efficiency: 0.3 } as const
 
 const DEFAULT_RADIUS_KM = 10
 /** Default mission start. Stored ephemeris covers 2026-01-01 … 2030-12-31 (docs/API.md). */
@@ -99,17 +108,11 @@ export const COVERAGE_END_ISO = "2030-12-31T23:00:00.000Z"
 const round = (n: number, d = 4) => Number(n.toFixed(d))
 
 export const useFreeplay = create<FreeplayState>((set, get) => {
-  const persist = () => {
-    const { savedSites, panelAreaM2, panelEfficiency } = get()
-    savePersisted({ savedSites, panelAreaM2, panelEfficiency })
-  }
-
   return {
     view: "globe",
     site: null,
     calloutOpen: false,
     savedSites: [],
-    hydrated: false,
 
     startIso: DEFAULT_START_ISO,
     durationHours: Math.round(LUNAR_DAY_HOURS),
@@ -117,36 +120,13 @@ export const useFreeplay = create<FreeplayState>((set, get) => {
     playing: false,
     speed: 10,
 
-    layers: {
-      landings: { on: false, opacity: 0.8 },
-      impacts: { on: false, opacity: 0.8 },
-      heritage: { on: false, opacity: 0.8 },
-      coldTraps: { on: false, opacity: 0.8 },
-      resources: { on: false, opacity: 0.8 },
-      artemis: { on: false, opacity: 0.8 },
-      titanium: { on: false, opacity: 0.7 },
-      iron: { on: false, opacity: 0.7 },
-      thorium: { on: false, opacity: 0.7 },
-      olivine: { on: false, opacity: 0.7 },
-      plagioclase: { on: false, opacity: 0.7 },
-      pyroxene: { on: false, opacity: 0.7 },
-      silicates: { on: false, opacity: 0.7 },
-      iceDepth: { on: false, opacity: 0.7 },
-      temperatureMax: { on: false, opacity: 0.7 },
-      temperatureMin: { on: false, opacity: 0.7 },
-      impactHistory: { on: false, opacity: 0.7 },
-      meteorStreams: { on: false, opacity: 0.7 },
-      slope: { on: false, opacity: 0.7 },
-      illumination: { on: false, opacity: 0.75 },
-      psr: { on: false, opacity: 0.9 },
-      elevation: { on: false, opacity: 0.6 },
-    },
-    meteorStream: "Geminids",
+    layers: DEFAULT_LAYERS,
+    meteorStream: DEFAULT_METEOR_STREAM,
     setMeteorStream: (meteorStream) => set({ meteorStream }),
     showCatalog: false,
     graphTab: "daily",
-    panelAreaM2: 1,
-    panelEfficiency: 0.3,
+    panelAreaM2: DEFAULT_PANEL.areaM2,
+    panelEfficiency: DEFAULT_PANEL.efficiency,
 
     focusNonce: 0,
     requestFocus: () => set((s) => ({ focusNonce: s.focusNonce + 1 })),
@@ -175,32 +155,28 @@ export const useFreeplay = create<FreeplayState>((set, get) => {
     setCalloutOpen: (calloutOpen) => set({ calloutOpen }),
     saveCurrentSite: (name) => {
       const { site, savedSites } = get()
-      if (!site) return
+      if (!site || savedSites.length >= MAX_SAVED_SITES) return
       const saved: FreeplaySite = {
         ...site, kind: "saved", provenance: "user",
         id: `saved-${Date.now().toString(36)}`,
         name: name.trim() || `Site ${savedSites.length + 1}`,
       }
       set({ savedSites: [...savedSites, saved], site: saved })
-      persist()
     },
     renameSaved: (id, name) => {
       set((s) => ({
         savedSites: s.savedSites.map((x) => (x.id === id ? { ...x, name } : x)),
         site: s.site?.id === id ? { ...s.site, name } : s.site,
       }))
-      persist()
     },
     setSavedRadius: (id, km) => {
       set((s) => ({ savedSites: s.savedSites.map((x) => (x.id === id ? { ...x, radiusKm: km } : x)) }))
-      persist()
     },
     deleteSaved: (id) => {
       set((s) => ({
         savedSites: s.savedSites.filter((x) => x.id !== id),
         site: s.site?.id === id ? { ...s.site, kind: "custom", name: "Custom site", id: `custom-${s.site.latitudeDeg}-${s.site.longitudeDeg}` } : s.site,
       }))
-      persist()
     },
 
     setStart: (iso) => {
@@ -215,17 +191,7 @@ export const useFreeplay = create<FreeplayState>((set, get) => {
     setLayer: (id, patch) => set((s) => ({ layers: { ...s.layers, [id]: { ...s.layers[id], ...patch } } })),
     setShowCatalog: (showCatalog) => set({ showCatalog }),
     setGraphTab: (graphTab) => set({ graphTab }),
-    setPanel: (panelAreaM2, panelEfficiency) => { set({ panelAreaM2, panelEfficiency }); persist() },
-    hydrate: () => {
-      if (get().hydrated) return
-      const p = loadPersisted()
-      set({
-        hydrated: true,
-        savedSites: Array.isArray(p.savedSites) ? p.savedSites : [],
-        panelAreaM2: typeof p.panelAreaM2 === "number" ? p.panelAreaM2 : 1,
-        panelEfficiency: typeof p.panelEfficiency === "number" ? p.panelEfficiency : 0.3,
-      })
-    },
+    setPanel: (panelAreaM2, panelEfficiency) => set({ panelAreaM2, panelEfficiency }),
   }
 })
 

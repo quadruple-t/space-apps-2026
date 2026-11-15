@@ -2,13 +2,16 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { ArrowLeft, Bot, Car, Globe2, Orbit } from "lucide-react";
+import { ExpeditionControl, EXPEDITION_LAUNCHER_ID } from "@/components/expeditions/expedition-control";
+import { ExpeditionPanel } from "@/components/expeditions/expedition-panel";
 import { AssistantPanel, LAUNCHER_ID, PANEL_ID } from "@/components/freeplay/assistant-panel";
 import { usePlaybackClock } from "@/components/freeplay/time-controls";
 import type { FreeplaySite } from "@/data/sites";
 import { useAssistant } from "@/lib/assistant/assistant-store";
 import { driveHref } from "@/lib/drive-link";
+import { useExpeditions } from "@/lib/expeditions/expedition-store";
 import { currentTimeMs, useFreeplay, type FreeplayView, type LayerId } from "@/lib/freeplay-store";
 
 const Loading = ({ label }: { label: string }) =>
@@ -45,12 +48,23 @@ export function FreeplayApp({ aside, guidedPanels, assistantEnabled = true, guid
   const view = useFreeplay((s) => s.view);
   const site = useFreeplay((s) => s.site);
   const setView = useFreeplay((s) => s.setView);
-  const hydrate = useFreeplay((s) => s.hydrate);
   const assistantOpen = useAssistant((s) => s.open);
   const setAssistantOpen = useAssistant((s) => s.setOpen);
+  const [expeditionOpen, setExpeditionOpen] = useState(false);
   const closeAssistant = () => { setAssistantOpen(false); requestAnimationFrame(() => document.getElementById(LAUNCHER_ID)?.focus()); };
+  const closeExpedition = () => { setExpeditionOpen(false); requestAnimationFrame(() => document.getElementById(EXPEDITION_LAUNCHER_ID)?.focus()); };
+  // One side panel at a time keeps the globe usable.
+  const toggleExpedition = () => { if (!expeditionOpen) setAssistantOpen(false); setExpeditionOpen(!expeditionOpen); };
+  const toggleAssistant = () => { if (!assistantOpen) setExpeditionOpen(false); setAssistantOpen(!assistantOpen); };
   usePlaybackClock();
-  useEffect(() => { hydrate(); }, [hydrate]);
+  // Non-guided Freeplay loads the open expedition (or this browser's draft) and autosaves it.
+  // Guided Mission shares the Freeplay store but never attaches, so its resets are never saved.
+  useEffect(() => {
+    if (guidedMode) return;
+    const expeditions = useExpeditions.getState();
+    expeditions.attach(new URLSearchParams(window.location.search).get("expedition"));
+    return () => { void expeditions.detach(); };
+  }, [guidedMode]);
 
   return <div className="flex h-dvh flex-col bg-void pt-(--nav-height)">
     <header className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-3 py-2 sm:px-4">
@@ -69,9 +83,10 @@ export function FreeplayApp({ aside, guidedPanels, assistantEnabled = true, guid
             </button>)}
           </div>
           <FreeplayPageLinks />
-          {assistantEnabled && <button id={LAUNCHER_ID} type="button" onClick={() => setAssistantOpen(!assistantOpen)} aria-expanded={assistantOpen} aria-controls={PANEL_ID} aria-label={assistantOpen ? "Close mission assistant" : "Open mission assistant"} className={`inline-flex h-8 items-center gap-2 rounded border px-3 type-data text-[0.62rem] uppercase ${assistantOpen ? "border-retro-purple/60 bg-retro-purple/15 text-bone" : "border-line text-muted-foreground hover:border-retro-purple/50 hover:text-bone"}`}>
+          {assistantEnabled && <button id={LAUNCHER_ID} type="button" onClick={toggleAssistant} aria-expanded={assistantOpen} aria-controls={PANEL_ID} aria-label={assistantOpen ? "Close mission assistant" : "Open mission assistant"} className={`inline-flex h-8 items-center gap-2 rounded border px-3 type-data text-[0.62rem] uppercase ${assistantOpen ? "border-retro-purple/60 bg-retro-purple/15 text-bone" : "border-line text-muted-foreground hover:border-retro-purple/50 hover:text-bone"}`}>
             <Bot size={14} />Assistant
           </button>}
+          <ExpeditionControl open={expeditionOpen} onToggle={toggleExpedition} />
         </>}
       </div>
       {!guidedMode && <div className="type-data min-w-0 truncate text-[0.62rem] text-muted-foreground">
@@ -86,6 +101,9 @@ export function FreeplayApp({ aside, guidedPanels, assistantEnabled = true, guid
       </div>
       {guidedMode && guidedPanels?.dimContent && <div aria-hidden className="pointer-events-auto absolute inset-0 z-20 bg-void/55 backdrop-blur-[2px]" />}
       {aside}
+      {!guidedMode && expeditionOpen && <div className="absolute inset-0 z-40 bg-void/70 p-2 lg:static lg:bg-transparent lg:p-0">
+        <ExpeditionPanel onClose={closeExpedition} />
+      </div>}
       {assistantEnabled && assistantOpen && <div className="absolute inset-0 z-40 bg-void/70 p-2 lg:static lg:bg-transparent lg:p-0">
         <AssistantPanel onClose={closeAssistant} />
       </div>}

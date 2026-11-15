@@ -110,6 +110,13 @@ npm test                # unit tests (vitest)
 npm run test:rules      # security-rules tests (starts its own Firestore emulator; port 8080 must be free)
 ```
 
+**Sign-in (optional):** accounts only add cloud-saved expeditions; every page works signed out. The navbar
+offers Google and email/password. In the Firebase console (Authentication > Sign-in method) enable both the
+**Google** and **Email/Password** providers, and check that your deployed domains are listed under
+Authentication > Settings > Authorized domains. Email verification is sent on sign-up but never required. The
+Auth emulator supports both providers with no console setup (verification and reset links appear in the
+emulator log and UI at port 4000).
+
 `scripts/seed-firestore.ts` validates everything before writing and aborts on any error. Useful flags:
 `--dry-run` (validate and print sizes only) and `--only sites,catalog`.
 
