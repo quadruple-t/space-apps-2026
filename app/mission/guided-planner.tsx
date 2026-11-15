@@ -35,11 +35,11 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
   const stage = stages[lessonIndex] ?? "story";
   const setStage = (nextStage: LessonStage) => setStages((current) => ({ ...current, [lessonIndex]: nextStage }));
 
-  const storySpecForStop = (stopId: string) => {
-    const id = stopId.replace(/^(?:catalog-|approx-|tour-)/, "");
-    return STORY_STOPS.find((spec) => spec.id === id || spec.catalogId === id);
+  const storySpecForStop = (stop: FreeplaySite) => {
+    const id = stop.id.replace(/^(?:catalog-|approx-|tour-)/, "");
+    return STORY_STOPS.find((spec) => spec.id === id || spec.catalogId === id || spec.catalogId === stop.catalogId || spec.name === stop.name);
   };
-  const candidateStops = tutorial.tourStops.filter((stop) => storySpecForStop(stop.id)?.group === "Artemis III candidate");
+  const candidateStops = tutorial.tourStops.filter((stop) => storySpecForStop(stop)?.group === "Artemis III candidate");
 
   useEffect(() => useFreeplay.subscribe((state, previous) => {
     const next = state.site;
@@ -72,7 +72,7 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
     const store = useFreeplay.getState();
     if (target.screen !== "drive") {
       const chapterStart = target.chapterId !== lesson.chapterId
-        ? target.chapterId === "ch3-lunar-base" ? candidateStops[0] : tutorial.tourStops[0]
+        ? target.chapterId === "ch3-lunar-base" ? candidateStops[0] ?? tutorial.tourStops[0] : tutorial.tourStops[0]
         : undefined;
       if (chapterStart) store.selectSite(chapterStart, false);
       store.setView(target.screen === "orbit" ? "orbit" : "globe");
@@ -116,8 +116,8 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
         {stage === "try" && lesson.id === "sun" && <p className={lessonCheckClass}>Mission time moved {mark(view === "orbit" && clockMoved)}</p>}
         {stage === "try" && lesson.id === "earth" && <button type="button" onClick={() => setEarthAcknowledged(true)} className={lessonActionClass}>{earthAcknowledged ? "Readout found ✓" : "I found the Earth visibility readout"}</button>}
         {stage === "try" && lesson.id === "candidates" && <>
-          <CandidateComparison sites={candidateStops} />
-          <p className={lessonCheckClass}>Choose both places, then open either card to inspect its orbit graph. Places visited: {compared.size}</p>
+          <CandidateComparison sites={tutorial.tourStops} />
+          <p className={lessonCheckClass}>Compare two stops from the site picker in lesson 1. Select a card to inspect that place in the orbit view. Places visited: {compared.size}</p>
         </>}
       </LessonCard>
     </div>
@@ -126,7 +126,6 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
   const guidedPanels = {
     layers: { show: stage === "try" && lesson.id === "overlays", showCatalog: false, layerIds: lesson.id === "overlays" ? ["slope"] as LayerId[] : [] },
     tourSites: tutorial.tourStops,
-    dimContent: stage !== "try" && lesson.id !== "pick-site",
   };
 
   return <div className="fixed inset-0 z-50 h-dvh overflow-hidden bg-void">

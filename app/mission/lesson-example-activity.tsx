@@ -44,7 +44,7 @@ export function LessonExampleActivity({ lesson, stops, candidates }: {
     overlays: "Set a pretend lander slope limit and see the trade-off.",
     sun: "Scrub the mission clock. Compare the Sun with the local terrain horizon.",
     earth: "Scrub the mission clock. Check whether terrain blocks Earth.",
-    candidates: "Choose two candidate regions and compare the same mission window.",
+    candidates: "Choose any two stops from the earlier site tour and compare the same mission window.",
     surface: "Change the ridge and your distance. See how a nearby horizon can hide a low Sun.",
   }[lesson.id]), [lesson.id]);
 

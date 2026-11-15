@@ -78,7 +78,7 @@ export function CandidateComparison({ sites }: { sites: FreeplaySite[] }) {
 
   return <div className="mt-3 space-y-2.5">
     <div className="flex items-center justify-between gap-2">
-      <p className="type-data text-[.6rem] uppercase tracking-[.12em] text-retro-purple">Candidate briefing · same mission window</p>
+      <p className="type-data text-[.6rem] uppercase tracking-[.12em] text-retro-purple">Site comparison · same mission window</p>
       <button type="button" onClick={swap} aria-label="Swap candidate places A and B" className="inline-flex min-h-8 shrink-0 items-center gap-1 rounded border border-line px-2 type-data text-[.55rem] uppercase tracking-wide text-muted-foreground hover:border-retro-purple/60 hover:text-bone"><ArrowLeftRight size={12} />Swap</button>
     </div>
     {[{ value: first.id, label: "Place A", otherId: second.id, set: setFirstId }, { value: second.id, label: "Place B", otherId: first.id, set: setSecondId }].map((choice) => <label key={choice.label} className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground"><span className="w-12 shrink-0">{choice.label}</span><select aria-label={`${choice.label} candidate`} value={choice.value} onChange={(event) => {
@@ -96,6 +96,6 @@ export function CandidateComparison({ sites }: { sites: FreeplaySite[] }) {
       <p className="type-data text-[.55rem] uppercase tracking-wide text-retro-blue">Trade-off readout</p>
       <p className="mt-1 text-[.62rem] leading-relaxed text-bone">{describeDifference("sunlight", firstResult.metrics.sunlight, secondResult.metrics.sunlight)} {describeDifference("Earth visibility", firstResult.metrics.earth, secondResult.metrics.earth)}</p>
     </div>}
-    <p className="text-[.58rem] leading-relaxed text-muted-foreground">Sunlight can support solar power; Earth visibility can open more contact time. Bars show the share of sampled hours. Select a card to inspect its orbit. Candidate points may be approximate and do not prove resources or make a landing recommendation.</p>
+    <p className="text-[.58rem] leading-relaxed text-muted-foreground">Sunlight can support solar power; Earth visibility can open more contact time. Bars show the share of sampled hours. Select a card to inspect its orbit. Some points are approximate; this comparison does not confirm resources or recommend a landing.</p>
   </div>;
 }
