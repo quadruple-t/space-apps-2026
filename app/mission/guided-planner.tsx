@@ -35,7 +35,7 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
   const stage = stages[lessonIndex] ?? "story";
   const setStage = (nextStage: LessonStage) => setStages((current) => ({ ...current, [lessonIndex]: nextStage }));
 
-  const candidateStops = tutorial.tourStops.filter((stop) => STORY_STOPS.find((spec) => spec.id === stop.id)?.group === "Artemis III candidate");
+  const candidateStops = tutorial.tourStops.filter((stop) => STORY_STOPS.find((spec) => spec.id === stop.id || spec.catalogId === stop.catalogId || spec.name === stop.name)?.group === "Artemis III candidate");
 
   useEffect(() => useFreeplay.subscribe((state, previous) => {
     const next = state.site;
@@ -68,7 +68,7 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
     const store = useFreeplay.getState();
     if (target.screen !== "drive") {
       const chapterStart = target.chapterId !== lesson.chapterId
-        ? target.chapterId === "ch3-lunar-base" ? candidateStops[0] : tutorial.tourStops[0]
+        ? target.chapterId === "ch3-lunar-base" ? candidateStops[0] ?? tutorial.tourStops[0] : tutorial.tourStops[0]
         : undefined;
       if (chapterStart) store.selectSite(chapterStart, false);
       store.setView(target.screen === "orbit" ? "orbit" : "globe");
@@ -93,7 +93,7 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
       {collapsed ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
     </button>
     <div className={collapsed ? "hidden lg:block" : ""}>
-      <LessonCard lesson={lesson} chapter={chapter} stage={stage} complete={complete} onPrevious={stage !== "story" || lessonIndex > 0 ? previous : undefined} onStageChange={setStage} onNext={() => goToLesson(lessonIndex + 1)} nextLabel={lessonIndex === GUIDED_LESSONS.length - 1 ? "Finish Guided Mission" : "Next lesson"} exampleContent={<LessonExampleActivity lesson={lesson} stops={tutorial.tourStops} candidates={candidateStops} />}>
+      <LessonCard lesson={lesson} chapter={chapter} stage={stage} complete={complete} onPrevious={stage !== "story" || lessonIndex > 0 ? previous : undefined} onStageChange={setStage} onNext={() => goToLesson(lessonIndex + 1)} nextLabel={lessonIndex === GUIDED_LESSONS.length - 1 ? "Finish Guided Mission" : "Next lesson"} exampleContent={<LessonExampleActivity lesson={lesson} stops={tutorial.tourStops} candidates={tutorial.tourStops} />}>
         {stage === "try" && lesson.id === "pick-site" && <>
           <label className="sr-only" htmlFor="story-site-stop">Choose a stop</label>
           <select id="story-site-stop" value={site?.id ?? ""} onChange={(event) => { const selected = siteForStop(event.target.value); if (selected) useFreeplay.getState().selectSite(selected, false); }} className="hud-input mt-1 text-sm normal-case tracking-normal">
@@ -111,8 +111,8 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
         {stage === "try" && lesson.id === "sun" && <p className={lessonCheckClass}>Mission time moved {mark(view === "orbit" && clockMoved)}</p>}
         {stage === "try" && lesson.id === "earth" && <button type="button" onClick={() => setEarthAcknowledged(true)} className={lessonActionClass}>{earthAcknowledged ? "Readout found ✓" : "I found the Earth visibility readout"}</button>}
         {stage === "try" && lesson.id === "candidates" && <>
-          <CandidateComparison sites={candidateStops} />
-          <p className={lessonCheckClass}>Choose both places, then open either card to inspect its orbit graph. Places visited: {compared.size}</p>
+          <CandidateComparison sites={tutorial.tourStops} />
+          <p className={lessonCheckClass}>Compare two stops from the site picker in lesson 1. Select a card to inspect that place in the orbit view. Places visited: {compared.size}</p>
         </>}
       </LessonCard>
     </div>
@@ -121,7 +121,6 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
   const guidedPanels = {
     layers: { show: stage === "try" && lesson.id === "overlays", showCatalog: false, layerIds: lesson.id === "overlays" ? ["slope"] as LayerId[] : [] },
     tourSites: tutorial.tourStops,
-    dimContent: stage !== "try" && lesson.id !== "pick-site",
   };
 
   return <div className="fixed inset-0 z-50 h-dvh overflow-hidden bg-void">
