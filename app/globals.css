@@ -219,6 +219,22 @@
     animation-delay: var(--hud-delay, 900ms);
   }
 
+  .reading-star-active {
+    filter: drop-shadow(0 0 8px rgb(255 83 107 / 85%));
+    animation: reading-star-twinkle 2.4s ease-in-out infinite;
+  }
+
+  @keyframes reading-star-twinkle {
+    0%, 100% { filter: drop-shadow(0 0 5px rgb(255 83 107 / 55%)); }
+    50% { filter: drop-shadow(0 0 12px rgb(255 83 107 / 100%)); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reading-star-active {
+      animation: none;
+    }
+  }
+
   /* Mission-control framing and chapter navigation. */
   .lunar-grid {
     background-image:

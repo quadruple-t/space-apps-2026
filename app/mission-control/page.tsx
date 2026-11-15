@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { DevelopmentNotice, PageIntro } from "@/components/experience/page-intro";
+import { ReadingConstellation } from "@/components/experience/reading-constellation";
 import { HorizonProfile } from "@/components/graphics/horizon-profile";
 import { PageContainer } from "@/components/layout/page-container";
 import { DATA_SOURCES } from "@/data/site";
@@ -50,10 +51,13 @@ export function MissionControlContent() {
         </p>
       </PageIntro>
 
-      <section aria-labelledby="why-terrain" className="py-16 sm:py-24">
-        <PageContainer className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] lg:gap-20">
+      <PageContainer className="grid items-start gap-3 pb-12 lg:grid-cols-[180px_minmax(0,1fr)] lg:gap-12">
+        <ReadingConstellation />
+        <div className="min-w-0">
+      <section id="why-terrain" aria-labelledby="why-terrain-heading" className="scroll-mt-24 py-16 sm:py-24">
+        <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] lg:gap-20">
           <div>
-            <h2 id="why-terrain" className="type-heading text-2xl text-bone sm:text-3xl">
+            <h2 id="why-terrain-heading" className="type-heading text-2xl text-bone sm:text-3xl">
               Why actual terrain matters
             </h2>
           </div>
@@ -73,23 +77,23 @@ export function MissionControlContent() {
               site&apos;s true horizon.
             </p>
           </div>
-        </PageContainer>
+        </div>
       </section>
 
-      <section aria-labelledby="mission-vocabulary" className="border-t border-line py-16 sm:py-24">
-        <PageContainer>
+      <section id="vocabulary" aria-labelledby="mission-vocabulary" className="scroll-mt-24 border-t border-line py-16 sm:py-24">
+        <div>
           <div className="mb-10 max-w-3xl">
             <p className="type-data text-xs uppercase tracking-[0.18em] text-violet-300">Field guide / 01—06</p>
             <h2 id="mission-vocabulary" className="type-heading mt-3 text-3xl text-bone sm:text-4xl">Mission vocabulary</h2>
             <p className="mt-4 text-pretty leading-relaxed text-muted-foreground">Flip a card to learn a core idea used throughout Shadowline. These concepts connect the lunar surface to power, navigation, and communication.</p>
           </div>
           <MissionFlashcards />
-        </PageContainer>
+        </div>
       </section>
 
-      <section aria-labelledby="method" className="border-t border-line py-16 sm:py-24">
-        <PageContainer>
-          <h2 id="method" className="type-heading text-2xl text-bone sm:text-3xl">
+      <section id="method" aria-labelledby="method-heading" className="scroll-mt-24 border-t border-line py-16 sm:py-24">
+        <div>
+          <h2 id="method-heading" className="type-heading text-2xl text-bone sm:text-3xl">
             The horizon mask
           </h2>
           <p className="mt-3 max-w-2xl text-muted-foreground">
@@ -107,11 +111,11 @@ export function MissionControlContent() {
               </li>
             ))}
           </ol>
-        </PageContainer>
+        </div>
       </section>
 
       <section id="data-sources" aria-labelledby="sources-title" className="scroll-mt-24 border-t border-line py-16 sm:py-24">
-        <PageContainer>
+        <div>
           <h2 id="sources-title" className="type-heading text-2xl text-bone sm:text-3xl">
             Data sources
           </h2>
@@ -135,13 +139,13 @@ export function MissionControlContent() {
               </li>
             ))}
           </ul>
-        </PageContainer>
+        </div>
       </section>
 
-      <section aria-labelledby="considerations" className="border-t border-line py-16 sm:py-24">
-        <PageContainer className="grid gap-12 lg:grid-cols-2 lg:gap-20">
+      <section id="considerations" aria-labelledby="considerations-heading" className="scroll-mt-24 border-t border-line py-16 sm:py-24">
+        <div className="grid gap-12 lg:grid-cols-2 lg:gap-20">
           <div>
-            <h2 id="considerations" className="type-heading text-2xl text-bone sm:text-3xl">
+            <h2 id="considerations-heading" className="type-heading text-2xl text-bone sm:text-3xl">
               What the model must account for
             </h2>
             <ul className="mt-8 border-t border-line">
@@ -164,8 +168,8 @@ export function MissionControlContent() {
               ))}
             </dl>
           </div>
-        </PageContainer>
-        <PageContainer className="mt-14">
+        </div>
+        <div className="mt-14">
           <DevelopmentNotice>
             Current status: Freeplay uses stored JPL Horizons ephemerides and available precomputed LOLA horizon masks
             through the versioned science API. Coverage varies by location, and unsupported locations use a labelled
@@ -173,8 +177,10 @@ export function MissionControlContent() {
             this page&apos;s diagrams are procedural or illustrative, not LOLA DEM visualisations, and a visibility
             result does not guarantee a communications link.
           </DevelopmentNotice>
-        </PageContainer>
+        </div>
       </section>
+        </div>
+      </PageContainer>
     </>
   );
 }
