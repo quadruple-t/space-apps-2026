@@ -44,11 +44,12 @@ function SurfaceLink() {
   </Link>;
 }
 
-export function FreeplayApp({ aside, guidedPanels, assistantEnabled = true, guidedMode = false }: {
+export function FreeplayApp({ aside, guidedPanels, assistantEnabled = true, guidedMode = false, onGuidedExit }: {
   aside?: ReactNode;
   guidedPanels?: { layers?: { show: boolean; showCatalog?: boolean; layerIds?: LayerId[] }; tourSites?: FreeplaySite[]; dimContent?: boolean };
   assistantEnabled?: boolean;
   guidedMode?: boolean;
+  onGuidedExit?: () => void;
 }) {
   const view = useFreeplay((s) => s.view);
   const site = useFreeplay((s) => s.site);
@@ -75,9 +76,12 @@ export function FreeplayApp({ aside, guidedPanels, assistantEnabled = true, guid
     <header className={`flex flex-wrap items-center justify-between gap-2 border-b border-line px-3 sm:px-4 ${guidedMode ? "py-0.5" : "py-2"}`}>
       <div className="flex max-w-full flex-wrap items-center gap-x-3 gap-y-2">
         {guidedMode ? <>
-          <Link href="/" aria-label="Exit Guided Mission to Lunaris360 home" className="grid size-8 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><ArrowLeft size={16} /></Link>
+          {onGuidedExit ? <button type="button" onClick={onGuidedExit} aria-label="Return to Guided Mission start page" className="grid size-9 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><ArrowLeft size={17} /></button>
+            : <Link href="/mission" aria-label="Return to Guided Mission start page" className="grid size-9 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><ArrowLeft size={17} /></Link>}
           <Logo compact />
-          <h1 className="type-heading text-sm text-bone">Guided Mission</h1>
+          <div>
+            <h1 className="type-heading text-sm text-bone">Guided Mission</h1>
+          </div>
         </> : <>
           <h1 className="type-heading text-sm text-bone sm:text-base">Open Exploration</h1>
           <div className="flex max-w-full overflow-x-auto rounded border border-line">
