@@ -53,8 +53,7 @@ export function PresetsPanel({ collapsible = true, className = "" }: { collapsib
   return <section aria-label="Presets" className={`hud-panel flex min-h-0 flex-col ${className}`}>
     <header className="flex items-center justify-between gap-2 px-3 py-2">
       <div>
-        <h2 className="type-data text-[0.6rem] uppercase tracking-[0.16em] text-retro-purple">Presets{savedSites.length ? ` · ${savedSites.length}` : ""}</h2>
-        {open && savedSites.length > 0 && <p className="text-[0.56rem] text-muted-foreground">Click a row to fly there · click a name or radius to edit</p>}
+        <h2 className="type-data text-[0.6rem] uppercase tracking-[0.16em] text-retro-purple">Saved sites{savedSites.length ? ` · ${savedSites.length}` : ""}</h2>
       </div>
       {collapsible && <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} aria-label={open ? "Collapse presets" : "Expand presets"}
         className="grid size-7 place-items-center rounded border border-line text-muted-foreground hover:text-bone">{open ? <ChevronDown size={14} /> : <ChevronUp size={14} />}</button>}
@@ -62,7 +61,7 @@ export function PresetsPanel({ collapsible = true, className = "" }: { collapsib
     {open && (savedSites.length === 0
       ? <div className="flex items-start gap-2 px-3 pb-3 text-[0.62rem] leading-relaxed text-muted-foreground">
           <MousePointerClick size={15} className="mt-0.5 shrink-0 text-retro-purple" aria-hidden />
-          <p>No presets yet. Click anywhere on the Moon to pick a site, then choose <span className="text-bone">Save to presets</span> and give it a name.</p>
+          <p>Save a site to keep it handy.</p>
         </div>
       : <div className="min-h-0 flex-1 overflow-auto px-1 pb-2">
           <table className="type-data w-full text-left text-[0.6rem]">

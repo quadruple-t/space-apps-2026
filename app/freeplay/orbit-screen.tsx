@@ -25,9 +25,9 @@ export function OrbitScreen() {
   if (!site) return <div className="grid h-full place-items-center p-4">
     <div className="hud-panel w-full max-w-md p-5 text-center">
       <Globe2 className="mx-auto text-retro-purple" size={22} aria-hidden />
-      <h2 className="type-heading mt-2 text-base text-bone">Pick a site first</h2>
-      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">The orbit view and graphs follow one landing site. Click anywhere on the Moon, or choose one of your saved sites.</p>
-      <button type="button" onClick={() => setView("globe")} className="mt-4 rounded bg-retro-purple px-4 py-2 text-[0.62rem] font-semibold uppercase tracking-[0.1em] text-void hover:bg-[#c2aaff]">Go to the globe</button>
+      <h2 className="type-heading mt-2 text-base text-bone">Select a site</h2>
+      <p className="mt-1 text-xs text-muted-foreground">Choose a landing site from the Moon map.</p>
+      <button type="button" onClick={() => setView("globe")} className="mt-4 rounded bg-retro-purple px-4 py-2 text-[0.62rem] font-semibold uppercase tracking-[0.1em] text-void hover:bg-[#c2aaff]">Open Moon map</button>
       <PresetsPanel collapsible={false} className="mt-4 max-h-60 text-left" />
     </div>
   </div>;
@@ -73,8 +73,8 @@ function OrbitScreenFor({ site }: { site: FreeplaySite }) {
       <section className="hud-panel flex flex-col gap-2 p-3 md:min-h-0 md:flex-1 md:overflow-y-auto" aria-label="Conditions and graphs">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="lg:hidden"><GraphTabs /></div>
-          <span className="type-data text-[0.56rem] text-muted-foreground" title="Stored JPL Horizons ephemeris and LOLA horizon masks from the Lunaris360 data API">
-            Lunaris360 data · terrain: {mission.data ? (mission.data.horizon.elevationsDeg ? mission.data.horizon.source : "smooth horizon (upper bound)") : "…"}
+          <span className="type-data text-[0.56rem] text-muted-foreground" title="Stored JPL Horizons ephemeris and terrain data from the Lunaris360 API">
+            {mission.data ? mission.data.horizon.source : "Data loading"}
           </span>
           <PanelSettings />
         </div>

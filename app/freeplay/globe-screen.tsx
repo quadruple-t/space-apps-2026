@@ -24,8 +24,8 @@ export function GlobeScreen({ guidedLayers, guidedSites, guidedMode = false }: {
       <SiteCallout guided={guidedMode} />
 
       {!guidedMode && <>
-        <p className="pointer-events-none absolute left-3 top-3 hidden rounded bg-void/75 px-2 py-1 type-data text-[0.58rem] uppercase tracking-[0.14em] text-bone/70 md:block">Moon orbit region · drag to rotate · scroll to zoom · click to pick</p>
-        <p className="pointer-events-none absolute bottom-2 left-3 rounded bg-void/75 px-1.5 py-0.5 type-data text-[0.52rem] text-bone/60 md:left-14">Imagery: NASA Moon Trek, LRO WAC · LROC Lunaserv</p>
+        <p className="pointer-events-none absolute left-3 top-3 hidden rounded bg-void/75 px-2 py-1 type-data text-[0.58rem] uppercase tracking-[0.14em] text-bone/70 md:block">Drag to orbit</p>
+        <p className="pointer-events-none absolute bottom-2 left-3 rounded bg-void/75 px-1.5 py-0.5 type-data text-[0.52rem] text-bone/60 md:left-14">NASA Moon Trek</p>
       </>}
 
       {!guidedMode && <PresetsPanel className="absolute bottom-3 right-3 z-10 hidden max-h-[46%] w-[min(560px,calc(100%-1.5rem))] md:flex" />}

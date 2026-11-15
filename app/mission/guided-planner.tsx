@@ -104,7 +104,7 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
           <select id="story-site-stop" value={site?.id ?? ""} onChange={(event) => { const selected = siteForStop(event.target.value); if (selected) useFreeplay.getState().selectSite(selected, false); }} className="hud-input mt-1 text-sm normal-case tracking-normal">
             <option value="">Choose from the ten highlighted stops</option>
             {tutorial.tourStops.map((stop, index) => {
-              const spec = storySpecForStop(stop.id);
+              const spec = storySpecForStop(stop);
               const group = spec?.group === "Historic landing" ? "historic" : spec?.group === "Artemis III candidate" ? "future candidate" : "no past landing";
               return <option key={stop.id} value={stop.id}>{index + 1}. {stop.name} · {group}</option>;
             })}

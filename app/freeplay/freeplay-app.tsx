@@ -82,9 +82,7 @@ export function FreeplayApp({ aside, guidedPanels, assistantEnabled = true, guid
         </>}
       </div>
       {!guidedMode && <div className="type-data min-w-0 truncate text-[0.62rem] text-muted-foreground">
-        {site
-          ? <><span className="text-bone">{site.name}</span> · {site.latitudeDeg.toFixed(3)}°, {site.longitudeDeg.toFixed(3)}° E · r {site.radiusKm} km</>
-          : "Choose a place on the Moon"}
+        {site ? <><span className="text-bone">{site.name}</span></> : "No site selected"}
       </div>}
     </header>
     <div className="relative flex min-h-0 flex-1">
