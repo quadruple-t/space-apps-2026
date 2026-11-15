@@ -267,7 +267,7 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
       </div>
     </div>}
 
-    {phase === "explore" && !mapOpen && !datePickerOpen && <aside className="absolute right-4 top-[5.5rem] z-10 hidden w-[320px] space-y-3 xl:block">
+    {phase === "explore" && !mapOpen && !datePickerOpen && <aside className="absolute right-4 top-[5.5rem] z-10 hidden max-h-[calc(100dvh-27rem)] w-[320px] space-y-3 overflow-y-auto overscroll-contain pr-1 xl:block">
       <section className="hud-panel p-4">
         <div className="flex items-center justify-between"><div><div className="type-data text-xs uppercase tracking-[0.14em] text-retro-blue">Telemetry</div><h2 className="type-heading mt-1 text-base text-bone">Local conditions</h2></div><Activity size={17} className="text-retro-blue" /></div>
         <div className="mt-4 grid grid-cols-2 gap-x-3 gap-y-3">
@@ -310,7 +310,7 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
     </div>}
     {phase === "explore" && <div className="pointer-events-none absolute bottom-[6.9rem] right-5 z-[2] hidden items-center gap-2 rounded border border-line/70 bg-void/45 px-2.5 py-1.5 text-[0.58rem] uppercase tracking-[0.12em] text-muted-foreground backdrop-blur sm:flex"><Crosshair size={13} className="text-retro-purple" />WASD / arrows to move · move cursor to look · click grid nodes</div>}
 
-    {phase === "explore" && <section aria-label="Simulation controls" className="absolute inset-x-3 bottom-3 z-20 rounded-xl border border-retro-purple/25 bg-void/88 px-3 py-2.5 shadow-[0_20px_90px_rgba(4,2,18,0.65)] backdrop-blur-2xl sm:inset-x-auto sm:left-1/2 sm:w-[min(680px,calc(100vw-400px))] sm:min-w-[560px] sm:-translate-x-1/2 sm:px-4 sm:py-3">
+    {phase === "explore" && <section aria-label="Simulation controls" className="absolute inset-x-3 bottom-3 z-20 rounded-xl border border-retro-purple/25 bg-void/88 px-3 py-2.5 shadow-[0_20px_90px_rgba(4,2,18,0.65)] backdrop-blur-2xl sm:inset-x-auto sm:left-1/2 sm:w-[min(680px,calc(100vw-400px))] sm:min-w-[560px] sm:-translate-x-1/2 sm:px-4 sm:py-3 xl:left-[calc(50%-10rem)]">
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
         <div className="flex items-center gap-1 rounded-lg border border-line/80 bg-void/60 p-1">
           {([["first-person", "First person"], ["orbit", "Orbit"], ["overhead", "Map"]] as const).map(([mode, label]) => <button key={mode} type="button" onClick={() => { setCameraMode(mode); recordTutorialAction("camera"); }} aria-pressed={cameraMode === mode} className={`rounded-md px-3 py-1.5 text-[0.62rem] uppercase tracking-[0.08em] transition ${cameraMode === mode ? "bg-retro-purple/20 text-retro-purple" : "text-muted-foreground hover:text-bone"}`}>{label}</button>)}
