@@ -45,7 +45,7 @@ const ACCENT = {
 
 export function ChallengeSection() {
   return (
-    <section id="overview" aria-labelledby="overview-title" className="relative py-24 sm:py-32">
+    <section id="overview" data-constellation-node="Lunar conditions" aria-labelledby="overview-title" className="relative py-24 sm:py-32">
       <PageContainer>
         <Reveal>
           <SectionHeading id="overview-title" title="A world where every degree matters.">
