@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type MouseEvent } from "react";
+import { useMemo, useState, type MouseEvent, type PointerEvent } from "react";
 import { useSize } from "./use-size";
 
 export const SUN = "#ff5364";
@@ -42,6 +42,7 @@ function niceStep(span: number) {
 export function TimeSeriesChart({ title, xs, series, bands = [], yDomain, yUnit, zeroLine, markers, cursorX, onSeek, formatX, formatTick = formatX, height = 190 }: Props) {
   const [ref, { width }] = useSize<HTMLDivElement>({ width: 420, height });
   const [hover, setHover] = useState<number | null>(null);
+  const [dragging, setDragging] = useState(false);
   const n = xs.length;
   const d0 = yDomain?.[0], d1 = yDomain?.[1];
 
@@ -106,6 +107,13 @@ export function TimeSeriesChart({ title, xs, series, bands = [], yDomain, yUnit,
     return best;
   };
 
+  // Continuous x under the pointer, clamped to the plot, so dragging scrubs smoothly between samples.
+  const xAt = (e: PointerEvent<SVGSVGElement>) => {
+    const px = e.clientX - e.currentTarget.getBoundingClientRect().left;
+    const f = Math.min(1, Math.max(0, (px - PAD.left) / plotW));
+    return x0 + f * (x1 - x0);
+  };
+
   const xTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => x0 + (x1 - x0) * f);
   const legend = series.length > 1;
 
@@ -115,8 +123,19 @@ export function TimeSeriesChart({ title, xs, series, bands = [], yDomain, yUnit,
     </div>}
     <svg width={width} height={height} role="img" aria-label={`${title}. ${series.map((s) => s.label).join(", ")} over time.`}
       className={`block touch-none ${onSeek ? "cursor-crosshair" : ""}`}
-      onMouseMove={(e) => setHover(indexAt(e))} onMouseLeave={() => setHover(null)}
-      onClick={(e) => { const i = indexAt(e); if (i !== null && onSeek) onSeek(xs[i]); }}>
+      onPointerDown={(e) => {
+        if (!onSeek || (e.pointerType === "mouse" && e.button !== 0)) return;
+        e.currentTarget.setPointerCapture(e.pointerId);
+        setDragging(true);
+        onSeek(xAt(e));
+      }}
+      onPointerMove={(e) => {
+        if (dragging && onSeek) onSeek(xAt(e));
+        if (e.pointerType === "mouse") setHover(indexAt(e));
+      }}
+      onPointerUp={(e) => { if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId); setDragging(false); }}
+      onPointerCancel={() => setDragging(false)}
+      onPointerLeave={() => setHover(null)}>
       {bands.map((b, k) => {
         const y = PAD.top + k * (LANE + 3);
         return <g key={b.label}>
@@ -157,7 +176,7 @@ export function TimeSeriesChart({ title, xs, series, bands = [], yDomain, yUnit,
       <div className="type-data text-muted-foreground">{formatX(xs[hover])}</div>
       {series.map((s) => <div key={s.id} className="flex justify-between gap-2"><span><span style={{ color: s.color }}>●</span> {s.label}</span><span className="tabular-nums">{s.values[hover].toFixed(s.digits ?? 1)}{s.unit}</span></div>)}
       {bands.map((b) => <div key={b.label} className="text-muted-foreground">{b.label}: {b.on[hover] ? "yes" : "no"}</div>)}
-      {onSeek && <div className="mt-1 text-muted-foreground">Click to jump here</div>}
+      {onSeek && <div className="mt-1 text-muted-foreground">Click or drag to scrub</div>}
     </div>}
   </div>;
 }

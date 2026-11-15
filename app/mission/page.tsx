@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { GuidedMissionExperience } from "./guided-mission-experience";
 
 export const metadata: Metadata = {
-  title: "Tutorial",
-  description: "Learn to read lunar terrain, lighting, Earth visibility, and mission windows at catalog landing sites inside the interactive Lunaris360 simulation.",
+  title: "Guided Mission",
+  description: "Follow Lunaris360's three-act Guided Mission from Apollo landing decisions through robotic exploration to a potential mining lunar base.",
 };
 
 export default function MissionPage() {
