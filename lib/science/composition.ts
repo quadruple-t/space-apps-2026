@@ -59,6 +59,14 @@ export function decodeCompositionGrid(d: Record<string, unknown>, bytes: (v: unk
   };
 }
 
+/** A value closer to zero than this many sigma is not distinguishable from noise. */
+export const NOISE_SIGMAS = 2;
+
+/** Oxides whose abundance is below NOISE_SIGMAS x its 1-sigma uncertainty, so it should not be quoted as a measurement. */
+export function lowConfidenceOxides(values: Partial<OxideTable>, sigma: Partial<OxideTable>): Oxide[] {
+  return COMPOSITION_OXIDES.filter((o) => typeof values[o] === "number" && typeof sigma[o] === "number" && values[o]! < NOISE_SIGMAS * sigma[o]!);
+}
+
 const toEast180 = (lon: number) => ((((lon + 180) % 360) + 360) % 360) - 180;
 const rad = (deg: number) => (deg * Math.PI) / 180;
 

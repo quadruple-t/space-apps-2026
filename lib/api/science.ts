@@ -14,8 +14,8 @@ import { CartesianSeries, monthChunkIds, siteFrame, MAIN_SERIES_END, MAIN_SERIES
 import { maskAt, maskFromGridCell, snapToGrid, smoothHorizonMask } from "@/lib/terrain";
 import { longestRunHours, skyAt, skySamples, type HorizonProfile } from "@/lib/science/sky";
 import { scienceEligibility } from "@/lib/science/site-eligibility";
-import { compositionAt, decodeCompositionGrid, type CompositionGrid } from "@/lib/science/composition";
-import { CRITERION_INFO, activeCriteria, parseWeights, rankSites, type RankInput } from "@/lib/science/rank";
+import { compositionAt, decodeCompositionGrid, lowConfidenceOxides, type CompositionGrid, type OxideTable } from "@/lib/science/composition";
+import { CRITERION_INFO, activeCriteria, parseWeights, rankSites, recommend, type RankInput } from "@/lib/science/rank";
 import type { EphemerisChunk, HorizonMask } from "@/lib/model/types";
 
 type Db = Firestore;
@@ -247,7 +247,7 @@ async function compositionGet(db: Db, url: URL): Promise<Response> {
   });
 }
 
-type RankExtra = { siteId: string; name: string; family: string; latDeg: number; lonDeg: number; locationQuality: LocationQuality; horizonSource: string; insidePsr: boolean | null };
+type RankExtra = { siteId: string; name: string; family: string; latDeg: number; lonDeg: number; locationQuality: LocationQuality; horizonSource: string; insidePsr: boolean | null; compositionPixel: number | null; oxideSigmaWtPct: Pick<OxideTable, "FeO" | "TiO2" | "Al2O3" | "CaO"> | null };
 
 async function rankGet(db: Db, url: URL): Promise<Response> {
   const start = url.searchParams.get("start");
@@ -301,7 +301,9 @@ async function rankGet(db: Db, url: URL): Promise<Response> {
     if (ts.insidePsr === true) flags.push("inside-psr");
     const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
     return {
-      extra: { siteId: entry.id, name: String(data?.name ?? entry.id), family: String(data?.family ?? ""), latDeg: point.latDeg, lonDeg: point.lonDeg, locationQuality: point.quality, horizonSource: horizon.horizonSource, insidePsr: ts.insidePsr ?? null },
+      extra: { siteId: entry.id, name: String(data?.name ?? entry.id), family: String(data?.family ?? ""), latDeg: point.latDeg, lonDeg: point.lonDeg, locationQuality: point.quality, horizonSource: horizon.horizonSource, insidePsr: ts.insidePsr ?? null,
+        compositionPixel: comp?.pixel.index ?? null,
+        oxideSigmaWtPct: comp ? { FeO: comp.sigmaWtPct.FeO, TiO2: comp.sigmaWtPct.TiO2, Al2O3: comp.sigmaWtPct.Al2O3, CaO: comp.sigmaWtPct.CaO } : null },
       flags,
       measurements: {
         sunlightPercent: Math.round(mean(runs.map((r) => r.sunShare)) * 100),
@@ -316,7 +318,17 @@ async function rankGet(db: Db, url: URL): Promise<Response> {
     };
   }))).filter((x): x is RankInput<RankExtra> => x !== null);
 
-  const sites = rankSites(inputs, weights);
+  const ranked = rankSites(inputs, weights);
+  // Oxide values below 2 sigma are noise; sites inside one 60 km pixel share a single value, not independent ones.
+  const sites = ranked.map((r) => {
+    const values = { FeO: r.feoWtPct ?? undefined, TiO2: r.tio2WtPct ?? undefined, Al2O3: r.al2o3WtPct ?? undefined, CaO: r.caoWtPct ?? undefined };
+    const sharing = r.compositionPixel === null ? [] : ranked.filter((o) => o.siteId !== r.siteId && o.compositionPixel === r.compositionPixel).map((o) => o.siteId);
+    return {
+      ...r,
+      oxidesLowConfidence: r.oxideSigmaWtPct ? lowConfidenceOxides(values, r.oxideSigmaWtPct) : [],
+      sharesCompositionPixelWith: sharing.slice(0, 5),
+    };
+  });
   return json({
     interval: { start: new Date(startMs).toISOString(), durationHours, windows, windowStarts: windowStarts.map((w) => new Date(w).toISOString()) },
     weights,
@@ -327,12 +339,14 @@ async function rankGet(db: Db, url: URL): Promise<Response> {
       sampling: `${RANK_STEP_MINUTES}-minute sampling; windows start ${RANK_WINDOW_SPACING_HOURS} h apart`,
     },
     count: sites.length,
+    recommendation: recommend(sites),
     sites,
     skipped,
     assumptions: [
       "Sun and Earth treated as points (centre of disk), no refraction",
       "Approximate-region points are representative points for Artemis candidate regions, not verified sites",
       "Smooth-horizon sites have upper-bound sunlight and Earth-visibility shares",
+      "recommendation is the best-ranked site without a heritage-zone, impact-site or over-10-degree-slope flag (and with enough data); oxidesLowConfidence lists oxides below 2 sigma of their uncertainty",
       "nearestColdTrapKm is a water-ice proxy (Diviner cold traps), only available for south polar sites",
       ...(needsComposition ? ["Oxide abundances are Lunar Prospector GRS regional averages over about 60 km pixels"] : []),
       ...(needsComposition && !grid ? ["Composition data was unavailable, so composition criteria are missing for every site"] : []),

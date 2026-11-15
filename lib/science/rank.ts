@@ -44,6 +44,38 @@ export type RankInput<T> = { measurements: RankMeasurements; flags: string[]; ex
 /** `weightCoverage`: share of the scored weight this site had data for (1 = every active criterion). */
 export type RankedRow<T> = T & RankMeasurements & { scores: Partial<Record<RankCriterion, number>>; score: number | null; weightCoverage: number; rank: number | null; flags: string[] };
 
+/** Flags that make a site a poor place to build: the recommended pick is the best site without any of them. */
+export const BLOCKING_FLAGS = ["heritage-protection-zone", "impact-site", "slope-over-hls-10deg"] as const;
+/** A recommended pick must have data for at least this share of the scored weight. */
+export const MIN_PICK_COVERAGE = 0.5;
+
+export type Recommendation = {
+  siteId: string;
+  rank: number;
+  reason: string;
+  /** The rank-1 site when it was passed over, with the blocking flags that decided it. */
+  passedOver: { siteId: string; blockingFlags: string[] } | null;
+  allBlocked: boolean;
+};
+
+const blockingOf = (flags: string[]) => flags.filter((f) => (BLOCKING_FLAGS as readonly string[]).includes(f));
+
+/** Best-ranked site with no blocking flag and enough data; the top score only if every site is blocked. Rows must be rank-sorted. */
+export function recommend(rows: { siteId: string; rank: number | null; flags: string[]; weightCoverage: number }[]): Recommendation | null {
+  const ranked = rows.filter((r) => r.rank !== null);
+  if (!ranked.length) return null;
+  const top = ranked[0];
+  const clean = ranked.find((r) => blockingOf(r.flags).length === 0 && r.weightCoverage >= MIN_PICK_COVERAGE);
+  if (!clean) return { siteId: top.siteId, rank: top.rank!, reason: "Every ranked site has a blocking flag or too little data, so this is simply the top score and carries those flags.", passedOver: null, allBlocked: true };
+  const blocked = blockingOf(top.flags);
+  const passed = clean.siteId !== top.siteId;
+  return {
+    siteId: clean.siteId, rank: clean.rank!, allBlocked: false,
+    reason: passed ? "Best-ranked site with no blocking flag (heritage zone, impact site, slope over 10 degrees) and enough data; rank 1 was passed over." : "Rank 1 and no blocking flag.",
+    passedOver: passed ? { siteId: top.siteId, blockingFlags: blocked.length ? blocked : ["low data coverage"] } : null,
+  };
+}
+
 /** Parses `sunlight:3,darkness:2`. Returns an error message for unknown keys or bad numbers. */
 export function parseWeights(raw: string | null): { ok: true; weights: RankWeights } | { ok: false; error: string } {
   if (raw === null || raw.trim() === "") return { ok: true, weights: { ...DEFAULT_WEIGHTS } };

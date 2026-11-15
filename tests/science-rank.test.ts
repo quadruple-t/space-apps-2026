@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_WEIGHTS, parseWeights, rankSites, type RankMeasurements } from "@/lib/science/rank";
+import { DEFAULT_WEIGHTS, parseWeights, rankSites, recommend, type RankMeasurements } from "@/lib/science/rank";
+import { lowConfidenceOxides } from "@/lib/science/composition";
 import { scienceEligibility } from "@/lib/science/site-eligibility";
 
 const m = (over: Partial<RankMeasurements> = {}): RankMeasurements => ({
@@ -78,6 +79,41 @@ describe("site ranking", () => {
   it("keeps caller flags", () => {
     const [row] = rankSites([site("artemis", {}, ["approximate-region-point"])], DEFAULT_WEIGHTS);
     expect(row.flags).toEqual(["approximate-region-point"]);
+  });
+});
+
+describe("recommended pick", () => {
+  const row = (siteId: string, rank: number | null, flags: string[] = [], weightCoverage = 1) => ({ siteId, rank, flags, weightCoverage });
+
+  it("is rank 1 when it carries no blocking flag", () => {
+    expect(recommend([row("a", 1), row("b", 2)])).toMatchObject({ siteId: "a", rank: 1, passedOver: null, allBlocked: false });
+  });
+
+  it("passes over a heritage, impact or steep rank-1 site for the best clean one and says why", () => {
+    for (const flag of ["heritage-protection-zone", "impact-site", "slope-over-hls-10deg"]) {
+      const r = recommend([row("top", 1, [flag]), row("mid", 2, ["heritage-protection-zone"]), row("clean", 3, ["approximate-region-point"])])!;
+      expect(r).toMatchObject({ siteId: "clean", rank: 3, passedOver: { siteId: "top", blockingFlags: [flag] } });
+    }
+  });
+
+  it("skips sites with too little data, and falls back to the top score only when every site is blocked", () => {
+    expect(recommend([row("a", 1, [], 0.3), row("b", 2, [], 1)])!.siteId).toBe("b");
+    expect(recommend([row("a", 1, ["impact-site"]), row("b", 2, ["heritage-protection-zone"])])).toMatchObject({ siteId: "a", allBlocked: true, passedOver: null });
+  });
+
+  it("ignores unranked sites and returns null when nothing is ranked", () => {
+    expect(recommend([row("a", null), row("b", 1)])!.siteId).toBe("b");
+    expect(recommend([row("a", null)])).toBeNull();
+    expect(recommend([])).toBeNull();
+  });
+});
+
+describe("oxide noise", () => {
+  it("flags values below two sigma of their uncertainty", () => {
+    expect(lowConfidenceOxides({ FeO: 20.59, TiO2: 4.85, Al2O3: 2.05, CaO: 15.12 }, { FeO: 2.36, TiO2: 1.36, Al2O3: 7.83, CaO: 4.82 })).toEqual(["Al2O3"]);
+    expect(lowConfidenceOxides({ TiO2: 0 }, { TiO2: 0.15 })).toEqual(["TiO2"]);
+    expect(lowConfidenceOxides({ FeO: 10 }, { FeO: 5 })).toEqual([]);
+    expect(lowConfidenceOxides({}, { FeO: 1 })).toEqual([]);
   });
 });
 

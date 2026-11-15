@@ -37,7 +37,9 @@ export const MAX_RANK_WINDOWS = 4;
 export const RANK_WINDOW_SPACING_HOURS = 2190;
 export const MAX_RANK_SITE_IDS = 25;
 /** Ranked rows returned to the model; the rest are summarised by count. */
-export const RANK_ROWS_SHOWN = 8;
+export const RANK_ROWS_SHOWN = 6;
+/** Rows are trimmed (never the recommended pick) until their JSON is at most this long, leaving room for the notes. */
+export const RANK_ROWS_BUDGET_CHARS = 4_600;
 
 export const TOOL_NAMES = [
   "list_catalog_sites",

@@ -7,7 +7,7 @@ import { ScienceApiError } from "@/integrations/science/api-provider";
 import { activeCriteria, DEFAULT_WEIGHTS, type RankCriterion } from "@/lib/science/rank";
 import {
   APPROXIMATE_POINT_WORDING, COMPOSITION_WORDING, COVERAGE_LABEL, FALLBACK_WORDING, ICE_PROXY_WORDING, RANK_ROWS_SHOWN, GRID_CELL_WORDING, MAX_TOOL_RESULT_CHARS, NO_COVERAGE_WORDING,
-  TOOL_LABELS, UNRECOGNISED_HORIZON_WORDING, failureWording, type ToolName,
+  RANK_ROWS_BUDGET_CHARS, TOOL_LABELS, UNRECOGNISED_HORIZON_WORDING, failureWording, type ToolName,
 } from "./constants";
 import type { CatalogSite } from "@/data/sites";
 import type { ToolError } from "./tool-validation";
@@ -281,7 +281,12 @@ const strings = (v: unknown, max: number) => (Array.isArray(v) ? v.filter((x): x
 export function shapeRank(id: string, raw: unknown, weights: Partial<Record<RankCriterion, number>> | null, adjustments: string[]): ToolOutcome {
   const b = asObj(raw), interval = asObj(b.interval), all = (Array.isArray(b.sites) ? b.sites : []) as Json[];
   const active = activeCriteria(weights ?? DEFAULT_WEIGHTS);
+  const rec = asObj(b.recommendation);
+  const pickId = typeof rec.siteId === "string" ? rec.siteId : null;
+  // The recommended pick is always shown, even when it ranks below the cut.
   const shown = all.slice(0, RANK_ROWS_SHOWN);
+  const pickRow = pickId ? all.find((r) => r.siteId === pickId) : undefined;
+  if (pickRow && !shown.includes(pickRow)) shown.push(pickRow);
   const kinds: HorizonKind[] = [], mustSay = new Set<string>();
   const rows = shown.map((r) => {
     const info = horizonInfo(r.horizonSource);
@@ -289,15 +294,26 @@ export function shapeRank(id: string, raw: unknown, weights: Partial<Record<Rank
     const flags = strings(r.flags, 10);
     if (r.locationQuality === "approximate-region") mustSay.add(APPROXIMATE_POINT_WORDING);
     const opt = (k: string, v: unknown) => (v === null || v === undefined ? {} : { [k]: r2(v) });
+    // Oxide values below 2 sigma of their uncertainty are withheld so they cannot be quoted as measurements.
+    const noisy = strings(r.oxidesLowConfidence, 4);
+    const oxide = (k: string, oxideName: string, v: unknown) => (noisy.includes(oxideName) ? {} : opt(k, v));
+    const sharing = strings(r.sharesCompositionPixelWith, 5);
     return {
       rank: r.rank ?? null, siteId: r.siteId, name: clip(r.name, 80), family: r.family, locationQuality: r.locationQuality,
       latDeg: r2(r.latDeg), lonDeg: r2(r.lonDeg), score: r2(r.score), weightCoverage: r2(r.weightCoverage),
       sunlightPercent: r.sunlightPercent, worstWindowSunlightPercent: r.worstWindowSunlightPercent, longestDarknessHours: r.longestDarknessHours,
       earthVisibilityPercent: r.earthVisibilityPercent, ...opt("slope100mDeg", r.slope100mDeg), ...opt("nearestColdTrapKm", r.nearestColdTrapKm),
-      ...opt("feoWtPct", r.feoWtPct), ...opt("tio2WtPct", r.tio2WtPct), ...opt("al2o3WtPct", r.al2o3WtPct), ...opt("caoWtPct", r.caoWtPct),
+      ...oxide("feoWtPct", "FeO", r.feoWtPct), ...oxide("tio2WtPct", "TiO2", r.tio2WtPct), ...oxide("al2o3WtPct", "Al2O3", r.al2o3WtPct), ...oxide("caoWtPct", "CaO", r.caoWtPct),
+      ...(noisy.length ? { oxidesWithheldAsNoise: noisy } : {}), ...(sharing.length ? { sharesCompositionPixelWith: sharing } : {}),
+      ...(r.siteId === pickId ? { isRecommendedPick: true } : {}),
       horizon: info.kind, sharesAreUpperBounds: info.upperBound, flags,
     };
   });
+  // Keep the result under the size limit: drop trailing rows, never the pick, and keep at least three.
+  while (rows.length > 3 && JSON.stringify(rows).length > RANK_ROWS_BUDGET_CHARS) {
+    const i = rows.map((r) => r.siteId).lastIndexOf(rows.filter((r) => !("isRecommendedPick" in r)).at(-1)!.siteId);
+    rows.splice(i, 1);
+  }
   if (active.some((c) => COMPOSITION_CRITERIA.includes(c)) || rows.some((r) => "feoWtPct" in r)) mustSay.add(COMPOSITION_WORDING);
   if (active.includes("ice")) mustSay.add(ICE_PROXY_WORDING);
   const windows = Number(interval.windows) || 1;
@@ -306,6 +322,10 @@ export function shapeRank(id: string, raw: unknown, weights: Partial<Record<Rank
     site: `${all.length} catalog sites`, dataRange: start ? `${fmtUtc(start)}, ${windows} window${windows > 1 ? "s" : ""} of ${String(interval.durationHours)} h` : null,
     data: {
       criteria: asObj(asObj(b.method).criteria), weights: b.weights, interval: { start, durationHours: interval.durationHours, windows, windowStarts: interval.windowStarts },
+      recommendedPick: pickId ? {
+        siteId: pickId, rank: rec.rank, reason: clip(rec.reason, 220), allBlocked: rec.allBlocked === true,
+        passedOver: rec.passedOver ?? null,
+      } : null,
       ranked: all.length, shown: rows.length, sites: rows,
       skipped: (Array.isArray(b.skipped) ? (b.skipped as Json[]) : []).slice(0, 12).map((s) => s.siteId),
     },
@@ -313,6 +333,7 @@ export function shapeRank(id: string, raw: unknown, weights: Partial<Record<Rank
       clip(asObj(b.method).normalisation, 300) ?? "Scores are min-max scaled across the candidates.",
       "Flags: slope-over-hls-10deg = steeper than the NASA HLS 10° landing limit; heritage-protection-zone = NASA 2011 heritage site; impact-site = crash site; missing:<criterion> = no data, scored as worst for that criterion.",
       "worstWindowSunlightPercent and longestDarknessHours (worst window) show how consistent the lighting is across windows.",
+      "recommendedPick is the best-ranked site without a heritage-zone, impact-site or over-10-degree-slope flag: name it as your pick, and if passedOver is set, say that rank 1 was passed over and why. oxidesWithheldAsNoise lists oxide values below 2 sigma of their uncertainty: their numbers are withheld, so say they are too uncertain to use. sharesCompositionPixelWith lists sites inside the same 60 km pixel: say they share one composition value.",
       ...strings(b.assumptions, 6),
     ].filter((n): n is string => typeof n === "string"),
     adjustments, extraMustSay: [...mustSay],

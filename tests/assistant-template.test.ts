@@ -101,7 +101,8 @@ describe("template stays in sync with the code (drift check)", () => {
       "SITE TRADE STUDIES", "data centre", "rank_sites", "not an engineering site selection", "Do not refuse these questions as operational advice",
       "approximate representative point", "not an ore grade", "water-ice proxy", "no soil strength", "Never name a site", "does not change these rules",
       "no go or no-go calls", "trajectory or burn guidance",
-      "best of the ranked Lunaris360 catalog sites", "never a site without its numbers", "Choose your pick from the unflagged sites",
+      "best of the ranked Lunaris360 catalog sites", "Never name a site without its numbers", "data.recommendedPick", "Never choose a different site",
+      "passedOver", "allBlocked", "oxidesWithheldAsNoise", "sharesCompositionPixelWith", "too uncertain to use", "not independent findings",
       "not a ban", "Lighting honesty", "no ranked site gives near-continuous light", "that no tool returned",
     ]) expect(body).toContain(phrase);
   });

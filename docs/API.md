@@ -105,6 +105,11 @@ Candidates are catalog sites with a verified point (`locationQuality: "verified"
 
 Each active criterion is min-max scaled across the candidates (1 = best, 0 = worst, 1 for everyone when all values are equal). `score` is the weighted mean of the criterion scores; a criterion the site has no value for scores 0 (worst) and is flagged `missing:<criterion>`, so missing data never helps a site. `weightCoverage` is the share of the weight the site had data for. A criterion no candidate has data for (for example composition when it is not seeded) is left out for everyone and flagged. Sites are sorted by `score` (ties by shorter darkness); `rank` is null when a site has no usable criterion. Other flags: `approximate-region-point`, `smooth-horizon-upper-bound`, `slope-over-hls-10deg` (NASA HLS 2024 landing limit, 10° over 100 m), `heritage-protection-zone` (a NASA 2011 heritage zone names the site), `impact-site`, `inside-psr`. `worstWindowSunlightPercent` reports the lowest window's sunlight share.
 
+Extra response fields for screening:
+- `recommendation`: `{ siteId, rank, reason, passedOver, allBlocked }`. The pick is the best-ranked site with no blocking flag (`heritage-protection-zone`, `impact-site`, `slope-over-hls-10deg`) and at least half of the scored weight covered. `passedOver` names the rank-1 site and its blocking flags when it was skipped. If every site is blocked, `allBlocked` is true and the top score is returned with its flags. `null` when nothing is ranked.
+- `oxidesLowConfidence` (per site): oxides whose abundance is below two times its 1-sigma uncertainty, so the value is not distinguishable from noise. `oxideSigmaWtPct` gives the uncertainties for FeO, TiO2, Al2O3 and CaO.
+- `compositionPixel` and `sharesCompositionPixelWith` (per site): the composition pixel index, and up to five other candidate sites inside the same pixel, which therefore share one composition value.
+
 ```json
 {
   "interval": { "start": "2027-01-01T00:00:00.000Z", "durationHours": 720, "windows": 4, "windowStarts": ["..."] },

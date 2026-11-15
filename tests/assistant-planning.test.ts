@@ -81,6 +81,41 @@ describe("rank_sites results", () => {
   });
 });
 
+describe("rank_sites pick, noise and shared pixels", () => {
+  const pickApi = () => ({
+    ...rankApi([
+      rankRow(0, { siteId: "top", name: "Top", flags: ["heritage-protection-zone"], oxidesLowConfidence: ["Al2O3"] }),
+      ...Array.from({ length: 11 }, (_, i) => rankRow(i + 1, i === 2 ? { siteId: "twin-a", sharesCompositionPixelWith: ["twin-b"] } : i === 3 ? { siteId: "twin-b", sharesCompositionPixelWith: ["twin-a"] } : {})),
+      rankRow(12, { siteId: "clean", name: "Clean", oxidesLowConfidence: [] }),
+    ]),
+    recommendation: { siteId: "clean", rank: 13, reason: "Best-ranked site with no blocking flag.", passedOver: { siteId: "top", blockingFlags: ["heritage-protection-zone"] }, allBlocked: false },
+  });
+  const run = () => executeToolCall({ name: "rank_sites", args: { weights: { sunlight: 1, iron: 1 } } }, "c1", ctxWithCatalogSite, { get: vi.fn(async () => pickApi()) as unknown as ScienceGet });
+
+  it("always shows the recommended pick, even below the cut, and reports what it passed over", async () => {
+    const data = (await run()).response.data as { recommendedPick: { siteId: string; passedOver: { siteId: string } }; sites: { siteId: string; isRecommendedPick?: boolean }[] };
+    expect(data.recommendedPick).toMatchObject({ siteId: "clean", passedOver: { siteId: "top" } });
+    expect(data.sites).toHaveLength(RANK_ROWS_SHOWN + 1);
+    expect(data.sites.find((s) => s.siteId === "clean")!.isRecommendedPick).toBe(true);
+  });
+
+  it("withholds oxide values that are below their uncertainty and says which", async () => {
+    const top = ((await run()).response.data as { sites: Record<string, unknown>[] }).sites.find((s) => s.siteId === "top")!;
+    expect(top.oxidesWithheldAsNoise).toEqual(["Al2O3"]);
+    expect(top).not.toHaveProperty("al2o3WtPct");
+    expect(top).toHaveProperty("feoWtPct");
+  });
+
+  it("passes on which sites share a composition pixel", async () => {
+    const sites = ((await run()).response.data as { sites: Record<string, unknown>[] }).sites;
+    expect(sites.find((s) => s.siteId === "twin-a")!.sharesCompositionPixelWith).toEqual(["twin-b"]);
+  });
+
+  it("stays within the result size limit", async () => {
+    expect(JSON.stringify((await run()).response).length).toBeLessThanOrEqual(MAX_TOOL_RESULT_CHARS);
+  });
+});
+
 describe("get_surface_composition", () => {
   const api = (locationQuality: string) => ({
     latDeg: -86, lonDeg: -0.24, locationQuality, oxidesWtPct: { FeO: 5.12, TiO2: 0.41 }, sigmaWtPct: { FeO: 0.6, TiO2: 0.2 },
