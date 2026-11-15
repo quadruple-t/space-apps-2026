@@ -12,14 +12,14 @@ const GAP = 44;
 const fmtLat = (v: number) => `${Math.abs(v).toFixed(4)}°${v < 0 ? "S" : "N"}`;
 
 /** Callout box tied to the selected site by a leader line. Repositions every rendered globe frame. */
-export function SiteCallout() {
+export function SiteCallout({ guided = false }: { guided?: boolean }) {
   const site = useFreeplay((s) => s.site);
   const open = useFreeplay((s) => s.calloutOpen);
   if (!site || !open) return null;
-  return <CalloutBody key={site.id} site={site} />;
+  return <CalloutBody key={site.id} site={site} guided={guided} />;
 }
 
-function CalloutBody({ site }: { site: FreeplaySite }) {
+function CalloutBody({ site, guided }: { site: FreeplaySite; guided: boolean }) {
   const { setRadius, setCalloutOpen, saveCurrentSite, setView } = useFreeplay.getState();
   const savedCount = useFreeplay((s) => s.savedSites.length);
   const wrap = useRef<HTMLDivElement>(null);
@@ -65,12 +65,14 @@ function CalloutBody({ site }: { site: FreeplaySite }) {
     <div ref={box} role="dialog" aria-label={`${site.name} details`} className="hud-panel pointer-events-auto absolute left-0 top-0 p-3" style={{ width: BOX_W }}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="type-data text-[0.54rem] uppercase tracking-[0.14em] text-retro-purple">{saved ? "Saved site" : site.kind === "catalog" ? "Catalog site · LOLA terrain" : "New site"}</div>
+          <div className="type-data text-[0.54rem] uppercase tracking-[0.14em] text-retro-purple">{guided ? "Story stop" : saved ? "Saved site" : site.kind === "catalog" ? "Catalog site · LOLA terrain" : "New site"}</div>
           <h2 className="type-heading mt-0.5 truncate text-sm text-bone">{site.name}</h2>
           <div className="type-data mt-0.5 text-[0.62rem] tabular-nums text-muted-foreground">{fmtLat(site.latitudeDeg)} · {site.longitudeDeg.toFixed(4)}°E</div>
         </div>
         <button type="button" onClick={() => setCalloutOpen(false)} aria-label="Close" className="grid size-6 shrink-0 place-items-center rounded text-muted-foreground hover:text-bone"><X size={14} /></button>
       </div>
+      {guided && <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{site.provenance === "illustrative" || site.catalogPointVerified === false ? "Approximate reference point; this is not a confirmed landing coordinate." : "Historic landing location from the site catalog."}</p>}
+      {!guided && <>
       <label className="mt-2.5 block text-[0.58rem] text-muted-foreground">Radius for region (km)
         <input inputMode="decimal" value={radiusText} onChange={(e) => setRadiusText(e.target.value)} onBlur={commitRadius}
           onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }} className="hud-input mt-1 tabular-nums" />
@@ -100,6 +102,7 @@ function CalloutBody({ site }: { site: FreeplaySite }) {
               <Orbit size={12} />View orbit
             </button>
           </div>}
+          </>}
     </div>
   </div>;
 }
