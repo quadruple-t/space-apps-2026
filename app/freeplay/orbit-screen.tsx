@@ -7,6 +7,7 @@ import { ConditionsReadout } from "@/components/freeplay/conditions-readout";
 import { DailyGraphs, GraphTabs, PanelSettings, YearlyGraphs, type GraphFocus } from "@/components/freeplay/graphs-panel";
 import { OrbitDiagram } from "@/components/freeplay/orbit-diagram";
 import { PresetsPanel } from "@/components/freeplay/presets-panel";
+import { TrajectoryPanel, useTrajectory } from "@/components/freeplay/trajectory-panel";
 import { TimeControls } from "@/components/freeplay/time-controls";
 import { earthUp, sampleAt, sunUp } from "@/lib/illumination";
 import { currentTimeMs, useFreeplay } from "@/lib/freeplay-store";
@@ -39,6 +40,7 @@ function OrbitScreenFor({ site }: { site: FreeplaySite }) {
   const elapsedHours = useFreeplay((state) => state.elapsedHours);
   const graphTab = useFreeplay((state) => state.graphTab);
   const setElapsed = useFreeplay((state) => state.setElapsed);
+  const trajectory = useTrajectory(site);
   const [focus, setFocus] = useState<GraphFocus>("sunlight");
   const tMs = currentTimeMs({ startIso, elapsedHours });
   const startMs = Date.parse(startIso);
@@ -85,17 +87,24 @@ function OrbitScreenFor({ site }: { site: FreeplaySite }) {
         </div>
       </section>
 
-      <details className="hud-panel p-4">
+      <details className="hud-panel p-4" open>
         <summary className="cursor-pointer type-heading text-base text-bone">How do the Moon and Earth move?</summary>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">This diagram shows their changing positions from above. It is not to scale.</p>
         <div className="mt-3 h-[min(48dvh,420px)] min-h-64">
           {mission.data
             ? <OrbitDiagram series={mission.data.series} site={site} tMs={tMs} missionStartMs={startMs} missionEndMs={missionEndMs}
                 sunUp={now ? sunUp(now) : null} earthUp={now ? earthUp(now) : null}
-                onSeek={(time) => setElapsed((time - startMs) / 3_600_000)} />
+                onSeek={(time) => setElapsed((time - startMs) / 3_600_000)}
+                trajectory={trajectory.plan ? { plan: trajectory.plan, artemis: trajectory.artemis } : null} />
             : <Status loading={mission.loading} error={mission.error} what="orbit positions" />}
         </div>
       </details>
+
+      <TrajectoryPanel state={trajectory} site={site} onSyncTimeline={(plan) => {
+        const { setStart, setDuration } = useFreeplay.getState();
+        setStart(new Date(plan.launchMs).toISOString());
+        setDuration(Math.max(24, Math.ceil(plan.transitSeconds / 3600) + 24));
+      }} />
 
       <TimeControls />
     </div>

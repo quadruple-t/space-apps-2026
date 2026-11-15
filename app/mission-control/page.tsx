@@ -110,6 +110,50 @@ export function MissionControlContent() {
         </PageContainer>
       </section>
 
+      <section id="trajectory-method" aria-labelledby="trajectory-title" className="scroll-mt-24 border-t border-line py-16 sm:py-24">
+        <PageContainer>
+          <h2 id="trajectory-title" className="type-heading text-2xl text-bone sm:text-3xl">
+            Trajectory and launch-cost estimates
+          </h2>
+          <p className="mt-3 max-w-2xl text-muted-foreground">
+            In Freeplay&apos;s Orbit view, the launch-window planner draws an approximate Earth-to-Moon path and estimates fuel and launch cost. These are
+            planning approximations, not mission design and not price quotes.
+          </p>
+          <ul className="mt-8 grid gap-5 md:grid-cols-2">
+            <li className="rounded-lg border border-line p-6">
+              <h3 className="font-medium text-bone">Paths are approximations</h3>
+              <p className="mt-2 text-pretty leading-relaxed text-muted-foreground">
+                Each path is a single two-body Earth arc (patched-conic style) aimed at where the Moon will be at arrival, taken from the stored JPL
+                Horizons positions. There is no lunar gravity, no Sun perturbation and no n-body propagation. The direct transfer takes about 3 to 5 days.
+                The low-energy path is an illustrative long loop (about 1 to 4 months), not a real weak-stability-boundary trajectory.
+              </p>
+            </li>
+            <li className="rounded-lg border border-line p-6">
+              <h3 className="font-medium text-bone">Fuel from the rocket equation</h3>
+              <p className="mt-2 text-pretty leading-relaxed text-muted-foreground">
+                Delta-v for trans-lunar injection, lunar orbit insertion and descent comes from published values with a low, nominal and high bound.
+                Propellant follows m_wet = m_dry × exp(Δv / (Isp × g₀)), working back from the landed dry mass. Low-energy transfers lower the insertion burn.
+              </p>
+            </li>
+            <li className="rounded-lg border border-line p-6">
+              <h3 className="font-medium text-bone">Cost is a range, labelled estimate</h3>
+              <p className="mt-2 text-pretty leading-relaxed text-muted-foreground">
+                The mass needed in low Earth orbit picks a launcher class. The range runs from a pro-rata share of a launch to a whole dedicated launch at
+                reported list price. It leaves out the spacecraft, operations and insurance, and above the largest class no range is given.
+              </p>
+            </li>
+            <li className="rounded-lg border border-line p-6">
+              <h3 className="font-medium text-bone">Checked against Artemis I</h3>
+              <p className="mt-2 text-pretty leading-relaxed text-muted-foreground">
+                JPL Horizons carries Artemis I&apos;s real post-burn trajectory (target −1023). The planner can overlay it, rotated so the Moon lines up at the
+                flyby, to compare shapes. Arrival is also checked against local sunrise at the chosen site: within 3 days of sunrise counts as near.
+              </p>
+            </li>
+          </ul>
+          <p className="mt-6 text-sm text-muted-foreground">Every constant and its source is listed in section 8 of docs/SOURCES.md in the project repository.</p>
+        </PageContainer>
+      </section>
+
       <section id="data-sources" aria-labelledby="sources-title" className="scroll-mt-24 border-t border-line py-16 sm:py-24">
         <PageContainer>
           <h2 id="sources-title" className="type-heading text-2xl text-bone sm:text-3xl">
