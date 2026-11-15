@@ -3,15 +3,13 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
-import { ArrowLeft, Bot, Car, GitCompareArrows, Globe2, Orbit } from "lucide-react";
+import { ArrowLeft, Car, GitCompareArrows, Globe2, Orbit } from "lucide-react";
 import { ExpeditionControl, EXPEDITION_LAUNCHER_ID } from "@/components/expeditions/expedition-control";
 import { ExpeditionPanel } from "@/components/expeditions/expedition-panel";
 import { Logo } from "@/components/brand/logo";
 import { LoadingIndicator } from "@/components/freeplay/loading-indicator";
-import { AssistantPanel, LAUNCHER_ID, PANEL_ID } from "@/components/freeplay/assistant-panel";
 import { usePlaybackClock } from "@/components/freeplay/time-controls";
 import type { FreeplaySite } from "@/data/sites";
-import { useAssistant } from "@/lib/assistant/assistant-store";
 import { driveHref } from "@/lib/drive-link";
 import { useExpeditions } from "@/lib/expeditions/expedition-store";
 import { currentTimeMs, useFreeplay, type FreeplayView, type LayerId } from "@/lib/freeplay-store";
@@ -45,24 +43,19 @@ function SurfaceLink() {
   </Link>;
 }
 
-export function FreeplayApp({ aside, guidedPanels, assistantEnabled = true, guidedMode = false, onGuidedExit }: {
+export function FreeplayApp({ aside, guidedPanels, guidedMode = false, onGuidedExit }: {
   aside?: ReactNode;
   guidedPanels?: { layers?: { show: boolean; showCatalog?: boolean; layerIds?: LayerId[] }; tourSites?: FreeplaySite[]; dimContent?: boolean };
-  assistantEnabled?: boolean;
   guidedMode?: boolean;
   onGuidedExit?: () => void;
 }) {
   const view = useFreeplay((s) => s.view);
   const site = useFreeplay((s) => s.site);
   const setView = useFreeplay((s) => s.setView);
-  const assistantOpen = useAssistant((s) => s.open);
-  const setAssistantOpen = useAssistant((s) => s.setOpen);
   const [expeditionOpen, setExpeditionOpen] = useState(false);
-  const closeAssistant = () => { setAssistantOpen(false); requestAnimationFrame(() => document.getElementById(LAUNCHER_ID)?.focus()); };
   const closeExpedition = () => { setExpeditionOpen(false); requestAnimationFrame(() => document.getElementById(EXPEDITION_LAUNCHER_ID)?.focus()); };
   // One side panel at a time keeps the globe usable.
-  const toggleExpedition = () => { if (!expeditionOpen) setAssistantOpen(false); setExpeditionOpen(!expeditionOpen); };
-  const toggleAssistant = () => { if (!assistantOpen) setExpeditionOpen(false); setAssistantOpen(!assistantOpen); };
+  const toggleExpedition = () => setExpeditionOpen(!expeditionOpen);
   usePlaybackClock();
   // Non-guided Freeplay loads the open expedition (or this browser's draft) and autosaves it.
   // Guided Mission shares the Freeplay store but never attaches, so its resets are never saved.
@@ -93,10 +86,6 @@ export function FreeplayApp({ aside, guidedPanels, assistantEnabled = true, guid
               </button>)}
             </div>
             <SurfaceLink />
-            {assistantEnabled && <button id={LAUNCHER_ID} type="button" onClick={toggleAssistant} aria-expanded={assistantOpen} aria-controls={PANEL_ID} aria-label={assistantOpen ? "Close mission assistant" : "Open mission assistant"}
-              className={`${SEGMENT} ${assistantOpen ? SEGMENT_ON : SEGMENT_IDLE}`}>
-              <Bot size={14} />Assistant
-            </button>}
           </div>
           <ExpeditionControl open={expeditionOpen} onToggle={toggleExpedition} />
         </>}
@@ -116,9 +105,6 @@ export function FreeplayApp({ aside, guidedPanels, assistantEnabled = true, guid
       {aside}
       {!guidedMode && expeditionOpen && <div className="absolute inset-0 z-40 bg-void/70 p-2 lg:static lg:bg-transparent lg:p-0">
         <ExpeditionPanel onClose={closeExpedition} />
-      </div>}
-      {assistantEnabled && assistantOpen && <div className="absolute inset-0 z-40 bg-void/70 p-2 lg:static lg:bg-transparent lg:p-0">
-        <AssistantPanel onClose={closeAssistant} />
       </div>}
     </div>
   </div>;
