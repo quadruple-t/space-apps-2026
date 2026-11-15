@@ -38,9 +38,9 @@ npm run lint       # ESLint (Next.js + React Compiler rules)
 | ---------- | --------------------------------------------------------- |
 | `/`        | Overview and how to use Lunaris360                         |
 | `/mission` | Story Mode: six interactive lessons inside Freeplay |
-| `/how-it-works` | How It Works: lunar science, methods and data sources (`/mission-control` redirects here) |
+| `/how-it-works` | Debrief: lunar science, methods and data sources (`/mission-control` redirects here) |
 | `/freeplay` | Freeplay mission planner: Cesium Moon globe (Moon Trek imagery, LROC overlays, catalog sites, user-named presets) and an orbit + graphs view driven by the stored ephemeris and LOLA horizon masks |
-| `/freeplay/drive` | Freeplay surface drive: site and coordinate selection, time controls, a first-person walking view or a slight bird's-eye view over walled measured terrain (drag to look, WASD to walk or pan, scroll to zoom), JPL Horizons Sun/Earth positions, horizon-aware 24-hour metrics where data is available (`/explore` redirects here). Opens at the site and time selected in Freeplay. |
+| `/freeplay/drive` | Freeplay surface drive: site and coordinate selection, time controls, first-person/orbit navigation, JPL Horizons Sun/Earth positions, horizon-aware 24-hour metrics where data is available (`/explore` redirects here). Opens at the site and time selected in Freeplay. |
 | `/compare` | Mission Comparison shell with an empty state; multi-site comparison is not implemented yet |
 
 ## Project structure
@@ -73,16 +73,16 @@ For marketing and partner material, use [`docs/brand/BRAND_GUIDE.md`](docs/brand
 
 ## Simulation architecture
 
-The landing page preview and Freeplay share the code-driven Three.js scene. Freeplay provides region selection, coordinate sampling, an orbit camera and a UTC simulation clock. Scientific calculations are served through `/api/v1/` and read stored data from Firestore:
+The landing page preview and Freeplay share the code-driven Three.js scene. Freeplay provides region selection, coordinate sampling, first-person/orbit camera controls and a UTC simulation clock. Scientific calculations are served through `/api/v1/` and read stored data from Firestore:
 
 - **Ephemerides:** Stored JPL Horizons series provide Sun and Earth positions from 2026 through 2030 for the main series, plus historical chunks for supported sites. The API calculates local azimuth/elevation and timeline samples for the selected point.
 - **Horizon masks:** Precomputed LOLA DEM masks are used for supported sites and polar grid cells. Locations without a terrain mask use a smooth-sphere horizon; results label that source and describe the sunlight and visibility shares as upper bounds.
-- **Rendered terrain:** the surface drive builds its 3D surface from measured LROC WAC GLD100 heights (`GET /api/v1/terrain/dem`, ~100 m posting) for the site and preset radius, with lunar curvature to scale and optional relief exaggeration. Terrain-blocked sunlight is ray-marched over that grid. The landing-page scene, and the drive when elevation is unavailable, use the procedural geometry in `scenes/lunar/terrain.ts` and `integrations/terrain/moon-samples.ts`, which is illustrative only.
+- **Rendered terrain:** `scenes/lunar/terrain.ts` and `integrations/terrain/moon-samples.ts` provide procedural scene geometry and scaffold samples. This visualization is not a LOLA DEM rendering, even when the science calculation has a LOLA mask.
 - **Illustrative previews:** `data/hero-scene.ts` configures conceptual hero readouts; `lib/horizon.ts` supplies illustrative horizon examples for landing-page graphics. These values are separate from Freeplay's science API.
 - **Scene configuration:** `data/hero-scene.ts` holds the Sun and Earth angles shared by the 3D scene and
   the conceptual hero HUD.
 - **Freeplay (`/freeplay`):** loads the monthly `ephemeris` chunks and `science/horizon` masks from `/api/v1` and evaluates hourly Sun/Earth positions in the browser with `lib/ephemeris` (`lib/lunar-data.ts`). Globe imagery and categorized overlays are stored Firebase snapshots of NASA Moon Trek and LROC Lunaserv products at the recorded overview resolution (see `docs/SOURCES.md` §7).
-- **Surface drive:** `/freeplay/drive` opens at the Freeplay site, time and preset radius. It loads measured terrain from `/api/v1/terrain/dem`, places the Sun and Earth from the stored Horizons chunks decoded in the browser (so playback can run at up to 3 days per second), and lets you place solar arrays, buggies, comms masts and three habitat concepts inside border walls that mark the loaded area (first-person walking view plus a slight bird's-eye view; click a placed object to select it, double-click or use Teleport to move to it, and Delete/Backspace or the Delete button to remove it), with slope checks and per-object sunlight (now, and hours of sun and estimated energy for the simulated UTC day) and Earth line of sight. Freeplay's Orbit + Graphs screen adds a Placed hardware section: generation per placed solar array and the communication windows of each placed comms mast, using the terrain around each object. 24-hour metrics still come from the science API and its LOLA masks.
+- **Surface drive:** `/freeplay/drive` calls the versioned science API. The API uses public Firestore reads for catalog and science data; user-owned endpoints use authenticated Firebase tokens and Admin SDK access.
 
 ## Performance and accessibility
 
@@ -163,7 +163,7 @@ longest window/blackout, current remaining or next-window time, and per-mast tot
 Overlaps are counted once. Full-Earth-disc clearance is reported separately as a
 terrain-visibility margin, not a communications reliability guarantee. Estimates use
 15-minute samples across the selected UTC day, clipped at midnight, and only loaded
-terrain. Longer-period hardware graphs remain available under Sun & Earth.
+terrain. Site-wide graphs remain available under Sun & Earth.
 
 In bird's-eye view, the center marker is your current ground position. Drag it to
 move across measured terrain; the camera stays fixed while placing the marker and
@@ -173,8 +173,8 @@ dragging is disabled while placing hardware, and stays inside the loaded border.
 ## Surface setup controls and Mission Control
 
 - Click an object in the surface scene to select it. Use **Teleport here** (or double-click the object) to move the camera to it; use **Delete** or Delete/Backspace to remove it. The build-panel list offers the same controls. Placements remain saved per site in this browser.
-- Under **Sun & Earth**, daylight and Earth-contact graphs show approximate total hours, longest windows and gaps, remaining/next-window time, and expandable UTC start/end/duration lists. Hardware graphs report per-array daylight and per-mast contact windows. Results are clipped to the selected period and limited by sampling and available terrain; Earth visibility is not a radio-link budget.
-- The bottom-left **Mission Control** bubble stays available in the map, graphs, and surface view. Surface questions include the current site, surface clock, placed-object positions, slopes, sunlight, generation and Earth visibility so replies can discuss this setup. The model and science tools share that same site/time snapshot.
+- The driving setup panel shows combined mast coverage, per-mast contact windows and blackouts, and habitat power estimates for the selected UTC day. Results are limited by sampling and available terrain; Earth visibility is not a radio-link budget.
+- The bottom-left **Mission Control** bubble is available in the surface view; other screens keep main’s assistant layout. Surface questions include the current site, surface clock, placed-object positions, slopes, sunlight, generation and Earth visibility so replies can discuss this setup. The model and science tools share that same site/time snapshot.
 - Firebase AI uses the existing server prompt template and App Check. Local development uses a registered debug token in the ignored `.env.local` file; production ignores debug tokens and requires `NEXT_PUBLIC_APPCHECK_RECAPTCHA_ENTERPRISE_SITE_KEY`. Never commit debug tokens or use them as production configuration.
 
 ## Data sources

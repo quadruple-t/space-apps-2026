@@ -82,8 +82,8 @@ function StaticShadows({ refreshKey, terrainKey }: { refreshKey?: THREE.Vector3;
   return null;
 }
 
-function Terrain({ detail, profile }: { detail: TerrainDetail; profile: LunarTerrainProfile }) {
-  const geometry = useMemo(() => createTerrainGeometry(detail, profile), [detail, profile]);
+function Terrain({ detail, profile, neutralRegolith = false }: { detail: TerrainDetail; profile: LunarTerrainProfile; neutralRegolith?: boolean }) {
+  const geometry = useMemo(() => createTerrainGeometry(detail, profile, neutralRegolith), [detail, profile, neutralRegolith]);
   useEffect(() => () => geometry.dispose(), [geometry]);
   return (
     <mesh geometry={geometry} castShadow receiveShadow>
@@ -135,7 +135,7 @@ function TerrainDataMarkers({ points, onSelect, site, profile }: { points: Terra
   })}</group>;
 }
 
-function SunLight({ direction }: { direction: THREE.Vector3 }) {
+function SunLight({ direction, neutral = false }: { direction: THREE.Vector3; neutral?: boolean }) {
   const lightRef = useRef<THREE.DirectionalLight>(null);
   const targetRef = useRef<THREE.Object3D>(null);
   useEffect(() => {
@@ -147,7 +147,7 @@ function SunLight({ direction }: { direction: THREE.Vector3 }) {
     lightRef.current.position.copy(direction).multiplyScalar(950).add(targetRef.current.position);
     lightRef.current.shadow.needsUpdate = true;
   }, [direction]);
-  return <><object3D ref={targetRef} position={[-40, 0, -320]} /><directionalLight ref={lightRef} color="#fff3ea" intensity={5.2} castShadow shadow-mapSize-width={2048} shadow-mapSize-height={1024} shadow-camera-left={-560} shadow-camera-right={560} shadow-camera-top={80} shadow-camera-bottom={-80} shadow-camera-near={1} shadow-camera-far={2100} shadow-bias={-0.0004} shadow-normalBias={0.6} /></>;
+  return <><object3D ref={targetRef} position={[-40, 0, -320]} /><directionalLight ref={lightRef} color={neutral ? "#fff3ea" : "#ffd1df"} intensity={5.2} castShadow shadow-mapSize-width={2048} shadow-mapSize-height={1024} shadow-camera-left={-560} shadow-camera-right={560} shadow-camera-top={80} shadow-camera-bottom={-80} shadow-camera-near={1} shadow-camera-far={2100} shadow-bias={-0.0004} shadow-normalBias={0.6} /></>;
 }
 
 function SceneContents({ variant, still, detail, freeplay, cameraMode, zoom, lookSensitivity, sunAzimuthDeg, sunElevationDeg, earthAzimuthDeg, earthElevationDeg, dataPoints, onSelectDataPoint, selectedSite, landingActive, hideRover, onTutorialAction }: Required<Pick<LunarSceneProps, "variant" | "still" | "detail">> & Pick<LunarSceneProps, "freeplay" | "cameraMode" | "lookSensitivity" | "landingActive" | "hideRover" | "zoom" | "sunAzimuthDeg" | "sunElevationDeg" | "earthAzimuthDeg" | "earthElevationDeg" | "dataPoints" | "onSelectDataPoint" | "selectedSite" | "onTutorialAction">) {
@@ -180,8 +180,8 @@ function SceneContents({ variant, still, detail, freeplay, cameraMode, zoom, loo
       {/* Earthshine: a faint blue fill so shadowed ground is not pure black. */}
       <hemisphereLight args={["#8a7bc8", "#100d22", 0.85]} />
       <ambientLight intensity={0.04} />
-      <SunLight direction={lightDir} />
-      <Terrain detail={detail} profile={terrainProfile} />
+      <SunLight direction={lightDir} neutral={freeplay} />
+      <Terrain detail={detail} profile={terrainProfile} neutralRegolith={freeplay} />
       <TerrainBoundary detail={detail} profile={terrainProfile} />
       {variant === "preview" && !freeplay && <>
         <Astronaut position={[astronautPosition.x, astronautPosition.y, astronautPosition.z]} scale={1.8} />

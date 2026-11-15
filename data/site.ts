@@ -16,7 +16,7 @@ export type NavLink = { label: string; href: string };
 /** Primary navigation routes to distinct pages. */
 export const NAV_LINKS: NavLink[] = [
   { label: "Overview", href: "/" },
-  { label: "How It Works", href: "/how-it-works" },
+  { label: "Debrief", href: "/how-it-works" },
   { label: "Guided Mission", href: "/mission" },
   { label: "Open Exploration", href: "/freeplay" },
 ];
@@ -101,7 +101,7 @@ export const FOOTER_LINKS = {
   ],
   project: [
     { label: "Overview", href: "/" },
-    { label: "How It Works", href: "/how-it-works" },
+    { label: "Debrief", href: "/how-it-works" },
     { label: "Data sources", href: "/how-it-works#data-sources" },
   ],
   resources: [
