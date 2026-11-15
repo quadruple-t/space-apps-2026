@@ -28,6 +28,11 @@ export function GuidedMissionExperience() {
   };
   // The surface lesson opens at the site and mission time currently selected in the planner.
   const changeLesson = (next: number) => {
+    if (next < 0) {
+      setDrive(null);
+      setLessonIndex(null);
+      return;
+    }
     if (next >= GUIDED_LESSONS.length) {
       setDrive(null);
       setLessonIndex(null);

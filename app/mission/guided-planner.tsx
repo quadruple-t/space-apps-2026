@@ -83,6 +83,7 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
     if (stage === "try") setStage("example");
     else if (stage === "example") setStage("story");
     else if (lessonIndex > 0) goToLesson(lessonIndex - 1);
+    else onLessonChange(-1);
   };
 
   const siteForStop = (id: string) => tutorial.tourStops.find((stop) => stop.id === id || stop.catalogId === id);
@@ -91,7 +92,7 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange }: {
       {collapsed ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
     </button>
     <div className={collapsed ? "hidden lg:block" : ""}>
-      <LessonCard lesson={lesson} chapter={chapter} stage={stage} complete={complete} onPrevious={stage !== "story" || lessonIndex > 0 ? previous : undefined} onStageChange={setStage} onNext={() => goToLesson(lessonIndex + 1)} nextLabel={lessonIndex === GUIDED_LESSONS.length - 1 ? "Finish Guided Mission" : "Next lesson"}>
+      <LessonCard lesson={lesson} chapter={chapter} stage={stage} complete={complete} onPrevious={previous} onStageChange={setStage} onNext={() => goToLesson(lessonIndex + 1)} nextLabel={lessonIndex === GUIDED_LESSONS.length - 1 ? "Finish Guided Mission" : "Next lesson"}>
         {stage === "try" && lesson.id === "pick-site" && <>
           <label className="sr-only" htmlFor="story-site-stop">Choose a stop</label>
           <select id="story-site-stop" value={site?.id ?? ""} onChange={(event) => { const selected = siteForStop(event.target.value); if (selected) useFreeplay.getState().selectSite(selected, false); }} className="hud-input mt-1 text-sm normal-case tracking-normal">
