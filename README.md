@@ -38,7 +38,7 @@ npm run lint       # ESLint (Next.js + React Compiler rules)
 | ---------- | --------------------------------------------------------- |
 | `/`        | Overview and how to use Lunaris360                         |
 | `/mission` | Story Mode: six interactive lessons inside Freeplay |
-| `/how-it-works` | How It Works: lunar science, methods and data sources (`/mission-control` redirects here) |
+| `/how-it-works` | Debrief: lunar science, methods and data sources (`/mission-control` redirects here) |
 | `/freeplay` | Freeplay mission planner: Cesium Moon globe (Moon Trek imagery, LROC overlays, catalog sites, user-named presets) and an orbit + graphs view driven by the stored ephemeris and LOLA horizon masks |
 | `/freeplay/drive` | Freeplay surface drive: site and coordinate selection, time controls, first-person/orbit navigation, JPL Horizons Sun/Earth positions, horizon-aware 24-hour metrics where data is available (`/explore` redirects here). Opens at the site and time selected in Freeplay. |
 | `/compare` | Mission Comparison shell with an empty state; multi-site comparison is not implemented yet |
@@ -81,7 +81,7 @@ The landing page preview and Freeplay share the code-driven Three.js scene. Free
 - **Illustrative previews:** `data/hero-scene.ts` configures conceptual hero readouts; `lib/horizon.ts` supplies illustrative horizon examples for landing-page graphics. These values are separate from Freeplay's science API.
 - **Scene configuration:** `data/hero-scene.ts` holds the Sun and Earth angles shared by the 3D scene and
   the conceptual hero HUD.
-- **Freeplay (`/freeplay`):** loads the monthly `ephemeris` chunks and `science/horizon` masks from `/api/v1` and evaluates hourly Sun/Earth positions in the browser with `lib/ephemeris` (`lib/lunar-data.ts`). Globe imagery and overlays come from NASA Moon Trek and LROC Lunaserv (see `docs/SOURCES.md` §7).
+- **Freeplay (`/freeplay`):** loads the monthly `ephemeris` chunks and `science/horizon` masks from `/api/v1` and evaluates hourly Sun/Earth positions in the browser with `lib/ephemeris` (`lib/lunar-data.ts`). Globe imagery and categorized overlays are stored Firebase snapshots of NASA Moon Trek and LROC Lunaserv products at the recorded overview resolution (see `docs/SOURCES.md` §7).
 - **Surface drive:** `/freeplay/drive` calls the versioned science API. The API uses public Firestore reads for catalog and science data; user-owned endpoints use authenticated Firebase tokens and Admin SDK access.
 
 ## Performance and accessibility
@@ -109,6 +109,13 @@ npm run smoke           # client-SDK smoke test against the running emulators
 npm test                # unit tests (vitest)
 npm run test:rules      # security-rules tests (starts its own Firestore emulator; port 8080 must be free)
 ```
+
+**Sign-in (optional):** accounts only add cloud-saved expeditions; every page works signed out. The navbar
+offers Google and email/password. In the Firebase console (Authentication > Sign-in method) enable both the
+**Google** and **Email/Password** providers, and check that your deployed domains are listed under
+Authentication > Settings > Authorized domains. Email verification is sent on sign-up but never required. The
+Auth emulator supports both providers with no console setup (verification and reset links appear in the
+emulator log and UI at port 4000).
 
 `scripts/seed-firestore.ts` validates everything before writing and aborts on any error. Useful flags:
 `--dry-run` (validate and print sizes only) and `--only sites,catalog`.
@@ -149,6 +156,57 @@ Freeplay has an in-app assistant (header button **Mission Control**) that answer
 
 - [Lunar Orbiter Laser Altimeter (LOLA), PDS Geosciences Node](https://pds-geosciences.wustl.edu/missions/lro/lola.htm) — precomputed horizon masks and polar terrain-grid masks where coverage is available.
 - [JPL Horizons](https://ssd.jpl.nasa.gov/horizons/) — stored ephemerides used to calculate Sun and Earth positions.
+
+Globe science overlays and meteor references (retrieved 2026-11-14):
+
+- [LROC Lunaserv map catalog](https://wms.im-ldi.com/?service=WMS&request=GetCapabilities) — imagery metadata and WMS layers. [NASA Moon Trek](https://trek.nasa.gov/moon/) supplies the base mosaic and slope overlays.
+- [LROC WAC titanium oxide, Sato et al. (2017)](https://doi.org/10.1016/j.icarus.2017.06.013) — TiO₂ abundance estimates, 70°S–70°N.
+- [Kaguya mineral maps, Lemelin et al. (2016)](https://www.hou.usra.edu/meetings/lpsc2016/pdf/2994.pdf) — FeO, olivine, plagioclase and clinopyroxene, 50°S–50°N.
+- [Lunar Prospector thorium, Lawrence et al. (2007)](https://doi.org/10.1029/2006GL028530) — regional thorium abundance.
+- [Diviner silicate mineralogy, Greenhagen et al. (2010)](https://doi.org/10.1126/science.1192196) — Christiansen-feature composition proxy.
+- [Diviner temperature maps, Williams et al. (2017)](https://doi.org/10.1016/j.icarus.2016.08.012) — maximum/minimum anomalies relative to latitude means; historical observations, not forecasts.
+- [Ice-stability modeling, Siegler et al. (2016)](https://doi.org/10.1038/nature17166) — modeled south-polar ice-stability depth, not detected ice.
+- [LROC Copernican crater catalog](https://wms.im-ldi.com/?service=WMS&request=GetCapabilities) — Ravi et al. (2016), natural craters >10 km, younger than approximately 1.1 billion years, 60°S–60°N; impact history, not present-day storm frequency.
+- [TUM 2026 meteoroid stream geometry](https://www.asg.ed.tum.de/en/lpe/forschung/mondeinschlagsblitze/meteoroid-stream-geometry/) — seven shower radiants and reference epochs. [NASA/JPL NAIF pck00011](https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/pck00011.tpc) supplies the approximate lunar orientation used to derive the stream-facing hemispheres.
+- [NASA Meteoroid Environment Office](https://www.nasa.gov/meteoroid-environment-office/shower-meteoroid-environment/) — context for time-varying shower hazards; the overlay does not predict storm frequency or impact rates.
+
+These additions follow the existing data workflow: curated inputs in
+`scripts/data-pipeline/curated/`, source manifests in `data/seed/dataSources/`, and
+API-backed meteor facts in `data/seed/facts/meteor-streams-2026.json`. Run
+`python3 scripts/data-pipeline/61_globe_layers.py` **before** stage 60 to reproduce
+those reference facts. The map inventory and product abstracts are retained in
+`curated/globeMaps.json`; the downloaded capabilities snapshot is recorded in
+`manifest.lock.json` with its hash and cached under `.cache/globe/`.
+
+The globe now reads stored image snapshots from Firestore through `/api/v1/globe`.
+The images are stored as 240 KiB binary chunks under `catalog/`, using the same
+Firestore Bytes convention as terrain and ephemerides. Original source metadata,
+image bounds, dimensions, byte counts, and SHA-256 hashes are preserved. No Firebase
+Storage bucket or billing-plan change is needed for this bounded archive.
+
+The selected scope is **complete globe display snapshots plus all collected app
+data**, not the upstream full-resolution scientific archives. Most images are
+2048 × 1024; the regional south-pole slope snapshot is 4096 × 256 with its actual
+bounds. Zooming does not increase their detail. The globe fetches imagery only
+from this app's Firebase-backed API, with no live Moon Trek/Lunaserv fallback.
+
+`catalog/globe-assets-v1` lists the stored assets. `catalog/globe-asset-*` documents
+hold manifests; `catalog/globe-chunk-*` documents hold their binary payloads.
+The `collected-data` asset is a gzipped JSON bundle containing the original static
+seed data, curated inputs, locally downloaded source responses and tile bytes,
+and source documentation. Each bundled file includes its relative path, encoding,
+and checksum. Private credentials and user records are excluded.
+
+```bash
+npm run archive:globe                 # prepare snapshots and seed files; no cloud writes
+npm run archive:globe -- --upload     # validate and sync static data, then verify readback
+npm run archive:globe -- --verify     # read every stored asset back and check its checksum
+```
+
+Import provenance is retained in `scripts/data-pipeline/globe-archive.lock.json`;
+generated Firestore documents remain under `data/seed/catalog/`. The original
+source credits above and [complete inventory](docs/SOURCES.md) also apply to the
+stored copies. The globe sidebar includes a collected-data download link.
 
 The app is an educational planning and visualization tool, not an operational mission system. Data coverage and assumptions are exposed in Freeplay; the procedural display terrain should not be interpreted as measured topography.
 

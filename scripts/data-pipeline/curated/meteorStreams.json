@@ -1,0 +1,49 @@
+{
+  "source": "tumMeteor2026",
+  "orientationSource": "naifPck11",
+  "note": "Published reference snapshots at 20:00 UTC, not precise maxima, live forecasts, storm intensity or lunar impact rates. Radiants treated as J2000 directions; no gravitational focusing or velocity aberration.",
+  "streams": [
+    {
+      "name": "Lyrids",
+      "referenceUtc": "2026-04-21T20:00:00Z",
+      "raDeg": 272,
+      "decDeg": 33.3
+    },
+    {
+      "name": "Eta Aquarids",
+      "referenceUtc": "2026-05-05T20:00:00Z",
+      "raDeg": 338,
+      "decDeg": -1
+    },
+    {
+      "name": "Southern delta Aquariids",
+      "referenceUtc": "2026-07-30T20:00:00Z",
+      "raDeg": 331,
+      "decDeg": -16.4
+    },
+    {
+      "name": "Perseids",
+      "referenceUtc": "2026-08-12T20:00:00Z",
+      "raDeg": 45.2,
+      "decDeg": 58.1
+    },
+    {
+      "name": "Orionids",
+      "referenceUtc": "2026-10-21T20:00:00Z",
+      "raDeg": 96.2,
+      "decDeg": 15.8
+    },
+    {
+      "name": "Leonids",
+      "referenceUtc": "2026-11-16T20:00:00Z",
+      "raDeg": 154,
+      "decDeg": 21.8
+    },
+    {
+      "name": "Geminids",
+      "referenceUtc": "2026-12-13T20:00:00Z",
+      "raDeg": 113.2,
+      "decDeg": 32.4
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+ "id": "temperatureMax-0",
+ "kind": "globe-asset",
+ "contentType": "image/png",
+ "bytes": 739090,
+ "sha256": "8a4de9b2ab32ebcfae45b3a82d3f42102f614f3680cbd356d833fb4964303685",
+ "chunks": [
+  "globe-chunk-temperatureMax-0-8a4de9b2ab32ebcf-0",
+  "globe-chunk-temperatureMax-0-8a4de9b2ab32ebcf-1",
+  "globe-chunk-temperatureMax-0-8a4de9b2ab32ebcf-2",
+  "globe-chunk-temperatureMax-0-8a4de9b2ab32ebcf-3"
+ ],
+ "source": {
+  "kind": "wms",
+  "layers": "luna_diviner_tbol_max",
+  "url": "https://wms.im-ldi.com/?service=WMS&version=1.1.1&request=GetMap&layers=luna_diviner_tbol_max&styles=&srs=EPSG%3A4326&bbox=-180%2C-90%2C180%2C90&width=2048&height=1024&format=image%2Fpng&transparent=true",
+  "requestedWidth": 2048,
+  "requestedHeight": 1024,
+  "retrievedAt": "2026-11-15T04:13:30.669Z"
+ },
+ "layerId": "temperatureMax",
+ "sourceIndex": 0,
+ "width": 2048,
+ "height": 1024,
+ "rectangle": [
+  -180,
+  -90,
+  180,
+  90
+ ]
+}

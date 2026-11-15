@@ -9,6 +9,7 @@ import type { AssistantAction } from "@/integrations/assistant/types";
 import { ASSISTANT_NAME, MAX_INPUT_CHARS } from "@/lib/assistant/constants";
 import { useAssistant, type UiMessage } from "@/lib/assistant/assistant-store";
 import { currentTimeMs, useFreeplay } from "@/lib/freeplay-store";
+import { SaveToExpedition } from "@/components/expeditions/save-to-expedition";
 import { Sources } from "./mission-control-assistant/sources";
 
 export const PANEL_ID = "mission-control-panel";
@@ -78,6 +79,10 @@ function Bubble({ message, canUndo }: { message: UiMessage; canUndo: boolean }) 
       </ul>}
       <ViewChanges message={message} canUndo={canUndo} />
       {message.records && <Sources records={message.records} />}
+      {message.studies?.map((study, i) => <div key={i} className="mt-2 border-t border-line/60 pt-2">
+        <p className="type-data mb-1 text-[0.56rem] uppercase tracking-[0.08em] text-muted-foreground">{study.label}</p>
+        <SaveToExpedition compact makeInput={() => study} />
+      </div>)}
     </div>
   </li>;
 }

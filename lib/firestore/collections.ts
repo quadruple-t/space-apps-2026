@@ -40,3 +40,11 @@ export const TERRAIN_SUBCOLLECTION = "terrain";
 export const TERRAIN_DOC_ID = "v1";
 export const PROGRESS_DOC_ID = "state";
 export const DEFAULT_PSR_LAYER_ID = "south-1km2";
+
+/** Owner-only subcollections under users/{uid} (and users/{uid}/expeditions/{id}). */
+export const SUBCOLLECTIONS = {
+  expeditions: "expeditions",
+  studies: "studies",
+  chat: "chat",
+} as const;
+export const CHAT_DOC_ID = "transcript";

@@ -30,7 +30,7 @@ export function GlobeScreen({ guidedLayers, guidedSites, guidedMode = false }: {
 
       {!guidedMode && <PresetsPanel className="absolute bottom-3 right-3 z-10 hidden max-h-[46%] w-[min(560px,calc(100%-1.5rem))] md:flex" />}
 
-      {/* Narrow screens: layers drawer + presets bottom sheet */}
+      {/* Narrow screens: layers drawer + expedition sites bottom sheet */}
       {showLayers && <Sheet>
         <SheetTrigger asChild>
           <button type="button" className="absolute left-3 top-3 z-10 flex items-center gap-1.5 rounded border border-line bg-void/85 px-3 py-2 text-[0.62rem] uppercase tracking-[0.1em] text-bone md:hidden"><Layers size={14} />Layers</button>
@@ -43,10 +43,10 @@ export function GlobeScreen({ guidedLayers, guidedSites, guidedMode = false }: {
       </Sheet>}
       {!guidedMode && <Sheet>
         <SheetTrigger asChild>
-          <button type="button" className="absolute bottom-3 right-3 z-10 flex items-center gap-1.5 rounded bg-retro-purple px-3 py-2 text-[0.62rem] font-semibold uppercase tracking-[0.1em] text-void md:hidden"><List size={14} />Presets</button>
+          <button type="button" className="absolute bottom-3 right-3 z-10 flex items-center gap-1.5 rounded bg-retro-purple px-3 py-2 text-[0.62rem] font-semibold uppercase tracking-[0.1em] text-void md:hidden"><List size={14} />Sites</button>
         </SheetTrigger>
         <SheetContent side="bottom" className="max-h-[70dvh] gap-0 p-0">
-          <SheetTitle className="sr-only">Presets</SheetTitle>
+          <SheetTitle className="sr-only">Expedition sites</SheetTitle>
           <SheetDescription className="sr-only">Landing sites and your saved sites</SheetDescription>
           <PresetsPanel collapsible={false} className="max-h-[70dvh] rounded-none border-0" />
         </SheetContent>

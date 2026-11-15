@@ -6,9 +6,9 @@
  * Lunaris360 design tokens
  * ------------------------------------------------------------------
  * Dark-only palette. Colour is semantic, not decorative:
- *   sun   (coral red) — sunlight and active controls
- *   earth (electric blue) — Earth and communications
- *   purple — the interface's retro lunar-night accent
+ *   purple — the primary lunar-night canvas
+ *   sun   (coral red) — restrained streaks and active controls
+ *   earth (electric blue) — a cool atmospheric undertone
  */
 
 @custom-variant dark (&:is(.dark *));
@@ -62,36 +62,36 @@
 :root {
   color-scheme: dark;
 
-  --void: #080712;
-  --charcoal: #151327;
+  --void: #100c1b;
+  --charcoal: #211a38;
   --regolith: #a39ab8;
   --bone: #f0ebf7;
   --sun: #ff5364;
-  --sun-dim: #963752;
+  --sun-dim: #aa374f;
   --earth: #4b9bff;
   --earth-dim: #365588;
   --retro-purple: #a986ff;
   --retro-blue: #4b9bff;
-  --retro-red: #ff5364;
-  --line: #302c4a;
+  --retro-red: #ff536b;
+  --line: #494166;
 
   --background: var(--void);
   --foreground: var(--bone);
   --card: var(--charcoal);
   --card-foreground: var(--bone);
-  --popover: #100e20;
+  --popover: #171126;
   --popover-foreground: var(--bone);
   --primary: var(--bone);
   --primary-foreground: #100d20;
-  --secondary: #211d37;
+  --secondary: #292342;
   --secondary-foreground: var(--bone);
-  --muted: #211d37;
+  --muted: #241e3b;
   --muted-foreground: #b2abc4;
-  --accent: #292341;
+  --accent: #30264d;
   --accent-foreground: var(--bone);
-  --destructive: #ff5364;
+  --destructive: var(--retro-red);
   --border: var(--line);
-  --input: #45405f;
+  --input: #54436a;
   --ring: var(--sun);
   --radius: 0.375rem;
 
@@ -119,6 +119,13 @@
   body {
     @apply bg-background text-foreground;
     text-rendering: optimizeLegibility;
+    background-image:
+      radial-gradient(ellipse at 12% 5%, rgb(142 91 220 / 24%), transparent 44rem),
+      radial-gradient(ellipse at 88% 28%, rgb(57 113 210 / 24%), transparent 42rem),
+      radial-gradient(ellipse at 52% 88%, rgb(57 113 210 / 8%), transparent 56rem),
+      linear-gradient(118deg, transparent 0 37%, rgb(255 83 107 / 5%) 37.15%, transparent 37.5% 100%),
+      linear-gradient(154deg, transparent 0 69%, rgb(255 83 107 / 4%) 69.12%, transparent 69.4% 100%);
+    background-attachment: fixed;
   }
   button:not(:disabled),
   [role="button"]:not(:disabled) {
@@ -160,10 +167,10 @@
   }
 
   .hud-panel {
-    border: 1px solid color-mix(in oklab, var(--retro-purple) 24%, var(--line));
+    border: 1px solid color-mix(in oklab, var(--retro-purple) 34%, var(--line));
     border-radius: 0.6rem;
-    background: color-mix(in oklab, var(--void) 82%, transparent);
-    box-shadow: 0 18px 70px rgb(3 2 14 / 34%), inset 0 1px rgb(255 255 255 / 4%);
+    background: linear-gradient(135deg, rgb(75 155 255 / 6%), transparent 58%), color-mix(in oklab, var(--void) 82%, var(--retro-purple) 18%);
+    box-shadow: 0 18px 70px rgb(3 2 14 / 34%), 0 0 36px rgb(142 91 220 / 12%), inset 0 1px rgb(255 255 255 / 4%);
     -webkit-backdrop-filter: blur(18px);
     backdrop-filter: blur(18px);
   }
@@ -176,17 +183,17 @@
   }
   .hud-readout {
     min-width: 0;
-    border: 1px solid color-mix(in oklab, var(--line) 82%, transparent);
+    border: 1px solid color-mix(in oklab, var(--retro-purple) 22%, var(--line));
     border-radius: 0.35rem;
-    background: color-mix(in oklab, var(--void) 62%, transparent);
+    background: linear-gradient(110deg, rgb(75 155 255 / 7%), transparent 72%), color-mix(in oklab, var(--void) 92%, var(--retro-purple) 8%);
     padding: 0.55rem 0.65rem;
   }
   .hud-input {
     display: block;
     width: 100%;
-    border: 1px solid var(--line);
+    border: 1px solid color-mix(in oklab, var(--retro-purple) 28%, var(--line));
     border-radius: 0.25rem;
-    background: color-mix(in oklab, var(--void) 90%, transparent);
+    background: linear-gradient(110deg, rgb(75 155 255 / 6%), transparent 78%), color-mix(in oklab, var(--void) 90%, var(--retro-purple) 10%);
     padding: 0.45rem 0.55rem;
     color: var(--bone);
     font-size: 0.68rem;
@@ -215,6 +222,22 @@
     animation-delay: var(--hud-delay, 900ms);
   }
 
+  .reading-star-active {
+    filter: drop-shadow(0 0 8px rgb(255 83 107 / 85%));
+    animation: reading-star-twinkle 2.4s ease-in-out infinite;
+  }
+
+  @keyframes reading-star-twinkle {
+    0%, 100% { filter: drop-shadow(0 0 5px rgb(255 83 107 / 55%)); }
+    50% { filter: drop-shadow(0 0 12px rgb(255 83 107 / 100%)); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reading-star-active {
+      animation: none;
+    }
+  }
+
   /* Mission-control framing and chapter navigation. */
   .lunar-grid {
     background-image:
@@ -232,8 +255,8 @@
   .mission-console {
     position: relative;
     isolation: isolate;
-    border: 1px solid rgb(236 233 226 / 22%);
-    background: rgb(7 8 9 / 82%);
+    border: 1px solid color-mix(in oklab, var(--retro-purple) 35%, var(--line));
+    background: color-mix(in oklab, var(--void) 86%, var(--retro-purple) 14%);
     padding: clamp(1rem, 2.2vw, 1.6rem);
     clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
     box-shadow: 0 22px 90px rgb(0 0 0 / 35%);
@@ -277,7 +300,7 @@
     align-items: center;
     gap: 0.85rem;
     border: 1px solid rgb(236 233 226 / 14%);
-    background: linear-gradient(105deg, rgb(236 233 226 / 5%), rgb(236 233 226 / 1%));
+    background: linear-gradient(105deg, rgb(169 134 255 / 9%), rgb(255 83 107 / 3%));
     padding: 0.7rem 0.8rem;
     clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
     transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
@@ -285,8 +308,8 @@
 
   .route-choice:hover {
     transform: translateX(3px);
-    border-color: rgb(227 174 79 / 65%);
-    background-color: rgb(227 174 79 / 5%);
+    border-color: rgb(255 83 107 / 55%);
+    background-color: rgb(255 83 107 / 9%);
   }
 
   .route-choice:focus-visible {
@@ -320,7 +343,7 @@
 
   .route-choice:hover .route-arrow {
     transform: translateX(2px);
-    border-color: rgb(227 174 79 / 65%);
+    border-color: rgb(255 83 107 / 65%);
     color: var(--sun);
   }
 
@@ -384,7 +407,7 @@
     border-color: var(--sun);
     background: var(--sun);
     color: var(--void);
-    box-shadow: 0 0 14px rgb(227 174 79 / 28%);
+    box-shadow: 0 0 14px rgb(255 83 107 / 35%);
   }
 
   .chapter-label {
