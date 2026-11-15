@@ -7,6 +7,7 @@ DIVINER_PRP = "https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_de
 LOLA_CYL = "https://imbrium.mit.edu/DATA/LOLA_GDR/CYLINDRICAL/IMG"
 SLDEM_TILES = "https://imbrium.mit.edu/DATA/SLDEM2015/TILES/FLOAT_IMG"
 HORIZONS_API = "https://ssd.jpl.nasa.gov/api/horizons.api"
+LP_GRS = "https://pds-geosciences.wustl.edu/lunar/lp-l-grs-5-elem-abundance-v1/lp_9001/data"
 
 # Product-78 5 m site DEMs that contain a curated site's coordinates or representative point.
 # Site20v2 is the 2022 extended version of Site20 (same centre), used for Mons Mouton.
@@ -38,6 +39,10 @@ WHOLE_FILES += [
     (f"{LROC_PDS}/DATA/BDR/WAC_POLE/WAC_POLE_ILL_PCT_SOUTH/WAC_POLE_ILL_PCT_SOUTH_100M.IMG", "lroc/WAC_POLE_ILL_PCT_SOUTH_100M.IMG"),
     (f"{DIVINER_PRP}/dlre_prp_south.xml", "diviner/dlre_prp_south.xml"),
     (f"{DIVINER_PRP}/dlre_prp_south.tab", "diviner/dlre_prp_south.tab"),
+    # Lunar Prospector GRS elemental abundance, 2-degree equal-area pixels (Prettyman et al. 2006), about 10 MB.
+    (f"{LP_GRS}/lpgrs_high1_elem_abundance_2deg.lbl", "lpgrs/lpgrs_high1_elem_abundance_2deg.lbl"),
+    (f"{LP_GRS}/lpgrs_high1_elem_abundance_2deg.tab", "lpgrs/lpgrs_high1_elem_abundance_2deg.tab"),
+    (f"{LP_GRS}/lpgrs_elem_abundance.fmt", "lpgrs/lpgrs_elem_abundance.fmt"),
 ]
 
 # Read by HTTP range (COG windows via GDAL /vsicurl/, or raw-tile byte ranges). Not downloaded whole.

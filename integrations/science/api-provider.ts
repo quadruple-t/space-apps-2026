@@ -4,12 +4,25 @@ type ApiError = { error?: { message?: string } };
 type Timeline = { stepMinutes: number; samples: Pick<CelestialState, "timestamp" | "sun" | "earth">[] };
 const timelineCache = new Map<string, Promise<Timeline>>();
 
-async function get<T>(path: string, params: URLSearchParams): Promise<T> {
-  const response = await fetch(`/api/v1/${path}?${params.toString()}`);
-  const body = await response.json() as T & ApiError;
-  if (!response.ok) throw new Error(body.error?.message ?? `Science API returned ${response.status}`);
+/** Carries the HTTP status so callers can tell coverage (422), not-found (404) and outage (503) apart. */
+export class ScienceApiError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message);
+    this.name = "ScienceApiError";
+  }
+}
+
+/** Same-origin GET against the versioned REST API. Shared with the Mission Control assistant tools. */
+export async function scienceGet<T>(path: string, params: URLSearchParams, init?: { signal?: AbortSignal }): Promise<T> {
+  const query = params.toString();
+  const response = await fetch(`/api/v1/${path}${query ? `?${query}` : ""}`, { signal: init?.signal });
+  let body: (T & ApiError) | null = null;
+  try { body = await response.json() as T & ApiError; } catch { /* non-JSON error page */ }
+  if (!response.ok || body === null) throw new ScienceApiError(body?.error?.message ?? `Science API returned ${response.status}`, response.status);
   return body;
 }
+
+const get = scienceGet;
 
 async function timelineFor(site: LunarSite, timestamp: string): Promise<Timeline> {
   const day = timestamp.slice(0, 10);
