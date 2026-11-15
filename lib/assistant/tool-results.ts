@@ -418,7 +418,8 @@ export function shapeSavedSites(id: string, sites: SavedSiteRef[]): ToolOutcome 
         id: s.id, name: clip(s.name, 60), latDeg: r2(s.latitudeDeg), lonDeg: r2(s.longitudeDeg), radiusKm: r2(s.radiusKm),
       })),
     },
-    notes: [SAVED_SITE_WORDING, "Use a saved preset id in compare_sites siteIds or in show_in_freeplay savedSiteId, compareSiteA and compareSiteB."],
+    notes: ["Use a saved preset id in compare_sites siteIds or in show_in_freeplay savedSiteId, compareSiteA and compareSiteB."],
+    extraMustSay: [SAVED_SITE_WORDING],
   });
 }
 

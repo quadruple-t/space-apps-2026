@@ -507,12 +507,13 @@ export function validateToolCall(name: unknown, rawArgs: unknown, ctx: ToolConte
       const ispS = boundedNumber(args.ispS ?? ctx.ispS ?? 311, "ispS", MIN_ISP_S, MAX_ISP_S);
       if (isValidation(ispS)) return ispS;
       if (args.includeArtemisReference !== undefined && typeof args.includeArtemisReference !== "boolean") return bad("includeArtemisReference must be a boolean");
+      const includeArtemisReference = args.includeArtemisReference === undefined ? ctx.showArtemisReference === true : args.includeArtemisReference;
       return {
         ok: true,
         request: {
           tool: name, launchIso: new Date(launch).toISOString(), trajectoryType: type,
           payloadKg: payloadKg as number, ispS: ispS as number,
-          includeArtemisReference: args.includeArtemisReference === true,
+          includeArtemisReference,
         },
       };
     }

@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 import { ScienceApiError } from "@/integrations/science/api-provider";
 import {
-  FALLBACK_WORDING, GRID_CELL_WORDING, MAX_TOOL_RESULT_CHARS, NO_COVERAGE_WORDING, failureWording,
+  FALLBACK_WORDING, GRID_CELL_WORDING, LAUNCH_PLAN_WORDING, MAX_TOOL_RESULT_CHARS, METEOR_STREAM_WORDING, NO_COVERAGE_WORDING, SAVED_SITE_WORDING, SOLAR_POWER_WORDING, failureWording,
 } from "@/lib/assistant/constants";
 import { turnNotices } from "@/lib/assistant/guards";
 import {
-  classifyHorizonSource, shapeCompare, shapeHorizon, shapeMetrics, shapeRiseSet, shapeSites,
+  classifyHorizonSource, shapeCompare, shapeHorizon, shapeLaunchPlan, shapeMetrics, shapeMeteorStreams, shapeRiseSet, shapeSavedSites, shapeSites, shapeSolarPower,
 } from "@/lib/assistant/tool-results";
 import { executeToolCall, type ScienceGet } from "@/lib/assistant/tools";
-import { ctxWithCatalogSite, ctxWithCustomSite, metricsApi, timelineApi } from "./helpers/assistant-fixtures";
+import { ctxWithCatalogSite, ctxWithCustomSite, ctxWithSavedSites, metricsApi, timelineApi } from "./helpers/assistant-fixtures";
 
 const FALLBACK = "none — smooth horizon";
 const GRID = "LOLA DEM grid · 0.5 km cell, 0.3 km from point";
@@ -141,5 +141,109 @@ describe("tool execution against the API (mock fetch)", () => {
     const get = mk(() => ({ items: Array.from({ length: 10 }, (_, i) => ({ id: `c${i}`, title: "t".repeat(5000), concept: "c".repeat(5000) })) }));
     const out = await executeToolCall({ name: "list_story_chapters", args: {} }, "c1", ctxWithCatalogSite, { get });
     expect(JSON.stringify(out.response).length).toBeLessThan(MAX_TOOL_RESULT_CHARS);
+  });
+});
+
+describe("launch, power, saved-preset and meteor results", () => {
+  const mk = (impl: (path: string, p: URLSearchParams) => unknown) => vi.fn(async (path: string, p: URLSearchParams) => impl(path, p)) as unknown as ScienceGet & ReturnType<typeof vi.fn>;
+  const catalogDetail = { site: { id: "apollo-17", name: "Apollo 17", coordinates: { latDeg: 20.19, lonDeg: 30.77 }, coordsVerified: true } };
+  const launch: Parameters<typeof shapeLaunchPlan>[2] = {
+    plan: {
+      launchIso: "2027-04-01T00:00:00.000Z", arrivalIso: "2027-04-04T06:00:00.000Z", transitHours: 78,
+      arrivalDistanceKm: 384_400, apogeeKm: 422_840, eccentricity: 0.964,
+      alignment: { sunUpAtArrival: true, hoursSincePrevSunrise: 12, hoursUntilNextSunrise: null, nearSunrise: true, summary: "Sun is up at arrival." },
+    },
+    outOfCoverage: false,
+    estimate: {
+      totalKmS: 5.6, totalLowKmS: 5.2, totalHighKmS: 6.1,
+      phases: [{ id: "tli", label: "Trans-lunar injection (from LEO)", kmS: 3.1, lowKmS: 3.05, highKmS: 3.2 }],
+      propellantKg: 12_345, leoMassKg: 14_000, leoMassRangeKg: { low: 13_000, high: 15_000 },
+      cost: { lowUsd: 41_000_000, highUsd: 75_000_000, classLabel: "Medium-lift launcher", reference: "Falcon 9-class" },
+    },
+    artemis: { hoursToFlyby: 120, flybyAltitudeKm: 130 },
+  };
+
+  it("shapes a launch plan with the approximation wording and rounded numbers", () => {
+    const { response, record } = shapeLaunchPlan("c1", "Apollo 17", launch);
+    expect(response).toMatchObject({
+      ok: true, site: "Apollo 17",
+      data: {
+        outOfCoverage: false,
+        plan: { transitHours: 78, arrivalLighting: { nearSunrise: true } },
+        deltaV: { totalKmS: 5.6 },
+        mass: { propellantKg: 12_345, leoMassKg: 14_000 },
+        launchCost: { launchClass: "Medium-lift launcher" },
+        artemisReference: { hoursToFlyby: 120, flybyAltitudeKm: 130 },
+      },
+      mustSay: [LAUNCH_PLAN_WORDING],
+    });
+    expect(record.mustSay).toContain(LAUNCH_PLAN_WORDING);
+  });
+
+  it("shapes a flat-panel power estimate with its horizon source and caveat", () => {
+    const { response } = shapeSolarPower("c1", "custom point", {
+      peakW: 300, meanW: 120, energyKWh: 24, litSharePercent: 55, hours: 200,
+      horizonSource: FALLBACK, startIso: "2027-03-01T00:00:00.000Z", endIso: "2027-03-09T08:00:00.000Z",
+      panelAreaM2: 1, panelEfficiency: 0.3,
+    }, []);
+    expect(response).toMatchObject({
+      horizon: { kind: "smooth-sphere-fallback", upperBound: true },
+      data: { peakW: 300, energyKWh: 24, sharesAreUpperBounds: true },
+    });
+    expect((response.mustSay as string[])).toEqual(expect.arrayContaining([FALLBACK_WORDING, SOLAR_POWER_WORDING]));
+  });
+
+  it("shapes saved presets without calling them verified", () => {
+    const { response, record } = shapeSavedSites("c1", ctxWithSavedSites.savedSites!);
+    expect(response.data).toMatchObject({ count: 2 });
+    expect((response.data as { sites: { id: string; name: string }[] }).sites[0]).toMatchObject({ id: "saved-ridge", name: "Ridge camp" });
+    expect(response.mustSay).toEqual([SAVED_SITE_WORDING]);
+    expect(record.site).toBeNull();
+  });
+
+  it("shapes meteor streams with incidence geometry and its caveat", () => {
+    const { response } = shapeMeteorStreams("c1", "Geminids", "Apollo 17", {
+      streams: [{ name: "Geminids", referenceIso: "2026-12-14T00:00:00.000Z", subRadiantLatDeg: 32.3, subRadiantLonDeg: 112.3, incidence: 0.84, facingHemisphere: true }],
+    });
+    expect(response).toMatchObject({ data: { requestedStream: "Geminids", streams: [{ name: "Geminids", incidence: 0.84, facingHemisphere: true }] } });
+    expect(response.mustSay).toEqual([METEOR_STREAM_WORDING]);
+  });
+
+  it("executes the new tools with injected estimators", async () => {
+    const saved = await executeToolCall({ name: "list_saved_sites", args: {} }, "c1", ctxWithSavedSites, {});
+    expect(saved.response).toMatchObject({ ok: true, data: { count: 2 } });
+
+    const launchOut = await executeToolCall({ name: "get_launch_plan", args: {} }, "c2", ctxWithCatalogSite, {
+      planLaunch: async () => launch,
+    });
+    expect(launchOut.response).toMatchObject({ ok: true, data: { plan: { transitHours: 78 } } });
+
+    const missing = await executeToolCall({ name: "get_launch_plan", args: {} }, "c3", ctxWithCatalogSite, {
+      planLaunch: async () => ({ ...launch, plan: null, outOfCoverage: true, artemis: null }),
+    });
+    expect(missing.response).toMatchObject({ ok: false, error: { code: "out_of_coverage" } });
+
+    const powerOut = await executeToolCall({ name: "get_solar_power", args: { useCurrentSite: true } }, "c4", ctxWithCatalogSite, {
+      estimatePower: async () => ({
+        peakW: 300, meanW: 120, energyKWh: 24, litSharePercent: 55, hours: 200, horizonSource: "LOLA DEM",
+        startIso: "2027-03-01T00:00:00.000Z", endIso: "2027-03-09T08:00:00.000Z", panelAreaM2: 1, panelEfficiency: 0.3,
+      }),
+    });
+    expect(powerOut.response).toMatchObject({ ok: true, horizon: { kind: "site-lola-mask" }, data: { energyKWh: 24 } });
+  });
+
+  it("reads meteor streams from the facts API and resolves a catalog point for incidence", async () => {
+    const get = mk((path) => path === "facts/meteor-streams-2026"
+      ? { rows: [
+        { label: "Geminids", unit: "UTC", value: "2026-12-14T00:00:00.000Z" },
+        { label: "Geminids", unit: "latitude deg", value: 32.3 },
+        { label: "Geminids", unit: "longitude deg", value: 112.3 },
+      ] }
+      : catalogDetail);
+    const out = await executeToolCall({ name: "get_meteor_stream_exposure", args: { stream: "Geminids", useCurrentSite: true } }, "c1", ctxWithCatalogSite, { get });
+    expect(get.mock.calls.map((c) => c[0])).toEqual(["facts/meteor-streams-2026", "catalog/sites/apollo-17"]);
+    const data = out.response.data as { streams: { name: string; incidence: number | null; facingHemisphere: boolean | null }[] };
+    expect(data.streams[0].incidence).not.toBeNull();
+    expect(typeof data.streams[0].facingHemisphere).toBe("boolean");
   });
 });

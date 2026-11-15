@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Bot, Check, ExternalLink, Globe2, Info, Layers3, MonitorUp, Orbit, RotateCcw, RotateCw, SendHorizontal, Square, Trash2, X } from "lucide-react";
+import { ArrowUpRight, Bot, Check, ExternalLink, GitCompareArrows, Globe2, Info, Layers3, MonitorUp, Orbit, Rocket, RotateCcw, RotateCw, SendHorizontal, Square, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import type { AssistantAction } from "@/integrations/assistant/types";
@@ -18,6 +18,8 @@ const STARTER_ACTIONS: Array<{ label: string; Icon: typeof Layers3; action: Assi
   { label: "Show slope", Icon: Layers3, action: { type: "set-layer", layerId: "slope", enabled: true } },
   { label: "Show candidate sites", Icon: Globe2, action: { type: "show-catalog", enabled: true } },
   { label: "Open Orbit + Graphs", Icon: Orbit, action: { type: "set-view", view: "orbit" } },
+  { label: "Launch window", Icon: Rocket, action: { type: "set-view", view: "launch" } },
+  { label: "Compare presets", Icon: GitCompareArrows, action: { type: "set-view", view: "compare" } },
 ];
 
 const SUGGESTIONS = [
@@ -25,6 +27,10 @@ const SUGGESTIONS = [
   "How much sunlight and Earth visibility does this mission get?",
   "What does the horizon look like here, and where does the data come from?",
   "Show me the Sun and Earth over this mission on the orbit view.",
+  "Plan the launch: transit time, fuel and rough cost to land here.",
+  "How much solar power would a flat panel make over this window?",
+  "Which way does the Geminids stream face at this site?",
+  "Compare my saved presets over this mission window.",
 ];
 
 function runAction(action: AssistantAction) {

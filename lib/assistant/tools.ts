@@ -158,8 +158,9 @@ async function run(req: ToolRequest, id: string, get: ScienceGet, signal: AbortS
         if (!stream) {
           return failure(req.tool, id, { code: "not_found", message: `No ${req.stream} reference snapshot is stored. Known streams: ${streams.map((s) => s.name).join(", ")}.` }, req.location.label);
         }
-        let point = req.location.kind === "point" ? { latDeg: req.location.latDeg, lonDeg: req.location.lonDeg } : null;
-        if (!point) {
+        let point: { latDeg: number; lonDeg: number } | null = null;
+        if (req.location.kind === "point") point = { latDeg: req.location.latDeg, lonDeg: req.location.lonDeg };
+        else {
           const detail = catalogFromDetail(await get(`catalog/sites/${encodeURIComponent(req.location.siteId)}`, new URLSearchParams(), init), req.location.siteId);
           if (detail) point = { latDeg: detail.latDeg, lonDeg: detail.lonDeg };
         }
@@ -180,7 +181,7 @@ export async function executeToolCall(call: { name: unknown; args: unknown }, id
   try {
     return await run(checked.request, id, deps.get ?? scienceGet, withTimeout(deps.signal, deps.timeoutMs ?? TOOL_TIMEOUT_MS), ctx, deps);
   } catch (err) {
-    const siteLabel = "location" in checked.request ? checked.request.location.label : null;
+    const siteLabel = "location" in checked.request ? checked.request.location?.label ?? null : null;
     return failure(checked.request.tool, id, classifyError(err), siteLabel);
   }
 }
