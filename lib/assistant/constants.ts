@@ -57,6 +57,7 @@ export const TOOL_NAMES = [
   "get_solar_power",
   "get_meteor_stream_exposure",
   "show_in_freeplay",
+  "edit_surface_setup",
 ] as const;
 export type ToolName = (typeof TOOL_NAMES)[number];
 
@@ -76,6 +77,7 @@ export const TOOL_LABELS: Record<ToolName, string> = {
   get_solar_power: "Solar power estimate",
   get_meteor_stream_exposure: "Meteor-stream exposure",
   show_in_freeplay: "Freeplay view",
+  edit_surface_setup: "Surface setup",
 };
 
 /** Shown while a tool runs. */
@@ -95,7 +97,16 @@ export const TOOL_PROGRESS: Record<ToolName, string> = {
   get_solar_power: "Estimating solar power…",
   get_meteor_stream_exposure: "Checking meteor-stream geometry…",
   show_in_freeplay: "Updating the Freeplay view…",
+  edit_surface_setup: "Editing your surface setup…",
 };
+
+/** edit_surface_setup: what the surface drive lets the assistant place, and how much of it in one call. Mirrors lib/drive-placements.ts and the drive's view modes. */
+export const SURFACE_TYPES = ["solar", "rover", "dome", "modules", "inflatable", "comms"] as const;
+export const SURFACE_VIEW_MODES = ["first-person", "birds-eye"] as const;
+export const SURFACE_ACTIONS = ["place", "move", "remove"] as const;
+export const MAX_SURFACE_OPS = 12;
+/** Positions are metres east/north of the site centre; the walled terrain tile is far smaller than this, which the drive enforces. */
+export const MAX_SURFACE_COORD_M = 20_000;
 
 /** Values the show_in_freeplay tool may set. Mirrors the Freeplay store and comparison store; the validator rejects anything else. */
 export const UI_SCREENS = ["globe", "orbit", "launch", "compare"] as const;

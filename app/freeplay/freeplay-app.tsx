@@ -3,15 +3,17 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
-import { ArrowLeft, Car, GitCompareArrows, Globe2, Orbit, Rocket } from "lucide-react";
+import { ArrowLeft, Bot, Car, GitCompareArrows, Globe2, Orbit, Rocket } from "lucide-react";
 import { ExpeditionControl, EXPEDITION_LAUNCHER_ID } from "@/components/expeditions/expedition-control";
 import { ExpeditionPanel } from "@/components/expeditions/expedition-panel";
 import { Logo } from "@/components/brand/logo";
+import { AssistantPanel, LAUNCHER_ID, PANEL_ID } from "@/components/freeplay/assistant-panel";
 import { LoadingIndicator } from "@/components/freeplay/loading-indicator";
 import { usePlaybackClock } from "@/components/freeplay/time-controls";
 import type { FreeplaySite } from "@/data/sites";
 import { driveHref } from "@/lib/drive-link";
 import { useExpeditions } from "@/lib/expeditions/expedition-store";
+import { useAssistant } from "@/lib/assistant/assistant-store";
 import { currentTimeMs, useFreeplay, type FreeplayView, type LayerId } from "@/lib/freeplay-store";
 
 const Loading = ({ label }: { label: string }) =>
@@ -56,8 +58,14 @@ export function FreeplayApp({ aside, guidedPanels, guidedMode = false, onGuidedE
   const setView = useFreeplay((s) => s.setView);
   const [expeditionOpen, setExpeditionOpen] = useState(false);
   const closeExpedition = () => { setExpeditionOpen(false); requestAnimationFrame(() => document.getElementById(EXPEDITION_LAUNCHER_ID)?.focus()); };
+  // The assistant is a right-hand sidebar here (not the floating bubble) and pushes the screen over instead of covering it.
+  const assistantOpen = useAssistant((s) => s.open);
+  const setAssistantOpen = useAssistant((s) => s.setOpen);
+  const closeAssistant = () => { setAssistantOpen(false); requestAnimationFrame(() => document.getElementById(LAUNCHER_ID)?.focus()); };
   // One side panel at a time keeps the globe usable.
-  const toggleExpedition = () => setExpeditionOpen(!expeditionOpen);
+  const toggleExpedition = () => { if (!expeditionOpen) setAssistantOpen(false); setExpeditionOpen(!expeditionOpen); };
+  const toggleAssistant = () => { if (!assistantOpen) setExpeditionOpen(false); setAssistantOpen(!assistantOpen); };
+  const sidebarOpen = !guidedMode && assistantOpen;
   usePlaybackClock();
   // Non-guided Freeplay loads the open expedition (or this browser's draft) and autosaves it.
   // Guided Mission shares the Freeplay store but never attaches, so its resets are never saved.
@@ -90,6 +98,11 @@ export function FreeplayApp({ aside, guidedPanels, guidedMode = false, onGuidedE
             <SurfaceLink />
           </div>
           <ExpeditionControl open={expeditionOpen} onToggle={toggleExpedition} />
+          <button id={LAUNCHER_ID} type="button" onClick={toggleAssistant} aria-expanded={assistantOpen} aria-controls={assistantOpen ? PANEL_ID : undefined}
+            aria-label={assistantOpen ? "Close Mission Control assistant" : "Open Mission Control assistant"}
+            className={`inline-flex h-8 items-center gap-2 rounded border px-3 type-data text-[0.62rem] uppercase ${assistantOpen ? "border-retro-purple/60 bg-retro-purple/15 text-bone" : "border-line text-muted-foreground hover:border-retro-purple/50 hover:text-bone"}`}>
+            <Bot size={14} className="shrink-0" />Assistant
+          </button>
         </>}
       </div>
       {!guidedMode && <div className="type-data min-w-0 truncate text-[0.62rem] text-muted-foreground">
@@ -106,6 +119,10 @@ export function FreeplayApp({ aside, guidedPanels, guidedMode = false, onGuidedE
       </div>
       {guidedMode && guidedPanels?.dimContent && <div aria-hidden className="pointer-events-auto absolute inset-0 z-20 bg-void/55 backdrop-blur-[2px]" />}
       {aside}
+      {!guidedMode && <div aria-hidden={!sidebarOpen} inert={!sidebarOpen}
+        className={`min-h-0 shrink-0 overflow-hidden bg-void transition-[width] duration-200 ease-out motion-reduce:transition-none max-lg:absolute max-lg:inset-y-0 max-lg:right-0 max-lg:z-40 ${sidebarOpen ? "w-[min(360px,100vw)] border-l border-line" : "w-0"}`}>
+        {sidebarOpen && <div className="h-full w-[min(360px,100vw)]"><AssistantPanel onClose={closeAssistant} /></div>}
+      </div>}
       {!guidedMode && expeditionOpen && <div className="absolute inset-0 z-40 bg-void/70 p-2 lg:static lg:bg-transparent lg:p-0">
         <ExpeditionPanel onClose={closeExpedition} />
       </div>}

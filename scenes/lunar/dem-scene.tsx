@@ -6,7 +6,8 @@ import * as THREE from "three";
 import { horizonDirection } from "@/data/hero-scene";
 import { markerLocation, terrainUnderPointer } from "@/lib/marker-drag";
 import { keyBelongsToControl } from "@/lib/keyboard";
-import { slopeAtLocal, sampleField, type DemGrid } from "@/lib/terrain/dem";
+import { sampleField, type DemGrid } from "@/lib/terrain/dem";
+import { checkPlacement, type PlacementCheck } from "@/lib/terrain/placement-check";
 import type { Placement } from "@/lib/drive-placements";
 import { Earth, SKY_DISTANCE, Starfield, Sun } from "./celestial";
 import { buildDemSurface, createRegolithDetailTexture, computeSunVisibility, createDemGeometry, fillColors, groundNormal, groundY, insideTile, patchSunVisibility, type DemSurface, type TerrainColorMode } from "./dem-terrain";
@@ -21,7 +22,7 @@ import { Beacon, SURFACE_OBJECTS, SunShaded, SurfaceObjectModel, type SurfaceObj
 
 /** Ground point the camera orbits, in metres east/north of the site centre. Telemetry is read here. */
 export type FocusState = { eastM: number; northM: number };
-export type PlacementCheck = { ok: boolean; reason: string | null; slopeDeg: number };
+export { checkPlacement, type PlacementCheck };
 
 export type DemSceneProps = {
   grid: DemGrid;
@@ -63,18 +64,6 @@ const BEACON_COLORS: Record<SurfaceObjectType, string> = { solar: "#4b9bff", rov
 const toVec = (d: { x: number; y: number; z: number }) => new THREE.Vector3(d.x, d.y, d.z).normalize();
 /** Fixed high light used while the scene is auto-illuminated; relief still reads, nothing is in darkness. */
 const AUTO_LIGHT_DIR = toVec(horizonDirection(135, 55));
-
-/** Placement rules shared by the ghost and the click handler. */
-export function checkPlacement(grid: DemGrid, radiusM: number, placements: Placement[], type: SurfaceObjectType, eastM: number, northM: number): PlacementCheck {
-  const spec = SURFACE_OBJECTS[type];
-  const slopeDeg = slopeAtLocal(grid, eastM, northM);
-  // The loaded tile is square and walled; keep the whole footprint inside it.
-  if (Math.max(Math.abs(eastM), Math.abs(northM)) > radiusM - spec.footprintM) return { ok: false, reason: "Outside the walls", slopeDeg };
-  if (slopeDeg > spec.maxSlopeDeg) return { ok: false, reason: `Slope ${slopeDeg.toFixed(1)}° exceeds ${spec.maxSlopeDeg}°`, slopeDeg };
-  const clash = placements.find((p) => Math.hypot(p.eastM - eastM, p.northM - northM) < SURFACE_OBJECTS[p.type].footprintM + spec.footprintM);
-  if (clash) return { ok: false, reason: `Overlaps ${SURFACE_OBJECTS[clash.type].short.toLowerCase()}`, slopeDeg };
-  return { ok: true, reason: null, slopeDeg };
-}
 
 /** Sun, Earth and stars ride with the camera, far beyond any terrain, so ridges can hide them. */
 function SkyAnchor({ radius, children }: { radius: number; children: React.ReactNode }) {

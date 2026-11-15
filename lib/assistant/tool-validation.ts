@@ -9,7 +9,7 @@ import { MAX_WEIGHT, RANK_CRITERIA, type RankCriterion } from "@/lib/science/ran
 import {
   COVERAGE_END_ISO, COVERAGE_START_ISO, DEFAULT_STEP_MINUTES, MAX_ISP_S, MAX_MISSION_HOURS, MAX_PANEL_AREA_M2, MAX_PAYLOAD_KG,
   MAX_RADIUS_KM, MAX_RANK_SITE_IDS, MAX_RANK_WINDOWS, MAX_WINDOW_HOURS, MIN_ISP_S, MIN_PANEL_AREA_M2, MIN_PAYLOAD_KG, MIN_RADIUS_KM,
-  MIN_WINDOW_HOURS, NO_COVERAGE_WORDING, RANK_WINDOW_SPACING_HOURS, UI_COMPARE_GRAPHS, UI_GRAPH_TABS, UI_LAYERS, UI_PAGES, UI_SCREENS,
+  MAX_SURFACE_COORD_M, MAX_SURFACE_OPS, MIN_WINDOW_HOURS, NO_COVERAGE_WORDING, SURFACE_ACTIONS, SURFACE_TYPES, SURFACE_VIEW_MODES, RANK_WINDOW_SPACING_HOURS, UI_COMPARE_GRAPHS, UI_GRAPH_TABS, UI_LAYERS, UI_PAGES, UI_SCREENS,
   UI_SPEEDS, UI_TRAJECTORY_TYPES, isToolName, type ToolName,
 } from "./constants";
 
@@ -78,6 +78,20 @@ export type UiPlan = {
   compareMetrics?: MetricKey[];
 };
 
+/** One validated edit to the hardware placed in the surface drive. Positions are metres east/north of the site centre. */
+export type SurfaceOp =
+  | { action: "place"; type: (typeof SURFACE_TYPES)[number]; eastM: number; northM: number; headingDeg: number }
+  | { action: "move"; target: string; eastM?: number; northM?: number; headingDeg?: number }
+  | { action: "remove"; target: string };
+/** A validated request to edit the surface setup. At least one field is set. */
+export type SurfacePlan = {
+  operations?: SurfaceOp[];
+  clearAll?: boolean;
+  viewMode?: (typeof SURFACE_VIEW_MODES)[number];
+  /** Label of a placed object (as listed in the setup) to bring the camera to. */
+  goTo?: string;
+};
+
 export type ToolRequest =
   | { tool: "list_catalog_sites"; query?: string; family?: string }
   | { tool: "get_catalog_site"; siteId: string }
@@ -93,7 +107,8 @@ export type ToolRequest =
   | { tool: "get_launch_plan"; launchIso: string; trajectoryType: (typeof UI_TRAJECTORY_TYPES)[number]; payloadKg: number; ispS: number; includeArtemisReference: boolean }
   | { tool: "get_solar_power"; location: Location; startIso: string; durationHours: number; panelAreaM2: number; panelEfficiency: number; adjustments: string[] }
   | { tool: "get_meteor_stream_exposure"; stream: string | null; location: Location | null }
-  | { tool: "show_in_freeplay"; plan: UiPlan };
+  | { tool: "show_in_freeplay"; plan: UiPlan }
+  | { tool: "edit_surface_setup"; plan: SurfacePlan };
 
 export type ToolErrorCode =
   | "unknown_tool" | "invalid_arguments" | "no_site_selected" | "out_of_coverage" | "site_unverified"
@@ -131,6 +146,7 @@ const ALLOWED_KEYS: Record<ToolName, string[]> = {
     "compareSiteA", "compareSiteB", "compareGraph", "compareMetrics",
   ],
   list_saved_sites: [],
+  edit_surface_setup: ["operations", "clearAll", "viewMode", "goTo"],
 };
 
 /** Strict ISO 8601 parse. A timestamp without an offset is read as UTC. */
@@ -428,6 +444,93 @@ function validateUiPlan(args: Record<string, unknown>, ctx: ToolContext): Valida
   return { ok: true, request: { tool: "show_in_freeplay", plan } };
 }
 
+const OP_KEYS: Record<(typeof SURFACE_ACTIONS)[number], string[]> = {
+  place: ["action", "type", "eastM", "northM", "headingDeg"],
+  move: ["action", "target", "eastM", "northM", "headingDeg"],
+  remove: ["action", "target"],
+};
+const TARGET_RE = /^[\p{L}\p{N} .,'()\-_/]{1,60}$/u;
+
+function surfaceTarget(value: unknown, what: string): string | Validation {
+  if (typeof value !== "string" || !TARGET_RE.test(value.trim())) return bad(`${what} must be the label of a placed object as listed in the setup, for example "Solar panel array 2"`);
+  return value.trim();
+}
+function surfaceMetres(value: unknown, name: string): number | Validation {
+  if (typeof value !== "number" || !Number.isFinite(value)) return bad(`${name} must be a number of metres`);
+  if (Math.abs(value) > MAX_SURFACE_COORD_M) return bad(`${name} must be within ${MAX_SURFACE_COORD_M} m of the site centre`);
+  return Math.round(value * 10) / 10;
+}
+const surfaceHeading = (value: unknown): number | Validation => {
+  if (typeof value !== "number" || !Number.isFinite(value)) return bad("headingDeg must be a number of degrees");
+  return Math.round((((value % 360) + 360) % 360) * 10) / 10;
+};
+
+/** edit_surface_setup: bounded, enum-checked edits to the surface drive's placed hardware. Terrain rules (walls, slope, overlap) are applied in the drive, which owns the terrain. */
+function validateSurfacePlan(args: Record<string, unknown>): Validation {
+  const plan: SurfacePlan = {};
+  if (args.viewMode !== undefined) {
+    const v = enumArg(args.viewMode, SURFACE_VIEW_MODES, "viewMode");
+    if (isValidation(v)) return v;
+    if (v !== undefined) plan.viewMode = v;
+  }
+  if (args.clearAll !== undefined) {
+    if (typeof args.clearAll !== "boolean") return bad("clearAll must be a boolean");
+    if (args.clearAll) plan.clearAll = true;
+  }
+  if (args.goTo !== undefined) {
+    const t = surfaceTarget(args.goTo, "goTo");
+    if (isValidation(t)) return t;
+    plan.goTo = t;
+  }
+  if (args.operations !== undefined) {
+    if (!Array.isArray(args.operations) || args.operations.length === 0 || args.operations.length > MAX_SURFACE_OPS) return bad(`operations must be a list of 1 to ${MAX_SURFACE_OPS} edits`);
+    const ops: SurfaceOp[] = [];
+    for (const [i, raw] of args.operations.entries()) {
+      const at = `operations[${i}]`;
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) return bad(`${at} must be an object`);
+      const item = cleanArgs(raw as Record<string, unknown>);
+      const action = enumArg(item.action, SURFACE_ACTIONS, `${at}.action`);
+      if (isValidation(action) || action === undefined) return isValidation(action) ? action : bad(`${at}.action is required: place, move or remove`);
+      const extra = Object.keys(item).filter((k) => !OP_KEYS[action].includes(k));
+      if (extra.length) return bad(`${at} (${action}) does not take: ${extra.slice(0, 4).join(", ")}`);
+      if (action === "place") {
+        const type = enumArg(item.type, SURFACE_TYPES, `${at}.type`);
+        if (isValidation(type) || type === undefined) return isValidation(type) ? type : bad(`${at}.type is required: ${SURFACE_TYPES.join(", ")}`);
+        const east = surfaceMetres(item.eastM, `${at}.eastM`);
+        if (isValidation(east)) return east;
+        const north = surfaceMetres(item.northM, `${at}.northM`);
+        if (isValidation(north)) return north;
+        const heading = item.headingDeg === undefined ? 0 : surfaceHeading(item.headingDeg);
+        if (isValidation(heading)) return heading;
+        ops.push({ action, type, eastM: east, northM: north, headingDeg: heading });
+      } else {
+        const target = surfaceTarget(item.target, `${at}.target`);
+        if (isValidation(target)) return target;
+        if (action === "remove") { ops.push({ action, target }); continue; }
+        if ((item.eastM === undefined) !== (item.northM === undefined)) return bad(`${at} needs both eastM and northM to move an object`);
+        const move: Extract<SurfaceOp, { action: "move" }> = { action, target };
+        if (item.eastM !== undefined) {
+          const east = surfaceMetres(item.eastM, `${at}.eastM`), north = surfaceMetres(item.northM, `${at}.northM`);
+          if (isValidation(east)) return east;
+          if (isValidation(north)) return north;
+          move.eastM = east; move.northM = north;
+        }
+        if (item.headingDeg !== undefined) {
+          const heading = surfaceHeading(item.headingDeg);
+          if (isValidation(heading)) return heading;
+          move.headingDeg = heading;
+        }
+        if (move.eastM === undefined && move.headingDeg === undefined) return bad(`${at} (move) needs a new eastM and northM, or a headingDeg to rotate`);
+        ops.push(move);
+      }
+    }
+    plan.operations = ops;
+  }
+  if (plan.clearAll && plan.operations?.some((o) => o.action !== "place")) return bad("With clearAll, only place operations are allowed (they run after the clear)");
+  if (Object.keys(plan).length === 0) return bad("Give at least one thing to change: operations, clearAll, viewMode or goTo");
+  return { ok: true, request: { tool: "edit_surface_setup", plan } };
+}
+
 export function validateToolCall(name: unknown, rawArgs: unknown, ctx: ToolContext): Validation {
   if (!isToolName(name)) return { ok: false, error: { code: "unknown_tool", message: "That tool does not exist." } };
   if (rawArgs !== undefined && rawArgs !== null && (typeof rawArgs !== "object" || Array.isArray(rawArgs))) return bad("Arguments must be an object");
@@ -453,6 +556,8 @@ export function validateToolCall(name: unknown, rawArgs: unknown, ctx: ToolConte
       return { ok: true, request: { tool: name } };
     case "show_in_freeplay":
       return validateUiPlan(args, ctx);
+    case "edit_surface_setup":
+      return validateSurfacePlan(args);
     case "get_horizon_profile": {
       const location = parseLocation(args, ctx);
       return isValidation(location) ? location : { ok: true, request: { tool: name, location } };
