@@ -63,7 +63,7 @@ export async function GET(request: Request, context: { params: Promise<{ path?: 
       }
     }
 
-    if (root === "science") return scienceGet(db, id, url);
+    if (root === "science") return await scienceGet(db, id, url);
 
     if (root === "users" && id) {
       const decoded = await verifyFirebaseToken(request.headers.get("authorization"));
