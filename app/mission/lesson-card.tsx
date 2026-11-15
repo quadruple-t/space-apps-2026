@@ -27,6 +27,8 @@ export function LessonCard({ lesson, chapter, stage, complete, onPrevious, onSta
   const [confirmedKey, setConfirmedKey] = useState("");
   const confirmationKey = `${lesson.id}:${stage}`;
   const confirmed = confirmedKey === confirmationKey;
+  const skipLabel = stage === "story" ? "Skip story" : stage === "example" ? "Skip example" : "Skip activity";
+  const skip = () => stage === "try" ? onNext() : onStageChange(nextStage);
   return <>
     <div className="flex items-center justify-between gap-2 pr-10 lg:pr-0"><span className="type-data text-sm text-retro-blue">{stage === "try" ? "Your turn" : label.title}</span><span className="type-data shrink-0 text-xs text-muted-foreground">Lesson {number} of {GUIDED_LESSONS.length}</span></div>
     {stage !== "try" && <div className="mt-3 flex gap-1" aria-label={`Part ${stageNumber} of 3`}>
@@ -67,9 +69,12 @@ export function LessonCard({ lesson, chapter, stage, complete, onPrevious, onSta
 
     <div className="sticky bottom-0 z-10 -mx-4 -mb-4 mt-3 flex items-center justify-between gap-2 border-t border-line/80 bg-[#100e20] px-4 pb-4 pt-3">
       <button type="button" onClick={onPrevious} disabled={!onPrevious} className={`${quietButton} hover:text-bone disabled:opacity-35`}><ArrowLeft size={16} />Back</button>
-      {stage === "try"
-        ? <button type="button" onClick={onNext} disabled={!complete} title={!complete ? "Complete the steps above to continue" : undefined} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-retro-purple px-4 py-2 type-data text-xs font-semibold text-void hover:bg-[#c2abff] disabled:cursor-not-allowed disabled:opacity-40">{nextLabel}<ArrowRight size={16} /></button>
-        : <button type="button" onClick={() => onStageChange(nextStage)} disabled={!confirmed} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-retro-purple px-4 py-2 type-data text-xs font-semibold text-void hover:bg-[#c2abff] disabled:opacity-40">{stage === "story" ? "See an example" : "Now you try"}<ArrowRight size={16} /></button>}
+      <div className="ml-auto flex items-center gap-2">
+        <button type="button" onClick={skip} className="min-h-10 shrink-0 px-2 type-data text-[.58rem] uppercase tracking-wide text-muted-foreground underline decoration-line underline-offset-4 hover:text-bone">{skipLabel}</button>
+        {stage === "try"
+          ? <button type="button" onClick={onNext} disabled={!complete} title={!complete ? "Complete the steps above to continue" : undefined} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-retro-purple px-4 py-2 type-data text-xs font-semibold text-void hover:bg-[#c2abff] disabled:cursor-not-allowed disabled:opacity-40">{nextLabel}<ArrowRight size={16} /></button>
+          : <button type="button" onClick={() => onStageChange(nextStage)} disabled={!confirmed} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-retro-purple px-4 py-2 type-data text-xs font-semibold text-void hover:bg-[#c2abff] disabled:opacity-40">{stage === "story" ? "See an example" : "Now you try"}<ArrowRight size={16} /></button>}
+      </div>
     </div>
   </>;
 }
