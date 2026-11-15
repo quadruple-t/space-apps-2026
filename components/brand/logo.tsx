@@ -9,9 +9,9 @@ export function Logo({ className, showWordmark = true, compact = false }: { clas
       <span className="grid size-12 shrink-0 place-items-center" aria-hidden>
         <Image src={logoMarkImage} alt="" priority className="block size-full object-contain" />
       </span>
-      {showWordmark && <span className="font-heading text-[0.95rem] font-bold tracking-[0.14em] [font-variation-settings:'wdth'_125]">LUN<span className="text-retro-red">A</span>RIS</span>}
+      {showWordmark && <span className="font-heading text-[0.95rem] font-bold tracking-[0.14em] [font-variation-settings:'wdth'_125]">LUN<span className="text-retro-red">A</span>RIS360</span>}
     </span>
   );
 
-  return <Image src={logoImage} alt="LUNARIS" priority className={cn("h-auto w-32", className)} />;
+  return <Image src={logoImage} alt="Lunaris360" priority className={cn("h-auto w-32", className)} />;
 }
