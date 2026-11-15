@@ -27,8 +27,10 @@ export function loadDemTile(latDeg: number, lonDeg: number, radiusKm: number, si
   let pending = tiles.get(key);
   if (!pending) {
     pending = fetch(`/api/v1/terrain/dem?${key}`).then(async (response) => {
-      const body = (await response.json()) as DemResponse;
-      if (!response.ok) throw new Error(body.error?.message ?? `Elevation API returned ${response.status}`);
+      // Gateway errors can be HTML, so only read a JSON body when there is one.
+      const body = (await response.json().catch(() => null)) as DemResponse | null;
+      if (!response.ok) throw new Error(body?.error?.message ?? `Elevation API returned ${response.status}`);
+      if (!body?.heights) throw new Error("Elevation API returned an unreadable response");
       if (body.heights.encoding !== "int16le-base64") throw new Error("Unsupported height encoding");
       const { heights, ...rest } = body;
       const heightsM = decodeHeights(base64ToU8(heights.data), body.size * body.size);

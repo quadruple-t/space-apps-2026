@@ -43,7 +43,7 @@ const params = (o: Record<string, string>) => new URLSearchParams(o)
 
 describe("DEM query and upstream request", () => {
   it("normalises coordinates and rejects bad input", () => {
-    expect(parseDemQuery(params({ lat: "-89.45", lon: "315", radiusKm: "12.345", size: "129" }))).toEqual({ latDeg: -89.45, lonDeg: -45, radiusKm: 12.3, size: 129 })
+    expect(parseDemQuery(params({ lat: "-89.45", lon: "315", radiusKm: "12.345", size: "129" }))).toEqual({ latDeg: -89.45, lonDeg: -45, radiusKm: 25, size: 129 })
     expect(parseDemQuery(params({ lat: "0", lon: "0" }))).toMatchObject({ radiusKm: 5, size: 257 })
     expect(parseDemQuery(params({ lon: "0" }))).toHaveProperty("error")
     expect(parseDemQuery(params({ lat: "91", lon: "0" }))).toHaveProperty("error")
@@ -208,5 +208,12 @@ describe("drive radius and placements", () => {
     } finally {
       g.window = previous
     }
+  })
+})
+
+describe("parseDemQuery snapping", () => {
+  it("snaps coordinates to 0.001° and the radius up to a preset so cache keys stay bounded", () => {
+    expect(parseDemQuery(params({ lat: "0.67421", lon: "23.47319", radiusKm: "3" }))).toMatchObject({ latDeg: 0.674, lonDeg: 23.473, radiusKm: 5 })
+    expect(parseDemQuery(params({ lat: "0", lon: "0", radiusKm: "0.5" }))).toMatchObject({ radiusKm: 0.5 })
   })
 })

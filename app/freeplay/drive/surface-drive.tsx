@@ -14,7 +14,7 @@ import type { CelestialState, LunarSite, MissionMetrics } from "@/integrations/s
 import { interpolateTerrain, MOON_REGIONS, terrainGridForSite, type TerrainSample } from "@/integrations/terrain/moon-samples";
 import { MoonLocationPicker } from "./moon-location-picker";
 import { SetupPerformance } from "./setup-performance";
-import { analyseHardware } from "@/lib/hardware-analysis";
+import { analyseHardware, cachedHorizonProfile, insideGrid } from "@/lib/hardware-analysis";
 import { DriveAssistantBubble } from "./assistant-bubble";
 import { buildSetupContext, surfaceAssistantSnapshot } from "@/lib/assistant/setup-context";
 import { keyBelongsToControl } from "@/lib/keyboard";
@@ -28,13 +28,14 @@ import { SURFACE_LESSON } from "@/app/mission/tutorial-content";
 import { LessonExampleActivity } from "@/app/mission/lesson-example-activity";
 import type { TutorialData } from "@/app/mission/use-tutorial-data";
 import { lunarSiteFor, radiusFromDriveParams, siteFromDriveParams, timeFromDriveParams } from "@/lib/drive-link";
-import { loadPlacements, MAX_PLACEMENTS, OBSERVER_HEIGHT_M as OBSERVER_M, placementSiteKey, SOLAR_ARRAY_AREA_M2 as SOLAR_PANEL_M2, SOLAR_ARRAY_EFFICIENCY as SOLAR_EFFICIENCY, savePlacements, type Placement } from "@/lib/drive-placements";
+import { loadPlacements, MAX_PLACEMENTS, placementSiteKey, SOLAR_ARRAY_AREA_M2 as SOLAR_PANEL_M2, SOLAR_ARRAY_EFFICIENCY as SOLAR_EFFICIENCY, savePlacements, type Placement } from "@/lib/drive-placements";
 import { currentTimeMs, useFreeplay } from "@/lib/freeplay-store";
 import { SOLAR_CONSTANT_W_M2 } from "@/lib/illumination";
 import { azElFromCartesian, siteFrame } from "@/lib/ephemeris";
 import { AU_KM } from "@/lib/science/sky";
 import { fetchTerrainHorizon, MAIN_SERIES_END, MAIN_SERIES_START, type TerrainHorizon } from "@/lib/lunar-data";
 import { calculateMissionWindow, missionWindowStart } from "@/lib/mission-window";
+import { maskAt } from "@/lib/terrain/mask";
 import { discVisibleFraction, EARTH_RADIUS_DEG, heightAtLocal, horizonElevationDeg, horizonProfile, skyAtLocal, slopeAtLocal } from "@/lib/terrain/dem";
 
 const LunarScene = dynamic(() => import("@/scenes/lunar/lunar-scene"), { ssr: false });
@@ -224,11 +225,12 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
   }, [setupAnalysis]);
   const statusFor = useCallback((p: Placement): PlacementStatus | null => {
     if (!tile) return null;
+    if (!insideGrid(tile, p.eastM, p.northM)) return { outsideTerrain: true, sunVisible: 0, earthVisible: 0, slopeDeg: slopeAtLocal(tile, p.eastM, p.northM), powerKw: null, daily: null };
+    const profile = cachedHorizonProfile(tile, p.eastM, p.northM, p.type);
     const toLocal = (b: { azimuthDeg: number; elevationDeg: number }) => skyAtLocal(tile.center.latDeg, p.eastM, p.northM, b.azimuthDeg, b.elevationDeg);
     const sun = sky ? toLocal(sky.sun) : null, earth = sky ? toLocal(sky.earth) : null;
-    const observer = OBSERVER_M[p.type];
-    const sunVisible = sun ? discVisibleFraction(sun.elevationDeg, Math.max(0, horizonElevationDeg(tile, p.eastM, p.northM, sun.azimuthDeg, observer))) : 0;
-    const earthVisible = earth ? discVisibleFraction(earth.elevationDeg, Math.max(0, horizonElevationDeg(tile, p.eastM, p.northM, earth.azimuthDeg, observer)), EARTH_RADIUS_DEG) : 0;
+        const sunVisible = sun ? discVisibleFraction(sun.elevationDeg, Math.max(0, maskAt(profile, 3, sun.azimuthDeg))) : 0;
+    const earthVisible = earth ? discVisibleFraction(earth.elevationDeg, Math.max(0, maskAt(profile, 3, earth.azimuthDeg)), EARTH_RADIUS_DEG) : 0;
     const flux = localSky ? SOLAR_CONSTANT_W_M2 / localSky.sunRangeAu ** 2 : SOLAR_CONSTANT_W_M2;
     return { sunVisible, earthVisible, slopeDeg: slopeAtLocal(tile, p.eastM, p.northM), powerKw: sun ? (flux * SOLAR_PANEL_M2 * SOLAR_EFFICIENCY * sunVisible) / 1000 : null, daily: dailyById.get(p.id) ?? null };
   }, [tile, sky, localSky, dailyById]);

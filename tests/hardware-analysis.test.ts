@@ -74,3 +74,14 @@ describe("hardware analysis with terrain in the way", () => {
     expect(beyond.kw[2]).toBeGreaterThan(0)
   })
 })
+
+describe("placements outside the loaded terrain", () => {
+  const grid = gridFrom(33, 1, () => 0)
+
+  it("skips them instead of reporting a clear horizon", () => {
+    const result = analyseHardware(grid, 0, samples(), [{ id: "in", type: "solar", eastM: 0, northM: 0, headingDeg: 0 }, { id: "out", type: "solar", eastM: 2_000, northM: 0, headingDeg: 0 }, { id: "far", type: "comms", eastM: 0, northM: -1_500, headingDeg: 0 }])
+    expect(result.solar.map((s) => s.id)).toEqual(["in"])
+    expect(result.comms).toHaveLength(0)
+    expect(result.outside).toEqual(["out", "far"])
+  })
+})
