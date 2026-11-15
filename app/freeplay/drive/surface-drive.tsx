@@ -30,6 +30,9 @@ import type { TutorialData } from "@/app/mission/use-tutorial-data";
 import { lunarSiteFor, radiusFromDriveParams, siteFromDriveParams, timeFromDriveParams } from "@/lib/drive-link";
 import { loadPlacements, MAX_PLACEMENTS, placementSiteKey, SOLAR_ARRAY_AREA_M2 as SOLAR_PANEL_M2, SOLAR_ARRAY_EFFICIENCY as SOLAR_EFFICIENCY, savePlacements, type Placement } from "@/lib/drive-placements";
 import { currentTimeMs, useFreeplay } from "@/lib/freeplay-store";
+import { checkPlacement } from "@/lib/terrain/placement-check";
+import { registerSurfaceBridge } from "@/lib/assistant/surface-bridge";
+import { applySurfaceEdit } from "@/lib/assistant/surface-edit";
 import { SOLAR_CONSTANT_W_M2 } from "@/lib/illumination";
 import { azElFromCartesian, siteFrame } from "@/lib/ephemeris";
 import { AU_KM } from "@/lib/science/sky";
@@ -260,6 +263,42 @@ export function SurfaceDrive({ guided = false, tutorial, startSite, startUtc, on
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [selectedId, deleteObject]);
+  // The Mission Control assistant can edit this setup (edit_surface_setup) while the explore view is open.
+  const latestPlacements = useRef<Placement[]>(placements);
+  useEffect(() => { latestPlacements.current = placements; }, [placements]);
+  useEffect(() => {
+    if (guided || phase !== "explore" || !tile) return;
+    const radiusM = tile.radiusKm * 1000;
+    const labels = Object.fromEntries(Object.entries(SURFACE_OBJECTS).map(([k, v]) => [k, v.label])) as Record<SurfaceObjectType, string>;
+    return registerSurfaceBridge({
+      apply: (plan) => {
+        const result = applySurfaceEdit(latestPlacements.current, plan, {
+          labels,
+          check: (others, type, eastM, northM) => checkPlacement(tile, radiusM, others, type, eastM, northM),
+          newId: (type) => `${type}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+        });
+        if (result.listChanged) {
+          latestPlacements.current = result.list;
+          updatePlacements(() => result.list);
+          setSelectedId((current) => (current && result.list.some((p) => p.id === current) ? current : null));
+        }
+        if (result.viewMode) setViewMode(result.viewMode);
+        const target = result.goToId ? result.list.find((p) => p.id === result.goToId) : null;
+        if (target) {
+          setSelectedId(target.id);
+          setViewTarget({ eastM: target.eastM, northM: target.northM, footprintM: SURFACE_OBJECTS[target.type].footprintM, key: Date.now() });
+        }
+        return { changes: result.changes };
+      },
+      capture: () => ({ placements: latestPlacements.current, viewMode }),
+      restore: (snapshot) => {
+        latestPlacements.current = snapshot.placements;
+        updatePlacements(() => snapshot.placements);
+        setSelectedId(null);
+        setViewMode(snapshot.viewMode);
+      },
+    });
+  }, [guided, phase, tile, viewMode, updatePlacements]);
   // The Mission Control assistant answers about the setup as it is when the question is sent.
   const assistantContext = useCallback(() => buildSetupContext({
     siteName: activeSite.name, latDeg: activeSite.latitudeDeg, lonDeg: activeSite.longitudeDeg, radiusKm: tile?.radiusKm ?? radiusKm,

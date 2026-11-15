@@ -17,7 +17,7 @@ import { SITE_FAMILIES } from "@/lib/model/types";
 import { RANK_CRITERIA } from "@/lib/science/rank";
 import {
   MAX_ISP_S, MAX_MISSION_HOURS, MAX_PANEL_AREA_M2, MAX_PAYLOAD_KG, MAX_RADIUS_KM, MAX_RANK_SITE_IDS, MAX_RANK_WINDOWS, MAX_WINDOW_HOURS,
-  MIN_ISP_S, MIN_PANEL_AREA_M2, MIN_PAYLOAD_KG, MIN_RADIUS_KM, MIN_WINDOW_HOURS, TOOL_NAMES, UI_COMPARE_GRAPHS, UI_GRAPH_TABS, UI_LAYERS,
+  MAX_SURFACE_OPS, MIN_ISP_S, MIN_PANEL_AREA_M2, MIN_PAYLOAD_KG, MIN_RADIUS_KM, MIN_WINDOW_HOURS, SURFACE_ACTIONS, SURFACE_TYPES, SURFACE_VIEW_MODES, TOOL_NAMES, UI_COMPARE_GRAPHS, UI_GRAPH_TABS, UI_LAYERS,
   UI_PAGES, UI_SCREENS, UI_SPEEDS, UI_TRAJECTORY_TYPES, type ToolName,
 } from "./constants";
 
@@ -162,6 +162,28 @@ const DECLARATIONS: Record<ToolName, TemplateFunctionDeclaration["parameters"]> 
       "launchTime", "trajectoryType", "payloadKg", "ispS", "showArtemisReference",
       "compareSiteA", "compareSiteB", "compareGraph", "compareMetrics",
     ],
+  }),
+  edit_surface_setup: Schema.object({
+    properties: {
+      operations: Schema.array({
+        description: `Up to ${MAX_SURFACE_OPS} edits, applied in order. Targets are resolved against the setup as it was before this call.`,
+        items: Schema.object({
+          properties: {
+            action: Schema.enumString({ enum: [...SURFACE_ACTIONS], description: "place a new object, move or rotate a placed one, or remove one." }),
+            type: Schema.enumString({ enum: [...SURFACE_TYPES], description: "What to place (place only): solar array, rover buggy, dome habitat, modules outpost, inflatable habitat or comms mast." }),
+            target: Schema.string({ description: "Label of the placed object exactly as listed in the setup, for example Solar panel array 2 (move and remove only)." }),
+            eastM: Schema.number({ description: "Metres east of the site centre (negative is west). Give with northM." }),
+            northM: Schema.number({ description: "Metres north of the site centre (negative is south). Give with eastM." }),
+            headingDeg: Schema.number({ description: "Facing in degrees, 0 to 360 (optional; move can use it alone to rotate)." }),
+          },
+          optionalProperties: ["type", "target", "eastM", "northM", "headingDeg"],
+        }),
+      }),
+      clearAll: Schema.boolean({ description: "true to remove every placed object first; only place operations may follow it." }),
+      viewMode: Schema.enumString({ enum: [...SURFACE_VIEW_MODES], description: "first-person to walk the surface, birds-eye for the overhead view." }),
+      goTo: Schema.string({ description: "Label of a placed object to bring the camera to." }),
+    },
+    optionalProperties: ["operations", "clearAll", "viewMode", "goTo"],
   }),
 };
 

@@ -141,6 +141,6 @@ export function GuidedPlanner({ tutorial, lessonIndex, onLessonChange, onGuidedE
   };
 
   return <div className="fixed inset-0 z-50 h-dvh overflow-hidden bg-void">
-    <FreeplayApp aside={aside} guidedPanels={guidedPanels} assistantEnabled={false} guidedMode onGuidedExit={onGuidedExit} />
+    <FreeplayApp aside={aside} guidedPanels={guidedPanels} guidedMode onGuidedExit={onGuidedExit} />
   </div>;
 }

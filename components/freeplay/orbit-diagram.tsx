@@ -41,8 +41,8 @@ export function OrbitDiagram({ series, site, tMs, missionStartMs, missionEndMs, 
 
   const toScreen = (p: { x: number; y: number }) => {
     const d = Math.hypot(p.x, p.y) || 1;
-    const r = orbitR * (d / MEAN_EARTH_MOON_KM);
-    return { x: cx + (p.x / d) * r, y: cy - (p.y / d) * r };
+    // Keep the schematic orbit circular; real distance remains available in the readout.
+    return { x: cx + (p.x / d) * orbitR, y: cy - (p.y / d) * orbitR };
   };
   const geomAt = (t: number): OrbitGeometry | null => {
     if (!series.covers(t)) return null;
@@ -63,8 +63,8 @@ export function OrbitDiagram({ series, site, tMs, missionStartMs, missionEndMs, 
       const t = a + (span * k) / n;
       if (!series.covers(t)) continue;
       const { sun, earth } = series.at(t);
-      const p = orbitGeometry(sun, earth, 0, 0).moon, d = Math.hypot(p.x, p.y), r = orbitR * (d / MEAN_EARTH_MOON_KM);
-      pts.push(`${(cx + (p.x / d) * r).toFixed(1)},${(cy - (p.y / d) * r).toFixed(1)}`);
+      const p = orbitGeometry(sun, earth, 0, 0).moon, d = Math.hypot(p.x, p.y) || 1;
+      pts.push(`${(cx + (p.x / d) * orbitR).toFixed(1)},${(cy - (p.y / d) * orbitR).toFixed(1)}`);
     }
     return pts.join(" ");
   }, [series, missionStartMs, missionEndMs, orbitR, cx, cy, longMission, centre]);

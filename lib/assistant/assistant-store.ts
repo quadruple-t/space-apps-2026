@@ -14,6 +14,8 @@ import { applyUiPlan, captureView, restoreView, type ViewSnapshot } from "./ui-a
 import { studyFromOutcome } from "@/lib/expeditions/mission-control-studies";
 import type { StoredChatMessage, StudyInput } from "@/lib/expeditions/types";
 import { executeToolCall } from "./tools";
+import { applySurfacePlan, captureSurface, restoreSurface, type SurfaceSnapshot } from "./surface-bridge";
+import type { SurfacePlan } from "./tool-validation";
 
 export type UiMessage = {
   id: string;
@@ -24,6 +26,8 @@ export type UiMessage = {
   /** What the assistant changed on screen while answering, and the view to restore on Undo (cleared once used). */
   viewChanges?: UiChange[];
   viewBefore?: ViewSnapshot;
+  /** The surface drive's placed hardware and camera mode before this reply's edits. */
+  surfaceBefore?: SurfaceSnapshot;
   /** User messages count toward model history only once they got a reply. */
   answered?: boolean;
   /** Rankings and comparisons from this reply that can be saved to an expedition (this session only). */
@@ -131,6 +135,14 @@ export const useAssistant = create<AssistantState>((set, get) => ({
       viewBefore ??= captureView();
       return applyUiPlan(plan, catalog);
     };
+    let surfaceBefore: SurfaceSnapshot | undefined;
+    const applySurface = (plan: SurfacePlan) => {
+      const before = captureSurface();
+      if (!before) return null;
+      viewBefore ??= captureView();
+      surfaceBefore ??= before;
+      return applySurfacePlan(plan);
+    };
     // Keep ranking/comparison outcomes so the reply can offer "Save to expedition".
     const studies: StudyInput[] = [];
     const execute: NonNullable<Parameters<typeof runTurn>[0]["execute"]> = async (call, id, ctx, deps) => {
@@ -148,7 +160,7 @@ export const useAssistant = create<AssistantState>((set, get) => ({
       dbg("sending", { historyMessages: history.length, variables });
       const chat = createTurnChat(history, variables, signal);
       const result = await runTurn({
-        chat, userText: context ? `${text}\n\n${context}` : text, ctx: toToolContext(snap), signal, applyUi, execute, planLaunch, estimatePower,
+        chat, userText: context ? `${text}\n\n${context}` : text, ctx: toToolContext(snap), signal, applyUi, applySurface, execute, planLaunch, estimatePower,
         events: {
           onText: (draft) => { watchdog.poke(); set({ draft, status: draft ? "streaming" : "thinking", progress: null }); },
           onToolStart: (progress) => { watchdog.poke(); dbg("tool start", progress, at()); set({ status: "tool", progress, announce: progress }); },
@@ -165,7 +177,7 @@ export const useAssistant = create<AssistantState>((set, get) => ({
         messages: [...s.messages.map((m) => (m.id === userMessage.id ? { ...m, answered: true } : m)), {
           id: nextId(), role: "model", text: reply, records: result.records, notices,
           ...(studies.length ? { studies } : {}),
-          ...(viewBefore ? { viewBefore, viewChanges: result.records.flatMap((r) => (r.ui ? [r.ui] : [])) } : {}),
+          ...(viewBefore ? { viewBefore, ...(surfaceBefore ? { surfaceBefore } : {}), viewChanges: result.records.flatMap((r) => (r.ui ? [r.ui] : [])) } : {}),
         }],
         status: "idle", progress: null, draft: "", announce: `Mission Control replied: ${reply.slice(0, 600)}`,
       }));
@@ -197,7 +209,11 @@ export const useAssistant = create<AssistantState>((set, get) => ({
     const target = get().messages.find((m) => m.id === messageId);
     if (!target?.viewBefore) return;
     restoreView(target.viewBefore);
-    set((s) => ({ messages: s.messages.map((m) => (m.id === messageId ? { ...m, viewBefore: undefined } : m)), announce: "Restored the previous Freeplay view." }));
+    const surfaceRestored = target.surfaceBefore ? restoreSurface(target.surfaceBefore) : false;
+    set((s) => ({
+      messages: s.messages.map((m) => (m.id === messageId ? { ...m, viewBefore: undefined, surfaceBefore: undefined } : m)),
+      announce: surfaceRestored ? "Restored the previous Freeplay view and surface setup." : "Restored the previous Freeplay view.",
+    }));
   },
 
   clear: () => {

@@ -12,7 +12,7 @@ import {
   type LaunchPlanData, type MeteorExposureData, type PowerEstimateData, type ToolOutcome, type UiChange,
 } from "./tool-results";
 import type { CatalogSite } from "@/data/sites";
-import { validateToolCall, type Location, type ToolContext, type ToolRequest, type UiPlan } from "./tool-validation";
+import { validateToolCall, type Location, type SurfacePlan, type ToolContext, type ToolRequest, type UiPlan } from "./tool-validation";
 
 export type ScienceGet = <T>(path: string, params: URLSearchParams, init?: { signal?: AbortSignal }) => Promise<T>;
 /** Applies a validated view change to the Freeplay UI (supplied by the browser store; absent in pure tests). */
@@ -35,11 +35,14 @@ export type SolarPowerInput = {
   panelAreaM2: number;
   panelEfficiency: number;
 };
+/** Applies a validated surface-setup edit in the open surface drive; returns null when the drive is not open and ready. */
+export type ApplySurface = (plan: SurfacePlan) => UiChange | null;
 export type ExecuteDeps = {
   get?: ScienceGet;
   signal?: AbortSignal;
   timeoutMs?: number;
   applyUi?: ApplyUi;
+  applySurface?: ApplySurface;
   /** Ephemeris-backed launch planning (assistant store supplies this in the browser). */
   planLaunch?: (input: LaunchPlanInput) => Promise<LaunchPlanData | null>;
   /** Ephemeris-backed solar power estimate (assistant store supplies this in the browser). */
@@ -100,6 +103,11 @@ async function run(req: ToolRequest, id: string, get: ScienceGet, signal: AbortS
         if (!catalog) return failure(req.tool, id, { code: "not_found", message: `Catalog site ${req.plan.siteId} has no point to show on the globe.` });
       }
       return uiOutcome(id, deps.applyUi(req.plan, catalog));
+    }
+    case "edit_surface_setup": {
+      const change = deps.applySurface?.(req.plan) ?? null;
+      if (!change) return failure(req.tool, id, { code: "unavailable", message: "The surface drive is not open, so nothing could be placed. Offer the user the Open surface drive button (show_in_freeplay with page: drive), then ask again once they are in the explore view with the terrain loaded." });
+      return uiOutcome(id, change, "edit_surface_setup");
     }
     case "compare_sites": {
       // Per-site metrics calls: this also supports the user's saved presets and custom points, which

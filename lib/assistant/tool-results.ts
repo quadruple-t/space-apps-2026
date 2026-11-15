@@ -512,11 +512,13 @@ export function shapeMeteorStreams(id: string, requested: string | null, site: s
 }
 
 /** Result of a Freeplay view change. Carries no science data and no horizon claim. */
-export function uiOutcome(id: string, ui: UiChange): ToolOutcome {
+export function uiOutcome(id: string, ui: UiChange, tool: "show_in_freeplay" | "edit_surface_setup" = "show_in_freeplay"): ToolOutcome {
   const response: Json = {
-    ok: true, tool: "show_in_freeplay", applied: ui.changes,
+    ok: true, tool, applied: ui.changes,
     ...(ui.link ? { pageLink: `The user can open "${ui.link.label}" from a button under your reply.` } : {}),
-    notes: ["The on-screen view was changed. Say briefly what is now showing; this result has no science data, so do not quote figures from it."],
+    notes: [tool === "edit_surface_setup"
+      ? "The surface setup was changed. Lines starting with Could not were refused by the planner's placement rules (walls, slope, overlap): tell the user which and why. This result has no science data, so do not quote figures from it; use get_solar_power or the setup the user sends for numbers."
+      : "The on-screen view was changed. Say briefly what is now showing; this result has no science data, so do not quote figures from it."],
   };
-  return { response, record: { id, tool: "show_in_freeplay", label: TOOL_LABELS.show_in_freeplay, ok: true, site: null, horizonKind: null, horizonLabel: null, dataRange: null, mustSay: [], ui } };
+  return { response, record: { id, tool, label: TOOL_LABELS[tool], ok: true, site: null, horizonKind: null, horizonLabel: null, dataRange: null, mustSay: [], ui } };
 }
