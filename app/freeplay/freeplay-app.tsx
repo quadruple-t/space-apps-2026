@@ -2,11 +2,12 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { ArrowLeft, Bot, Car, GitCompareArrows, Globe2, Orbit } from "lucide-react";
+import { AssistantPanel, LAUNCHER_ID, PANEL_ID } from "@/components/freeplay/assistant-panel";
 import { usePlaybackClock } from "@/components/freeplay/time-controls";
-import { AssistantPanel } from "@/components/freeplay/assistant-panel";
 import type { FreeplaySite } from "@/data/sites";
+import { useAssistant } from "@/lib/assistant/assistant-store";
 import { driveHref } from "@/lib/drive-link";
 import { currentTimeMs, useFreeplay, type FreeplayView, type LayerId } from "@/lib/freeplay-store";
 
@@ -49,7 +50,9 @@ export function FreeplayApp({ aside, guidedPanels, assistantEnabled = true, guid
   const site = useFreeplay((s) => s.site);
   const setView = useFreeplay((s) => s.setView);
   const hydrate = useFreeplay((s) => s.hydrate);
-  const [assistantOpen, setAssistantOpen] = useState(false);
+  const assistantOpen = useAssistant((s) => s.open);
+  const setAssistantOpen = useAssistant((s) => s.setOpen);
+  const closeAssistant = () => { setAssistantOpen(false); requestAnimationFrame(() => document.getElementById(LAUNCHER_ID)?.focus()); };
   usePlaybackClock();
   useEffect(() => { hydrate(); }, [hydrate]);
 
@@ -71,7 +74,7 @@ export function FreeplayApp({ aside, guidedPanels, assistantEnabled = true, guid
               </button>)}
             </div>
             <SurfaceLink />
-            {assistantEnabled && <button type="button" onClick={() => setAssistantOpen((open) => !open)} aria-expanded={assistantOpen} aria-label={assistantOpen ? "Close mission assistant" : "Open mission assistant"}
+            {assistantEnabled && <button id={LAUNCHER_ID} type="button" onClick={() => setAssistantOpen(!assistantOpen)} aria-expanded={assistantOpen} aria-controls={PANEL_ID} aria-label={assistantOpen ? "Close mission assistant" : "Open mission assistant"}
               className={`${SEGMENT} ${assistantOpen ? SEGMENT_ON : SEGMENT_IDLE}`}>
               <Bot size={14} />Assistant
             </button>}
@@ -92,7 +95,7 @@ export function FreeplayApp({ aside, guidedPanels, assistantEnabled = true, guid
       {guidedMode && guidedPanels?.dimContent && <div aria-hidden className="pointer-events-auto absolute inset-0 z-20 bg-void/55 backdrop-blur-[2px]" />}
       {aside}
       {assistantEnabled && assistantOpen && <div className="absolute inset-0 z-40 bg-void/70 p-2 lg:static lg:bg-transparent lg:p-0">
-        <AssistantPanel onClose={() => setAssistantOpen(false)} />
+        <AssistantPanel onClose={closeAssistant} />
       </div>}
     </div>
   </div>;

@@ -2,51 +2,18 @@ import { FieldPath, FieldValue } from "firebase-admin/firestore";
 import { adminCredentialsRequired, adminDb, hasAdminCredentials, verifyFirebaseToken } from "@/lib/firebase/admin";
 import { publicReadDb } from "@/lib/firebase/public-read-db";
 import { errorJson, json, serialize } from "@/lib/api/http";
-import { decodeFloat32, decodeInt16, decodeUint8 } from "@/lib/bytes";
-import { decodeCellStats } from "@/lib/firestore/binary";
-import { CartesianSeries, monthChunkIds, siteFrame, MAIN_SERIES_END, MAIN_SERIES_START } from "@/lib/ephemeris";
-import { maskAt, maskFromGridCell, snapToGrid, smoothHorizonMask } from "@/lib/terrain";
-import { longestRunHours, skyAt, skySamples, type HorizonProfile } from "@/lib/science/sky";
-import { scienceEligibility } from "@/lib/science/site-eligibility";
-import type { EphemerisChunk, HorizonMask } from "@/lib/model/types";
+import { scienceGet, validId } from "@/lib/api/science";
 
 const PUBLIC_COLLECTIONS: Record<string, string> = {
   sites: "sites", chapters: "storyChapters", profiles: "missionProfiles", zones: "protectionZones",
   presets: "landerPresets", facts: "facts", validations: "validationChecks", sources: "dataSources",
-  ephemeris: "ephemerisGlobal", terrain: "terrainGrid", psr: "psrLayer", demos: "demo",
+  ephemeris: "ephemerisGlobal", terrain: "terrainGrid", psr: "psrLayer", composition: "compositionGrid", demos: "demo",
 };
 const SUBCOLLECTIONS = new Set(["sessions", "reports", "progress"]);
 const MAX_LIMIT = 250;
 
-function validId(id: string) { return /^[a-zA-Z0-9_-]{1,120}$/.test(id); }
 function docValue(snap: FirebaseFirestore.DocumentSnapshot) {
   return snap.exists ? { id: snap.id, ...(serialize(snap.data()) as Record<string, unknown>) } : null;
-}
-function binary(value: unknown): Uint8Array {
-  if (value instanceof Uint8Array) return value;
-  if (typeof value === "string") return new Uint8Array(Buffer.from(value, "base64"));
-  if (value && typeof value === "object" && "toUint8Array" in value && typeof value.toUint8Array === "function") return value.toUint8Array();
-  throw new Error("Expected a Firestore binary value");
-}
-function ephemerisChunk(id: string, d: FirebaseFirestore.DocumentData): EphemerisChunk {
-  return {
-    id, startUtc: d.startUtc, stepMinutes: d.stepMinutes, count: d.count,
-    layout: d.layout, data: decodeFloat32(binary(d.data)),
-    sunAngularDiameterDegMean: d.sunAngularDiameterDegMean ?? null, frame: d.frame,
-    timeScale: "UTC", source: "JPL Horizons API", horizonsQuery: d.horizonsQuery,
-    ephemerisVersion: d.ephemerisVersion ?? null,
-    retrievedAt: typeof d.retrievedAt?.toDate === "function" ? d.retrievedAt.toDate().toISOString() : d.retrievedAt,
-  };
-}
-function horizonFromDoc(d: FirebaseFirestore.DocumentData): HorizonMask {
-  return {
-    source: "LOLA DEM", binDeg: Number(d.binDeg), maskElevationDeg: decodeFloat32(binary(d.mask)),
-    maskP05Deg: d.maskP05 ? decodeFloat32(binary(d.maskP05)) : null,
-    maskP95Deg: d.maskP95 ? decodeFloat32(binary(d.maskP95)) : null,
-    maskSigmaDeg: d.maskSigma ? decodeFloat32(binary(d.maskSigma)) : null,
-    errorMarginDeg: Number(d.errorMarginDeg), demProducts: d.demProducts ?? [],
-    rayLengthKm: Number(d.rayLengthKm), observerHeightM: Number(d.observerHeightM),
-  };
 }
 function validateSelection(v: unknown): v is Record<string, unknown> {
   if (!v || typeof v !== "object") return false;
@@ -66,7 +33,7 @@ export async function GET(request: Request, context: { params: Promise<{ path?: 
     const [root, id, child, childId] = path;
     const url = new URL(request.url);
 
-    if (path.length === 0 || root === "manifest") return json({ version: "v1", basePath: "/api/v1", resources: ["catalog/sites", "catalog/meta", "science/celestial", "science/horizon", "science/metrics", "science/compare", "science/timeline", ...Object.keys(PUBLIC_COLLECTIONS), "users/{uid}/sessions", "users/{uid}/reports", "users/{uid}/progress"] });
+    if (path.length === 0 || root === "manifest") return json({ version: "v1", basePath: "/api/v1", resources: ["catalog/sites", "catalog/meta", "science/celestial", "science/horizon", "science/metrics", "science/compare", "science/timeline", "science/rank", "science/composition", ...Object.keys(PUBLIC_COLLECTIONS), "users/{uid}/sessions", "users/{uid}/reports", "users/{uid}/progress"] });
     if (root === "users" && !hasAdminCredentials()) return adminCredentialsRequired();
     // Public endpoints use the Web SDK and public Firestore rules. This avoids making
     // catalog/science reads depend on a local service-account key or ADC configuration.
@@ -96,115 +63,7 @@ export async function GET(request: Request, context: { params: Promise<{ path?: 
       }
     }
 
-    if (root === "science") {
-      if (id === "compare") {
-        const siteIds = (url.searchParams.get("siteIds") ?? "").split(",").filter(Boolean);
-        if (siteIds.length < 2 || siteIds.length > 3 || siteIds.some((site) => !validId(site))) return errorJson("siteIds must contain two or three valid catalog ids");
-        const calls: { siteId: string; status: number; result: unknown }[] = await Promise.all(siteIds.map(async (site) => {
-          const next = new URL(request.url);
-          next.pathname = "/api/v1/science/metrics";
-          next.searchParams.delete("siteIds");
-          next.searchParams.set("siteId", site);
-          const response: Response = await GET(new Request(next, { headers: request.headers }), { params: Promise.resolve({ path: ["science", "metrics"] }) });
-          return { siteId: site, status: response.status, result: await response.json() };
-        }));
-        return json({ sites: calls, interval: { start: url.searchParams.get("start"), durationHours: url.searchParams.get("durationHours") ?? "24" } });
-      }
-      if (!["celestial", "horizon", "metrics", "timeline"].includes(id ?? "")) return errorJson("Unknown science resource", 404);
-      const lat = Number(url.searchParams.get("lat"));
-      const lon = Number(url.searchParams.get("lon"));
-      const siteId = url.searchParams.get("siteId");
-      if ((siteId === null && (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lon) || lon < -180 || lon > 360))) return errorJson("Provide a valid siteId or lat/lon coordinates");
-      const timestamp = url.searchParams.get("time") ?? url.searchParams.get("start") ?? (id === "horizon" ? MAIN_SERIES_START : null);
-      if (!timestamp || Number.isNaN(Date.parse(timestamp))) return errorJson("Provide a valid ISO 8601 UTC time");
-      const startMs = Date.parse(timestamp);
-      const durationHours = Number(url.searchParams.get("durationHours") ?? 24);
-      if (id === "metrics" && (!(durationHours > 0) || durationHours > 720)) return errorJson("durationHours must be greater than 0 and at most 720");
-      const endMs = id === "metrics" || id === "timeline" ? startMs + (id === "timeline" ? 24 : durationHours) * 3_600_000 : startMs;
-      const availableEndMs = id === "timeline" ? Math.min(endMs, Date.parse(MAIN_SERIES_END)) : endMs;
-      if (startMs < Date.parse(MAIN_SERIES_START) || availableEndMs > Date.parse(MAIN_SERIES_END) || (id !== "timeline" && endMs > Date.parse(MAIN_SERIES_END))) return errorJson(`Stored JPL Horizons ephemeris covers ${MAIN_SERIES_START} through ${MAIN_SERIES_END}`, 422);
-      const stepMinutes = Number(url.searchParams.get("stepMinutes") ?? 1);
-      if (id === "timeline" && (!Number.isInteger(stepMinutes) || stepMinutes < 1 || stepMinutes > 60)) return errorJson("stepMinutes must be an integer from 1 to 60");
-      const fromIso = new Date(startMs).toISOString();
-      const toIso = new Date(availableEndMs).toISOString();
-      const chunkIds = monthChunkIds(fromIso, toIso).filter((chunkId) => chunkId <= "2030-12");
-      const siteSnap = siteId ? await db.doc(`sites/${siteId}`).get() : null;
-      if (siteId && !siteSnap?.exists) return errorJson("Site not found", 404);
-      const position = siteSnap?.data()?.coordinates as { latDeg?: number; lonDeg?: number } | undefined;
-      // Catalog sites get "scientific" results only with a verified point coordinate (see lib/science/site-eligibility.ts).
-      const eligibility = siteId ? scienceEligibility(siteSnap?.data()) : null;
-      if (eligibility && !eligibility.ok) return errorJson(eligibility.reason, 422);
-      const latitude = eligibility?.ok ? eligibility.latDeg : lat;
-      const longitude = eligibility?.ok ? eligibility.lonDeg : lon;
-      const chunkSnaps = await Promise.all(chunkIds.map((chunkId) => db.doc(`ephemerisGlobal/${chunkId}`).get()));
-      if (chunkSnaps.some((snap) => !snap.exists)) return errorJson("Ephemeris data unavailable for this interval", 503);
-      const series = new CartesianSeries(chunkSnaps.map((snap, index) => ephemerisChunk(chunkIds[index], snap.data()!)));
-      let mask = smoothHorizonMask();
-      let horizonSource = "none — smooth horizon";
-      let slopeDeg: number | null = null;
-      let elevationMeters: number | null = null;
-      // Whether the LOLA terrain-grid cell lies inside a permanently shadowed region (PSR); south polar points only.
-      // The cells' nearestPsrKm is not exposed: the seeded values are all zero, so it carries no information yet.
-      let insidePsr: boolean | null = null;
-      const loadGridTile = async (snap: NonNullable<ReturnType<typeof snapToGrid>>) => {
-        const tileSnap = await db.doc(`terrainGrid/${snap.tileId}`).get();
-        if (!tileSnap.exists) return null;
-        const d = tileSnap.data()!;
-        const cells = Number(d.cellsPerSide) ** 2;
-        const bins = Number(d.bins);
-        return {
-          id: snap.tileId, gridSpacingKm: Number(d.gridSpacingKm), tileOriginXY: d.tileOriginXY,
-          cellsPerSide: Number(d.cellsPerSide), binDeg: Number(d.binDeg), bins,
-          masks: decodeInt16(binary(d.masks)), maskErr: decodeUint8(binary(d.maskErr)),
-          cellStats: decodeCellStats(binary(d.cellStats), decodeInt16(binary(d.masks)), bins, cells),
-          demProducts: d.demProducts ?? [], rayLengthKm: Number(d.rayLengthKm), observerHeightM: Number(d.observerHeightM), computedAt: d.computedAt,
-        };
-      };
-      const terrainSnap = siteId ? await db.doc(`sites/${siteId}/terrain/v1`).get() : null;
-      if (terrainSnap?.exists) {
-        mask = horizonFromDoc(terrainSnap.data()!);
-        horizonSource = "LOLA DEM";
-        slopeDeg = terrainSnap.get("slope100mDeg") ?? null;
-        elevationMeters = position?.latDeg == null ? null : siteSnap?.get("coordinates.elevationM") ?? null;
-      }
-      if (latitude <= -80 && (!terrainSnap?.exists || id === "metrics")) {
-        const snap = snapToGrid(latitude, longitude);
-        const tile = snap ? await loadGridTile(snap) : null;
-        const cell = snap && tile ? tile.cellStats[snap.cellIndex] : undefined;
-        if (snap && tile && !terrainSnap?.exists) {
-          const gridMask = maskFromGridCell(tile, snap.cellIndex);
-          if (gridMask) { mask = gridMask; horizonSource = `LOLA DEM grid · ${snap.gridSpacingKm} km cell, ${snap.distanceKm.toFixed(1)} km from point`; slopeDeg = cell?.slope100mDeg ?? null; }
-        }
-        if (cell?.hasData) insidePsr = cell.insidePsr;
-      }
-      const frame = siteFrame(latitude, longitude);
-      // Shared with the client graphs: lib/science/sky.ts holds the one visibility implementation.
-      const profile: HorizonProfile = { elevationsDeg: mask.source === "none" ? null : mask.maskElevationDeg, azimuthStepDeg: mask.binDeg };
-      const sky = (t: number) => skyAt(series, frame, profile, t);
-      const bodies = (p: ReturnType<typeof sky>) => ({
-        sun: { azimuthDeg: p.sunAz, elevationDeg: p.sunEl, visible: p.sunVisible },
-        earth: { azimuthDeg: p.earthAz, elevationDeg: p.earthEl, visible: p.earthVisible },
-      });
-      if (id === "horizon") return mask.source === "none" ? json({ horizon: null, source: horizonSource, provenance: "scientific" }) : json({ horizon: { azimuthStepDeg: mask.binDeg, elevationsDeg: Array.from({ length: Math.round(360 / mask.binDeg) }, (_, i) => maskAt(mask.maskElevationDeg, mask.binDeg, i * mask.binDeg)), provenance: "scientific" }, source: horizonSource, provenance: "scientific" });
-      if (id === "celestial") return json({ timestamp: fromIso, ...bodies(sky(startMs)), horizonSource, provenance: "scientific" });
-      if (id === "timeline") {
-        const samples = skySamples(series, frame, profile, startMs, availableEndMs, stepMinutes).map((p) => ({ timestamp: new Date(p.t).toISOString(), ...bodies(p) }));
-        return json({ intervalStart: fromIso, intervalEnd: toIso, stepMinutes, horizonSource, samples, provenance: "scientific" });
-      }
-      const points = skySamples(series, frame, profile, startMs, endMs - 1, 10);
-      const sunlit = points.map((p) => p.sunVisible), earthVisible = points.map((p) => p.earthVisible);
-      const share = (flags: boolean[]) => flags.filter(Boolean).length / flags.length;
-      const smooth = mask.source === "none";
-      return json({
-        sunlightPercent: Math.round(share(sunlit) * 100), sunlightHours: Number((share(sunlit) * durationHours).toFixed(1)),
-        longestDarknessHours: longestRunHours(sunlit, false, 1 / 6), earthVisibilityPercent: Math.round(share(earthVisible) * 100),
-        longestBlackoutHours: longestRunHours(earthVisible, false, 1 / 6), ...(slopeDeg !== null ? { slopeDeg } : {}), ...(elevationMeters !== null ? { elevationMeters } : {}),
-        ...(insidePsr !== null ? { insidePsr } : {}),
-        intervalStart: fromIso, intervalEnd: toIso, horizonSource,
-        assumptions: ["10-minute sampling; run lengths limited to the interval", "Sun and Earth treated as points (centre of disk), no refraction", smooth ? "No terrain mask for this location: smooth-sphere horizon, so lit and visible shares are upper bounds" : "Terrain occlusion from the precomputed horizon mask"],
-        provenance: "scientific",
-      });
-    }
+    if (root === "science") return await scienceGet(db, id, url);
 
     if (root === "users" && id) {
       const decoded = await verifyFirebaseToken(request.headers.get("authorization"));

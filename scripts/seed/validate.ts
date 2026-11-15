@@ -232,6 +232,18 @@ export function validateSeed(docs: SeedDoc[]): string[] {
         if (!Buffer.isBuffer(data.polygons)) err(path, 'polygons should be {"$bytes": ...}');
         break;
       }
+      case COLLECTIONS.compositionGrid: {
+        const count = num(data, "count");
+        const oxides = data.oxides;
+        if (count === null || !Array.isArray(oxides) || !oxides.every((o) => typeof o === "string")) {
+          err(path, "count must be a number and oxides a list of names");
+          break;
+        }
+        bytesLen(path, data, "bounds", count * 8);
+        bytesLen(path, data, "values", count * oxides.length * 2);
+        bytesLen(path, data, "sigma", count * oxides.length * 2);
+        break;
+      }
       case COLLECTIONS.demo: {
         const count = num(data, "count");
         if (count === null) err(path, "count must be a number");

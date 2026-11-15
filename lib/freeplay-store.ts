@@ -63,6 +63,10 @@ type FreeplayState = {
   panelAreaM2: number
   panelEfficiency: number
 
+  /** Bumped to ask the globe to fly to the selected site (the assistant uses it for any site kind). */
+  focusNonce: number
+  requestFocus: () => void
+
   setView: (v: FreeplayView) => void
   selectSite: (site: FreeplaySite, openCallout?: boolean) => void
   selectCustom: (latitudeDeg: number, longitudeDeg: number) => void
@@ -122,6 +126,9 @@ export const useFreeplay = create<FreeplayState>((set, get) => {
     graphTab: "daily",
     panelAreaM2: 1,
     panelEfficiency: 0.3,
+
+    focusNonce: 0,
+    requestFocus: () => set((s) => ({ focusNonce: s.focusNonce + 1 })),
 
     setView: (view) => set({ view }),
     selectSite: (site, openCallout = true) => set({ site, calloutOpen: openCallout }),
