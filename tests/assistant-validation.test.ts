@@ -89,7 +89,7 @@ describe("tool-call validation", () => {
     for (const bad of ["tomorrow", "1e9", "2027-13-45", "", 5, null, "2027-03-01; drop"]) expect(parseIsoUtc(bad)).toBeNull();
   });
 
-  it("defaults time to the Freeplay mission time and refuses (not clamps) out-of-coverage dates", () => {
+  it("defaults time to the Open Exploration mission time and refuses (not clamps) out-of-coverage dates", () => {
     const now = v("get_sun_earth_position", { useCurrentSite: true });
     expect(now.ok && now.request).toMatchObject({ timeIso: "2027-03-02T06:00:00.000Z" });
     const early = v("get_sun_earth_position", { useCurrentSite: true, time: "2025-06-01T00:00:00Z" });

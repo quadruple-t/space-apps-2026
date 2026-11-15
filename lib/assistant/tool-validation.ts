@@ -10,12 +10,12 @@ import {
   NO_COVERAGE_WORDING, RANK_WINDOW_SPACING_HOURS, UI_GRAPH_TABS, UI_LAYERS, UI_PAGES, UI_SCREENS, UI_SPEEDS, isToolName, type ToolName,
 } from "./constants";
 
-/** The slice of Freeplay state the tools need to resolve "this site" and "now". */
+/** The slice of Open Exploration state the tools need to resolve "this site" and "now". */
 export type ToolContext = {
   site: { name: string; latitudeDeg: number; longitudeDeg: number; kind: string; catalogId?: string; catalogPointVerified?: boolean } | null;
   missionStartIso: string;
   missionDurationHours: number;
-  /** Current Freeplay mission time (not the wall clock). */
+  /** Current Open Exploration mission time (not the wall clock). */
   currentTimeMs: number;
 };
 
@@ -23,7 +23,7 @@ export type Location =
   | { kind: "catalog"; siteId: string; label: string }
   | { kind: "point"; latDeg: number; lonDeg: number; label: string };
 
-/** A validated request to change the Freeplay view. Every field is optional; at least one is set. */
+/** A validated request to change the Open Exploration view. Every field is optional; at least one is set. */
 export type UiPlan = {
   screen?: (typeof UI_SCREENS)[number];
   page?: (typeof UI_PAGES)[number];
@@ -95,10 +95,10 @@ const coverageError = (what: string): Validation => ({
   error: { code: "out_of_coverage", message: `${what} is outside stored coverage (${COVERAGE_START_ISO.slice(0, 10)} to ${COVERAGE_END_ISO.slice(0, 10)}).`, mustSay: NO_COVERAGE_WORDING },
 });
 
-/** The same rule Freeplay uses to pick siteId vs lat/lon (see lib/drive-link.ts). */
+/** The same rule Open Exploration uses to pick siteId vs lat/lon (see lib/drive-link.ts). */
 function currentSiteLocation(ctx: ToolContext): Location | Validation {
   const s = ctx.site;
-  if (!s) return { ok: false, error: { code: "no_site_selected", message: "No site is selected in Freeplay. Ask the user to click the Moon or pick a preset, or name a catalog site." } };
+  if (!s) return { ok: false, error: { code: "no_site_selected", message: "No site is selected in Open Exploration. Ask the user to click the Moon or pick a preset, or name a catalog site." } };
   if (s.catalogId && s.catalogPointVerified !== false) return { kind: "catalog", siteId: s.catalogId, label: `${s.name} (catalog site ${s.catalogId})` };
   return { kind: "point", latDeg: s.latitudeDeg, lonDeg: s.longitudeDeg, label: `${s.name} (${s.latitudeDeg.toFixed(3)}°, ${s.longitudeDeg.toFixed(3)}°E)` };
 }
@@ -246,7 +246,7 @@ function validateRank(args: Record<string, unknown>, ctx: ToolContext): Validati
   };
 }
 
-/** show_in_freeplay: only whitelisted Freeplay controls, with enums and bounds checked here, never trusting the model. */
+/** show_in_freeplay: only whitelisted Open Exploration controls, with enums and bounds checked here, never trusting the model. */
 function validateUiPlan(args: Record<string, unknown>): Validation {
   const plan: UiPlan = {};
   for (const [key, list] of [["screen", UI_SCREENS], ["page", UI_PAGES], ["graphTab", UI_GRAPH_TABS], ["speed", UI_SPEEDS]] as const) {
@@ -361,7 +361,7 @@ export function validateToolCall(name: unknown, rawArgs: unknown, ctx: ToolConte
         if (item === "current") {
           const loc = currentSiteLocation(ctx);
           if (isValidation(loc)) return loc;
-          if (loc.kind !== "catalog") return bad("The current Freeplay site is not a catalog site, so it cannot be compared by id. Use get_sunlight_and_earth_visibility with useCurrentSite for it.");
+          if (loc.kind !== "catalog") return bad("The current Open Exploration site is not a catalog site, so it cannot be compared by id. Use get_sunlight_and_earth_visibility with useCurrentSite for it.");
           ids.push(loc.siteId);
         } else if (typeof item === "string" && ID_RE.test(item)) ids.push(item);
         else return bad("Each siteIds entry must be a catalog site id (letters, digits, - and _ only)");

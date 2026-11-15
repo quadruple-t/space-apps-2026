@@ -25,7 +25,7 @@ import { COVERAGE_START_ISO, useFreeplay } from "@/lib/freeplay-store";
 const site = { id: "saved-1", name: "Rim", latitudeDeg: -89.4, longitudeDeg: 222.7, radiusKm: 5, coordinateReference: "MOON_ME", provenance: "user", kind: "saved" } as const;
 
 describe("workspace capture and restore", () => {
-  it("round-trips through the Freeplay store without transient fields", () => {
+  it("round-trips through the Open Exploration store without transient fields", () => {
     const ws = captureWorkspace(useFreeplay.getState());
     expect(ws).toEqual(DEFAULT_WORKSPACE);
     expect(ws).not.toHaveProperty("playing");

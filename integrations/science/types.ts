@@ -1,4 +1,4 @@
-/** Shared boundary between Freeplay rendering and the authoritative science engine.
+/** Shared boundary between Open Exploration rendering and the authoritative science engine.
  * Angles are degrees; azimuth is clockwise from lunar north; elevation is above
  * the local horizontal. Terrain samples are metres in the provider's declared frame.
  */

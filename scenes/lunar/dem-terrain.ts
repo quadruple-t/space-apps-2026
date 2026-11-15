@@ -72,10 +72,8 @@ const RAMP = ["#7a3cff", "#2f6bff", "#22c7c7", "#4fd65a", "#f2e93a", "#f2902a", 
 const SLOPE_STEPS: Array<[number, THREE.Color]> = [[5, new THREE.Color("#7fa58a")], [10, new THREE.Color("#c9c36a")], [15, new THREE.Color("#e39a4f")], [90, new THREE.Color("#ff5364")]];
 // Lunar regolith is a neutral, high-contrast grey: dark basaltic mare, brighter
 // feldspathic highlands, and bright freshly exposed material on steep slopes and crater rims.
-const REGOLITH_STOPS = ["#303030", "#606060", "#929292", "#bcbcbc", "#e6e6e6"].map((c) => new THREE.Color(c));
-// Only a trace of tint: the regolith should read as neutral grey.
-const REGOLITH_WARM = new THREE.Color("#808080");
-const REGOLITH_COOL = new THREE.Color("#969696");
+// No hue at all, and the dark end is lifted off black so walking over mare still shows texture.
+const REGOLITH_STOPS = ["#3c3c3c", "#696969", "#979797", "#bebebe", "#e2e2e2"].map((c) => new THREE.Color(c));
 
 function rampColor(t: number, out: THREE.Color) {
   const x = Math.max(0, Math.min(1, t)) * (RAMP.length - 1);
@@ -87,7 +85,7 @@ function rampColor(t: number, out: THREE.Color) {
  * Stylised regolith colouring, not measured albedo. Brightness comes from the terrain itself:
  * elevation (low ground reads as dark mare, high ground as highland), slope and convexity (fresh,
  * bright material on steep faces and crater rims; mature dark soil in hollows), plus mottling at
- * several scales and a faint warm/cool tint so large flats are not one flat grey.
+ * several scales so large flats are not one flat grey. Strictly neutral (R = G = B).
  */
 function regolithColor(s: DemSurface, i: number, j: number, out: THREE.Color) {
   const { grid, size, spacing, half } = s;
@@ -114,8 +112,6 @@ function regolithColor(s: DemSurface, i: number, j: number, out: THREE.Color) {
   t = Math.max(0, Math.min(1, t));
   const x = t * (REGOLITH_STOPS.length - 1), n = Math.min(REGOLITH_STOPS.length - 2, Math.floor(x));
   out.copy(REGOLITH_STOPS[n]).lerp(REGOLITH_STOPS[n + 1], x - n);
-  // Dark mare leans warm brown, bright highlands lean cool grey.
-  out.lerp(REGOLITH_WARM, Math.max(0, 0.5 - highland - (patch - 0.5)) * 0.08).lerp(REGOLITH_COOL, Math.max(0, highland + (broad - 0.5)) * 0.08);
 }
 
 export function fillColors(s: DemSurface, mode: TerrainColorMode, colors: Float32Array) {
@@ -237,7 +233,8 @@ export function createRegolithDetailTexture() {
   const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
   for (let y = 0; y < side; y++) for (let x = 0; x < side; x++) {
     const grain = random();
-    const shade = Math.round(185 + grain * 65 + 5 * Math.sin(x * 0.15 + Math.sin(y * 0.12)));
+    // Kept near white so the map adds grain without darkening the vertex colours.
+    const shade = Math.round(200 + grain * 50 + 5 * Math.sin(x * 0.15 + Math.sin(y * 0.12)));
     const k = (y * side + x) * 4;
     pixels[k] = pixels[k + 1] = pixels[k + 2] = shade; pixels[k + 3] = 255;
   }
@@ -246,11 +243,84 @@ export function createRegolithDetailTexture() {
     for (let y = -radius; y <= radius; y++) for (let x = -radius; x <= radius; x++) {
       if (x * x + y * y > radius * radius) continue;
       const k = (((cy + y + side) % side) * side + (cx + x + side) % side) * 4;
-      pixels[k] = pixels[k + 1] = pixels[k + 2] = x + y > 0 ? 120 : 245;
+      pixels[k] = pixels[k + 1] = pixels[k + 2] = x + y > 0 ? 150 : 250;
     }
   }
   const texture = new THREE.DataTexture(pixels, side, side);
   texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  texture.magFilter = THREE.LinearFilter; texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.generateMipmaps = true; texture.needsUpdate = true;
+  return texture;
+}
+
+/** Metres covered by one repeat of the regolith normal map (terrain UVs are metres / 12). */
+export const REGOLITH_NORMAL_SPAN_M = 24;
+
+/**
+ * Cosmetic micro-relief as a tangent-space normal map: tileable fine undulation, small craterlets
+ * (0.3-2.4 m, bowl plus raised rim) and pebble bumps over a 24 m repeat. It only changes shading, so
+ * the measured heights, horizon and sunlight analysis are untouched, but near-field ground now shows
+ * relief that slides past as the viewer moves. `side` 512 ≈ 4.7 cm per texel, 256 ≈ 9.4 cm.
+ */
+export function createRegolithNormalTexture(side = 512) {
+  const texelM = REGOLITH_NORMAL_SPAN_M / side;
+  const height = new Float32Array(side * side);
+  const wrap = (v: number) => ((v % side) + side) % side;
+  // Tileable value noise: a lattice of `period` x `period` random values that wraps, so the texture
+  // repeats seamlessly. Periods across the 24 m tile give features of ~3 m, 1.5 m, 0.75 m and 0.375 m.
+  let seed = 90127;
+  const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
+  const smooth = (t: number) => t * t * (3 - 2 * t);
+  for (const [period, amp] of [[8, 0.07], [16, 0.035], [32, 0.016], [64, 0.008]] as const) {
+    const lattice = Float32Array.from({ length: period * period }, () => random() - 0.5);
+    const cell = side / period;
+    for (let y = 0; y < side; y++) {
+      const fy = y / cell, j = Math.floor(fy), v = smooth(fy - j), j0 = j * period, j1 = ((j + 1) % period) * period;
+      for (let x = 0; x < side; x++) {
+        const fx = x / cell, i = Math.floor(fx), u = smooth(fx - i), i1 = (i + 1) % period;
+        const p = lattice[j0 + i], q = lattice[j0 + i1], r = lattice[j1 + i], t = lattice[j1 + i1];
+        height[y * side + x] += amp * (p + (q - p) * u + (r - p) * v + (p - q - r + t) * u * v);
+      }
+    }
+  }
+  // Craterlets: bowl depressions with a raised rim, continuous at the rim crest.
+  for (let c = 0; c < 46; c++) {
+    const cx = random() * side, cy = random() * side;
+    const rM = 0.3 + Math.pow(random(), 2.2) * 2.1, r = rM / texelM;
+    const depth = rM * (0.12 + random() * 0.08), rim = rM * 0.04;
+    const reach = Math.ceil(r * 1.6);
+    for (let dy = -reach; dy <= reach; dy++) for (let dx = -reach; dx <= reach; dx++) {
+      const d = Math.hypot(dx + 0.5 - (cx % 1), dy + 0.5 - (cy % 1)) / r;
+      if (d >= 1.6) continue;
+      const delta = d < 1 ? depth * (d * d - 1) + rim : rim * (1 - (d - 1) / 0.6) ** 2;
+      height[wrap(Math.floor(cy) + dy) * side + wrap(Math.floor(cx) + dx)] += delta;
+    }
+  }
+  // Pebbles: small domes, 4-15 cm across.
+  for (let p = 0; p < side * 1.2; p++) {
+    const cx = Math.floor(random() * side), cy = Math.floor(random() * side);
+    const r = Math.max(1, (0.02 + random() * 0.055) / texelM), top = r * texelM * 0.6;
+    const reach = Math.ceil(r);
+    for (let dy = -reach; dy <= reach; dy++) for (let dx = -reach; dx <= reach; dx++) {
+      const d2 = (dx * dx + dy * dy) / (r * r);
+      if (d2 < 1) height[wrap(cy + dy) * side + wrap(cx + dx)] += top * Math.sqrt(1 - d2);
+    }
+  }
+  const pixels = new Uint8Array(side * side * 4);
+  const n = new THREE.Vector3();
+  for (let y = 0; y < side; y++) for (let x = 0; x < side; x++) {
+    const sx = (height[y * side + wrap(x + 1)] - height[y * side + wrap(x - 1)]) / (2 * texelM);
+    const sy = (height[wrap(y + 1) * side + x] - height[wrap(y - 1) * side + x]) / (2 * texelM);
+    n.set(-sx, -sy, 1).normalize();
+    const k = (y * side + x) * 4;
+    pixels[k] = Math.round((n.x * 0.5 + 0.5) * 255);
+    pixels[k + 1] = Math.round((n.y * 0.5 + 0.5) * 255);
+    pixels[k + 2] = Math.round((n.z * 0.5 + 0.5) * 255);
+    pixels[k + 3] = 255;
+  }
+  const texture = new THREE.DataTexture(pixels, side, side);
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(12 / REGOLITH_NORMAL_SPAN_M, 12 / REGOLITH_NORMAL_SPAN_M);
   texture.magFilter = THREE.LinearFilter; texture.minFilter = THREE.LinearMipmapLinearFilter;
   texture.generateMipmaps = true; texture.needsUpdate = true;
   return texture;

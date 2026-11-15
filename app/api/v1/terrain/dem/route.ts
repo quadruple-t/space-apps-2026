@@ -51,7 +51,7 @@ async function fetchGrid(q: DemQuery): Promise<Payload> {
     notes: [
       `Source posting is about ${DEM_SOURCE.nominalResolutionM} m; grid spacing is ${grid.spacingM.toFixed(1)} m, so finer spacing is interpolation, not extra detail.`,
       "GLD100 is WAC stereo topography between 79°S and 79°N; poleward values are the layer's LOLA-based fill.",
-      "Display and local line-of-sight only. Mission metrics keep using the stored LOLA horizon masks.",
+      "Display, local line-of-sight, and browser-computed horizons where no stored LOLA horizon covers a point. Server science routes keep using the stored LOLA horizon masks.",
     ],
   };
 }

@@ -36,7 +36,7 @@ export function Hero() {
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="xl">
-                <Link href={LAUNCH_HREF}>Launch Freeplay</Link>
+                <Link href={LAUNCH_HREF}>Launch Open Exploration</Link>
               </Button>
               <Button asChild size="xl" variant="outline">
                 <Link href="/mission">Discover the Mission</Link>

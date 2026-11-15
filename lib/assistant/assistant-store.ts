@@ -48,7 +48,7 @@ type AssistantState = {
   send: (raw: string, context?: string, surfaceSnapshot?: FreeplaySnapshot) => Promise<void>;
   retry: () => void;
   cancel: () => void;
-  /** Puts the Freeplay view back as it was before this reply's changes. */
+  /** Puts the Open Exploration view back as it was before this reply's changes. */
   undoView: (messageId: string) => void;
   clear: () => void;
   /** Replaces the conversation with a saved expedition transcript (or empties it). Restored replies cannot undo view changes. */
@@ -184,7 +184,7 @@ export const useAssistant = create<AssistantState>((set, get) => ({
     const target = get().messages.find((m) => m.id === messageId);
     if (!target?.viewBefore) return;
     restoreView(target.viewBefore);
-    set((s) => ({ messages: s.messages.map((m) => (m.id === messageId ? { ...m, viewBefore: undefined } : m)), announce: "Restored the previous Freeplay view." }));
+    set((s) => ({ messages: s.messages.map((m) => (m.id === messageId ? { ...m, viewBefore: undefined } : m)), announce: "Restored the previous Open Exploration view." }));
   },
 
   clear: () => {

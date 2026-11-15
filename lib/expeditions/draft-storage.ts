@@ -30,7 +30,7 @@ function readJson(key: string): unknown {
   }
 }
 
-/** Loads the draft, migrating the legacy Freeplay key on first run. */
+/** Loads the draft, migrating the legacy Open Exploration key on first run. */
 export function loadDraft(): ExpeditionDraft {
   const store = storage();
   const stored = memoryDraft ? null : readJson(DRAFT_KEY);

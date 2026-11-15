@@ -16,7 +16,7 @@ const snap = (over: Partial<FreeplaySnapshot> = {}): FreeplaySnapshot => ({
 });
 
 describe("prompt-variable building", () => {
-  it("resolves site, mission time, layers and coverage from the Freeplay state", () => {
+  it("resolves site, mission time, layers and coverage from the Open Exploration state", () => {
     const v = buildTemplateVariables(snap(), new Date("2027-01-01T00:00:00Z"));
     expect(v).toMatchObject({
       hasSite: true, siteName: "Shackleton rim", siteKind: "catalog", catalogSiteId: "shackleton", latDeg: -89.5432, lonDeg: 129.1, radiusKm: 10,

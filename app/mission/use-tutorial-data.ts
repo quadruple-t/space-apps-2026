@@ -13,7 +13,7 @@ export type TutorialData = {
   status: "loading" | "ready" | "unavailable";
   chapters: Partial<Record<ChapterId, StoryChapter>>;
   catalog: CatalogSite[];
-  /** Each chapter's featured catalog sites as Freeplay sites, verified coordinates first. */
+  /** Each chapter's featured catalog sites as Open Exploration sites, verified coordinates first. */
   featured: Partial<Record<ChapterId, FreeplaySite[]>>;
   tourStops: FreeplaySite[];
 };

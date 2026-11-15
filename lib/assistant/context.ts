@@ -1,5 +1,5 @@
 /**
- * Builds the server-prompt-template variables from the live Freeplay state so "this site" and "right now"
+ * Builds the server-prompt-template variables from the live Open Exploration state so "this site" and "right now"
  * resolve correctly. The values are data, not instructions: free text (saved site names) is sanitised
  * and length-limited before it is sent, and the template fences the block as untrusted.
  */

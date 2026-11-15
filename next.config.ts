@@ -7,10 +7,14 @@ const nextConfig: NextConfig = {
   },
   cacheComponents: true,
   partialPrefetching: true,
-  // Keep the former explore entry point working.
+  // Keep former entry points working: Open Exploration used to live at /freeplay,
+  // and the separate /compare page is now the comparison tab inside Open Exploration.
   async redirects() {
     return [
-      { source: "/explore", destination: "/freeplay/drive", permanent: false },
+      { source: "/explore", destination: "/open-exploration", permanent: false },
+      { source: "/freeplay", destination: "/open-exploration", permanent: false },
+      { source: "/freeplay/:path*", destination: "/open-exploration/:path*", permanent: false },
+      { source: "/compare", destination: "/open-exploration", permanent: false },
     ];
   },
 };

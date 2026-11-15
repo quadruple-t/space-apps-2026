@@ -377,7 +377,7 @@ export function catalogFromDetail(raw: unknown, requestedId: string): CatalogSit
   };
 }
 
-/** Result of a Freeplay view change. Carries no science data and no horizon claim. */
+/** Result of a Open Exploration view change. Carries no science data and no horizon claim. */
 export function uiOutcome(id: string, ui: UiChange): ToolOutcome {
   const response: Json = {
     ok: true, tool: "show_in_freeplay", applied: ui.changes,

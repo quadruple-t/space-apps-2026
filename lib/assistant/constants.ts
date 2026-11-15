@@ -67,7 +67,7 @@ export const TOOL_LABELS: Record<ToolName, string> = {
   compare_sites: "Site comparison",
   rank_sites: "Site ranking",
   get_surface_composition: "Surface composition (Lunar Prospector GRS)",
-  show_in_freeplay: "Freeplay view",
+  show_in_freeplay: "Open Exploration view",
 };
 
 /** Shown while a tool runs. */
@@ -82,10 +82,10 @@ export const TOOL_PROGRESS: Record<ToolName, string> = {
   compare_sites: "Comparing sites…",
   rank_sites: "Ranking catalog sites…",
   get_surface_composition: "Reading surface composition…",
-  show_in_freeplay: "Updating the Freeplay view…",
+  show_in_freeplay: "Updating the Open Exploration view…",
 };
 
-/** Values the show_in_freeplay tool may set. Mirrors the Freeplay store; the validator rejects anything else. */
+/** Values the show_in_freeplay tool may set. Mirrors the Open Exploration store; the validator rejects anything else. */
 export const UI_SCREENS = ["globe", "orbit"] as const;
 export const UI_PAGES = ["drive"] as const;
 export const UI_LAYERS = ["slope", "illumination", "psr", "elevation"] as const;

@@ -17,7 +17,7 @@ export function ScienceSection() {
             <p>
               Near the pole, latitude tells you very little. What matters is the horizon each site actually sees:
               the crater walls and distant massifs that decide when sunlight arrives and whether Earth is in view.
-              Freeplay uses JPL Horizons ephemerides and available precomputed LOLA horizon masks. When a terrain
+              Open Exploration uses JPL Horizons ephemerides and available precomputed LOLA horizon masks. When a terrain
               mask is unavailable, it labels the smooth-sphere fallback and treats visibility shares as upper bounds.
             </p>
           </SectionHeading>
@@ -53,7 +53,7 @@ export function ScienceSection() {
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">{d.role}</p>
                   </div>
-                  <StatusBadge className="shrink-0">Used in Freeplay</StatusBadge>
+                  <StatusBadge className="shrink-0">Used in Open Exploration</StatusBadge>
                 </li>
               ))}
             </ul>
@@ -73,7 +73,7 @@ export function ScienceSection() {
 
         <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="max-w-xl text-sm text-muted-foreground">
-            Freeplay calculations use cached JPL Horizons ephemerides and available LOLA horizon masks. The 3D surface
+            Open Exploration calculations use cached JPL Horizons ephemerides and available LOLA horizon masks. The 3D surface
             is procedural; results identify their horizon source, including the smooth-sphere fallback where terrain
             coverage is missing. The landing preview above remains conceptual.
           </p>

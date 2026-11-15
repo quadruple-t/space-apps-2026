@@ -10,7 +10,7 @@ const SUNLIT_PCT = Math.round(
 const EARTH_MARGIN = MODEL.earth.elevation - maskElevationAt(MODEL.mask, MODEL.earth.azimuth);
 
 /**
- * Concept frame for the landing page; the live simulator is available in Freeplay.
+ * Concept frame for the landing page; the live simulator is available in Open Exploration.
  */
 export function SimulatorPreview() {
   return (
@@ -54,7 +54,7 @@ export function SimulatorPreview() {
         </div>
       </div>
       <figcaption className="border-t border-line px-4 py-3 text-xs text-muted-foreground">
-        Landing page concept artwork. Freeplay provides live controls and scientific ephemeris calculations; this
+        Landing page concept artwork. Open Exploration provides live controls and scientific ephemeris calculations; this
         preview uses a procedural scene and illustrative readouts.
       </figcaption>
     </figure>

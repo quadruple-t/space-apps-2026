@@ -1,5 +1,5 @@
 /**
- * The API handlers and Freeplay's graphs both evaluate the sky through lib/science/sky.
+ * The API handlers and Open Exploration's graphs both evaluate the sky through lib/science/sky.
  * These tests pin that evaluation against an independent statement of the original
  * algorithm (azElFromCartesian + isAboveMask), at the same sites, times, horizon sources
  * and coverage boundaries, so a change to either path cannot drift silently.

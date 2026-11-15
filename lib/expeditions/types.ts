@@ -23,7 +23,7 @@ export const EXPEDITION_LIMITS = {
   studyJsonChars: 200_000,
 } as const;
 
-/** The parts of the Freeplay store worth keeping. Transient fields (playing, callout, focus) are left out. */
+/** The parts of the Open Exploration store worth keeping. Transient fields (playing, callout, focus) are left out. */
 export type ExpeditionWorkspace = {
   view: FreeplayView;
   site: FreeplaySite | null;

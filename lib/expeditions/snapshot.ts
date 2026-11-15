@@ -1,8 +1,8 @@
 /**
- * Pure helpers that move expedition content between the Freeplay/assistant stores and storage.
+ * Pure helpers that move expedition content between the Open Exploration/assistant stores and storage.
  * Stored data (Firestore docs, the localStorage draft) is never trusted: the sanitizers clamp,
  * drop and default instead of throwing, so a corrupt or older document degrades to defaults
- * rather than crashing Freeplay.
+ * rather than crashing Open Exploration.
  */
 import { COORD_REF, type FreeplaySite, type SiteKind } from "@/data/sites";
 import {
@@ -67,12 +67,12 @@ export function emptyDraft(now = new Date().toISOString()): ExpeditionDraft {
 }
 
 // ---------------------------------------------------------------
-// Freeplay workspace
+// Open Exploration workspace
 // ---------------------------------------------------------------
 
 type WorkspaceSource = { [K in keyof ExpeditionWorkspace]: ExpeditionWorkspace[K] } & Obj;
 
-/** Picks the persistent fields out of the Freeplay store state. */
+/** Picks the persistent fields out of the Open Exploration store state. */
 export function captureWorkspace(s: WorkspaceSource): ExpeditionWorkspace {
   return {
     view: s.view, site: s.siteDraft === true ? null : s.site, startIso: s.startIso, durationHours: s.durationHours, elapsedHours: s.elapsedHours,
@@ -81,7 +81,7 @@ export function captureWorkspace(s: WorkspaceSource): ExpeditionWorkspace {
   };
 }
 
-/** The Freeplay store patch that restores a workspace; also stops playback and closes the callout. */
+/** The Open Exploration store patch that restores a workspace; also stops playback and closes the callout. */
 export function workspaceToStorePatch(ws: ExpeditionWorkspace, sites: FreeplaySite[]) {
   return { ...ws, savedSites: sites, playing: false, calloutOpen: false, siteDraft: false };
 }

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Freeplay side panel for expeditions. Signed out, it explains that work autosaves in this
+ * Open Exploration side panel for expeditions. Signed out, it explains that work autosaves in this
  * browser and offers (never requires) sign-in. Signed in, it names, annotates, switches,
  * creates and deletes expeditions.
  */

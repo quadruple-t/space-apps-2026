@@ -169,7 +169,7 @@ export function MissionControlContent() {
         </div>
         <div className="mt-14">
           <DevelopmentNotice>
-            Current status: Freeplay uses stored JPL Horizons ephemerides and available precomputed LOLA horizon masks
+            Current status: Open Exploration uses stored JPL Horizons ephemerides and available precomputed LOLA horizon masks
             through the versioned science API. Coverage varies by location, and unsupported locations use a labelled
             smooth-sphere horizon, so their sunlight and visibility shares are upper bounds. The rendered 3D surface and
             this page&apos;s diagrams are procedural or illustrative, not LOLA DEM visualisations, and a visibility

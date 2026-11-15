@@ -1,4 +1,5 @@
 import type { LayerId } from "@/lib/freeplay-store";
+import { rampCss, type ColorRamp } from "./colorize";
 
 /** Overlay definitions. Identifiers and their provenance are recorded in docs/SOURCES.md §7. */
 export type OverlaySource =
@@ -12,12 +13,20 @@ export const LUNASERV_WMS = "https://wms.im-ldi.com/";
 
 export const BASE_LAYER = { layer: "LRO_WAC_Mosaic_Global_303ppd_v02", maximumLevel: 8 } as const;
 
+
+/** Polar illumination share: violet (rarely sunlit) to coral and pale gold (most often sunlit). */
+const ILLUMINATION_RAMP: ColorRamp = [
+  [0, "#140c34"], [0.2, "#4a2394"], [0.45, "#b23596"], [0.65, "#ff5364"], [0.85, "#ffb36b"], [1, "#fff3c4"],
+];
+
 export type LayerDef = {
   id: LayerId;
   category: string;
   label: string;
   description: string;
   sources: OverlaySource[];
+  /** Single-band (gray) source: the globe recolours it with this false-colour ramp. */
+  colorize?: ColorRamp;
   /** CSS gradient or swatches for the legend. */
   legend: { kind: "ramp"; css: string; low: string; high: string } | { kind: "swatch"; color: string; text: string };
   credit: string;
@@ -38,9 +47,10 @@ export const LAYERS: LayerDef[] = [
   {
     id: "illumination", category: "weather",
     label: "Illumination % (polar)",
-    description: "Share of time each spot is sunlit, poles only. Brighter = more sunlight.",
+    description: "Share of time each spot is sunlit, poles only. False colour: violet = rarely sunlit, coral to pale gold = most often sunlit.",
     sources: [{ kind: "wms", layers: "luna_polar_illumination_pct" }],
-    legend: { kind: "ramp", css: "linear-gradient(90deg,#000,#fff)", low: "0%", high: "100%" },
+    colorize: ILLUMINATION_RAMP,
+    legend: { kind: "ramp", css: rampCss(ILLUMINATION_RAMP), low: "0% sunlit", high: "100%" },
     credit: "LROC WAC polar illumination · Lunaserv",
   },
   {
@@ -98,7 +108,7 @@ LAYERS.push(
   scienceMap("thorium", "mining", "Thorium abundance", "luna_lp_deconvolved_thorium",
     "Lunar Prospector gamma-ray thorium abundance, spatially deconvolved at 2 pixels per degree. A regional composition indicator; does not establish extractability.",
     "Lunar Prospector · Lawrence et al. (2007) · Lunaserv",
-    { kind: "ramp", css: "linear-gradient(90deg,#000,#fff)", low: "0", high: "17 ppm" }),
+    { kind: "ramp", css: "linear-gradient(90deg,#101010,#1010f0,#5010b0,#f01010,#f0b010,#f0f010,#fff)", low: "0", high: "17 ppm" }),
   scienceMap("olivine", "mining", "Olivine abundance", "luna_kaguya_olivine",
     "Kaguya surface olivine abundance, 50°S–50°N. A magnesium/iron silicate mineral indicator; source palette retained.",
     "JAXA SELENE/Kaguya · Lemelin et al. (2016) · Lunaserv", nativePalette("Dark blue: lower · yellow: higher")),
@@ -118,11 +128,11 @@ LAYERS.push(
   scienceMap("temperatureMax", "weather", "Maximum temperature anomaly", "luna_diviner_tbol_max",
     "Historical Diviner maximum-temperature anomaly relative to the mean at each latitude, 2 pixels/degree. Not absolute temperature or a live forecast.",
     "LRO Diviner · Williams et al. (2017) · Lunaserv",
-    { kind: "ramp", css: "linear-gradient(90deg,#800080,#fff)", low: "−25 K anomaly", high: "+25 K" }),
+    { kind: "ramp", css: "linear-gradient(90deg,#1010f0,#10b0f0,#10f0f0,#90f070,#f0f010,#f09010,#f01010,#901010)", low: "−25 K anomaly", high: "+25 K" }),
   scienceMap("temperatureMin", "weather", "Minimum temperature anomaly", "luna_diviner_tbol_min",
     "Historical Diviner minimum-temperature anomaly relative to the mean at each latitude, 2 pixels/degree. Static observations, independent of simulation date.",
     "LRO Diviner · Williams et al. (2017) · Lunaserv",
-    { kind: "ramp", css: "linear-gradient(90deg,#800080,#fff)", low: "−10 K anomaly", high: "+10 K" }),
+    { kind: "ramp", css: "linear-gradient(90deg,#1010f0,#10b0f0,#10f0f0,#90f070,#f0f010,#f09010,#f01010,#901010)", low: "−10 K anomaly", high: "+10 K" }),
   scienceMap("impactHistory", "weather", "Meteoroid impact history · craters", "luna_copernican_craters",
     "Natural impact craters larger than 10 km and younger than ~1.1 billion years, 60°S–60°N. Shows long-term impact history, not current meteor-storm hotspots or future impact probability.",
     "LROC · Ravi et al. (2016) · Lunaserv", nativePalette("Mapped Copernican-age crater features")),

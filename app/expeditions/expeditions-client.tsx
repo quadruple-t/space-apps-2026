@@ -24,10 +24,10 @@ function Row({ e, active }: { e: ExpeditionMeta; active: boolean }) {
         onBlur={() => { const n = name.trim(); if (!n) setName(e.name); else if (n !== e.name) act(() => rename(e.id, n)); }}
         onKeyDown={(ev) => { if (ev.key === "Enter") (ev.target as HTMLInputElement).blur(); }}
         className="type-heading w-full rounded border border-transparent bg-transparent px-1 text-lg text-bone hover:border-line focus:border-retro-purple focus:outline-none" />
-      <p className="type-data px-1 text-xs text-muted-foreground">Updated {savedOn(e.updatedAt)} · created {savedOn(e.createdAt)}{active ? " · open in Freeplay" : ""}</p>
+      <p className="type-data px-1 text-xs text-muted-foreground">Updated {savedOn(e.updatedAt)} · created {savedOn(e.createdAt)}{active ? " · open in Open Exploration" : ""}</p>
       {error && <p role="alert" className="px-1 text-xs text-retro-red">{error}</p>}
     </div>
-    <Button asChild size="sm"><Link href={`/freeplay?expedition=${encodeURIComponent(e.id)}`}>Open in Freeplay</Link></Button>
+    <Button asChild size="sm"><Link href={`/open-exploration?expedition=${encodeURIComponent(e.id)}`}>Open in Open Exploration</Link></Button>
     {confirming
       ? <span className="flex items-center gap-2 text-xs text-muted-foreground">Delete it, with its studies and chat? This can&apos;t be undone.
           <Button size="sm" variant="destructive" onClick={() => act(() => remove(e.id))}>Delete</Button>
@@ -54,7 +54,7 @@ export function ExpeditionsClient() {
     setCreating(true);
     const id = await createNew(name);
     setCreating(false);
-    if (id) router.push("/freeplay");
+    if (id) router.push("/open-exploration");
   };
 
   if (loading || (user && !uid)) return <p className="text-muted-foreground" role="status">Loading…</p>;
@@ -65,7 +65,7 @@ export function ExpeditionsClient() {
       <p className="mt-2 text-muted-foreground">Sign in only if you want named expeditions saved to your account and available on any device.</p>
       <div className="mt-5 flex flex-wrap gap-3">
         <Button onClick={() => openSignIn()}><LogIn />Sign in</Button>
-        <Button asChild variant="outline"><Link href="/freeplay"><Compass />Explore without an account</Link></Button>
+        <Button asChild variant="outline"><Link href="/open-exploration"><Compass />Explore without an account</Link></Button>
       </div>
     </div>;
   }
@@ -78,7 +78,7 @@ export function ExpeditionsClient() {
     </form>
     {listStatus === "error" && <p role="alert" className="text-retro-red">Couldn&apos;t load your expeditions. Check your connection and reload.</p>}
     {listStatus === "loading" && list.length === 0 && <p role="status" className="text-muted-foreground">Loading your expeditions…</p>}
-    {listStatus === "idle" && list.length === 0 && <p className="text-muted-foreground">No expeditions yet. Create one above, or open <Link href="/freeplay" className="text-retro-purple underline-offset-2 hover:underline">Freeplay</Link> and save your work from the Expedition panel.</p>}
+    {listStatus === "idle" && list.length === 0 && <p className="text-muted-foreground">No expeditions yet. Create one above, or open <Link href="/open-exploration" className="text-retro-purple underline-offset-2 hover:underline">Open Exploration</Link> and save your work from the Expedition panel.</p>}
     <ul className="space-y-3">{list.map((e) => <Row key={`${e.id}:${e.name}`} e={e} active={e.id === activeId} />)}</ul>
   </div>;
 }

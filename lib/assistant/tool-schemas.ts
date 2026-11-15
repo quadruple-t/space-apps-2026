@@ -17,15 +17,15 @@ import { RANK_CRITERIA } from "@/lib/science/rank";
 import { MAX_RANK_SITE_IDS, MAX_RANK_WINDOWS, MAX_WINDOW_HOURS, MIN_WINDOW_HOURS, TOOL_NAMES, UI_GRAPH_TABS, UI_LAYERS, UI_PAGES, UI_SCREENS, UI_SPEEDS, type ToolName } from "./constants";
 
 const locationProps = {
-  useCurrentSite: Schema.boolean({ description: "true to use the site currently selected in Freeplay ('this site')." }),
-  siteId: Schema.string({ description: "Catalog site id from list_catalog_sites, for a named catalog site. Not for the current Freeplay site unless it is a catalog site." }),
+  useCurrentSite: Schema.boolean({ description: "true to use the site currently selected in Open Exploration ('this site')." }),
+  siteId: Schema.string({ description: "Catalog site id from list_catalog_sites, for a named catalog site. Not for the current Open Exploration site unless it is a catalog site." }),
   latDeg: Schema.number({ description: "Planetocentric latitude in degrees, -90 to 90. Use with lonDeg for a custom point." }),
   lonDeg: Schema.number({ description: "East-positive longitude in degrees, -180 to 360. Use with latDeg." }),
 };
 const locationOptional = Object.keys(locationProps);
 
 const timeProp = (name: string, what: string) => ({
-  [name]: Schema.string({ description: `${what} as ISO 8601 UTC, for example 2027-03-01T12:00:00Z. Must be within 2026-01-01 to 2030-12-31. Omit to use the Freeplay mission time.` }),
+  [name]: Schema.string({ description: `${what} as ISO 8601 UTC, for example 2027-03-01T12:00:00Z. Must be within 2026-01-01 to 2030-12-31. Omit to use the Open Exploration mission time.` }),
 });
 
 const DECLARATIONS: Record<ToolName, TemplateFunctionDeclaration["parameters"]> = {
@@ -52,7 +52,7 @@ const DECLARATIONS: Record<ToolName, TemplateFunctionDeclaration["parameters"]> 
     properties: {
       ...locationProps,
       ...timeProp("start", "Start of the window"),
-      durationHours: Schema.number({ description: `Window length in hours, ${MIN_WINDOW_HOURS} to ${MAX_WINDOW_HOURS}. Omit to use the Freeplay mission duration (capped).` }),
+      durationHours: Schema.number({ description: `Window length in hours, ${MIN_WINDOW_HOURS} to ${MAX_WINDOW_HOURS}. Omit to use the Open Exploration mission duration (capped).` }),
     },
     optionalProperties: [...locationOptional, "start", "durationHours"],
   }),
@@ -66,7 +66,7 @@ const DECLARATIONS: Record<ToolName, TemplateFunctionDeclaration["parameters"]> 
   }),
   compare_sites: Schema.object({
     properties: {
-      siteIds: Schema.array({ items: Schema.string({ description: "Catalog site id, or 'current' for the selected Freeplay site when it is a catalog site." }), description: "Two or three catalog site ids." }),
+      siteIds: Schema.array({ items: Schema.string({ description: "Catalog site id, or 'current' for the selected Open Exploration site when it is a catalog site." }), description: "Two or three catalog site ids." }),
       ...timeProp("start", "Start of the window"),
       durationHours: Schema.number({ description: `Window length in hours, ${MIN_WINDOW_HOURS} to ${MAX_WINDOW_HOURS}.` }),
     },
@@ -93,7 +93,7 @@ const DECLARATIONS: Record<ToolName, TemplateFunctionDeclaration["parameters"]> 
   }),
   show_in_freeplay: Schema.object({
     properties: {
-      screen: Schema.enumString({ enum: [...UI_SCREENS], description: "Freeplay screen to show: globe (Moon map) or orbit (Sun/Earth orbit view with graphs)." }),
+      screen: Schema.enumString({ enum: [...UI_SCREENS], description: "Open Exploration screen to show: globe (Moon map) or orbit (Sun/Earth orbit view with graphs)." }),
       page: Schema.enumString({ enum: [...UI_PAGES], description: "Offer a button to the surface drive for the selected site and time. Does not leave the chat." }),
       siteId: Schema.string({ description: "Catalog site id from list_catalog_sites to select on the globe and fly to." }),
       latDeg: Schema.number({ description: "Latitude in degrees, -90 to 90, to select a custom point. Use with lonDeg, never with siteId." }),

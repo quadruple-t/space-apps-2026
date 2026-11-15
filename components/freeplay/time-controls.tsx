@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, Pause, Play, RotateCcw } from "lucide-react";
 import { COVERAGE_END_ISO, COVERAGE_START_ISO, DURATION_PRESETS, SPEEDS, currentTimeMs, useFreeplay } from "@/lib/freeplay-store";
 
-/** Advances elapsed mission time while playing. Mount once per Freeplay page. */
+/** Advances elapsed mission time while playing. Mount once per Open Exploration page. */
 export function usePlaybackClock() {
   const playing = useFreeplay((s) => s.playing);
   const speed = useFreeplay((s) => s.speed);

@@ -1,9 +1,9 @@
 "use client";
 
 /**
- * Applies a validated show_in_freeplay plan to the Freeplay store, and snapshots/restores the view so the
+ * Applies a validated show_in_freeplay plan to the Open Exploration store, and snapshots/restores the view so the
  * user can undo what the assistant changed. The model only ever supplies whitelisted fields (see
- * tool-validation.ts); everything here goes through the same store actions the Freeplay UI itself uses.
+ * tool-validation.ts); everything here goes through the same store actions the Open Exploration UI itself uses.
  */
 import { catalogToFreeplay, type CatalogSite, type FreeplaySite } from "@/data/sites";
 import { driveHref } from "@/lib/drive-link";

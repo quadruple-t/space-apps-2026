@@ -3,11 +3,11 @@ import type { LunarSite } from "@/integrations/science/types"
 import { DEM_MAX_RADIUS_KM, DEM_MIN_RADIUS_KM } from "@/lib/terrain/dem"
 
 /**
- * The surface drive (/freeplay/drive) opens at the site and time chosen in Freeplay.
+ * The surface drive (/open-exploration/drive) opens at the site and time chosen in Open Exploration.
  * Both travel in the URL so the drive survives a reload or a shared link.
  */
 export function driveHref(site: FreeplaySite | null, timeMs: number): string {
-  if (!site) return "/freeplay/drive"
+  if (!site) return "/open-exploration/drive"
   const q = new URLSearchParams({
     lat: String(site.latitudeDeg),
     lon: String(site.longitudeDeg),
@@ -17,7 +17,7 @@ export function driveHref(site: FreeplaySite | null, timeMs: number): string {
   })
   // The science API only accepts catalog ids whose point is verified.
   if (site.catalogId && site.catalogPointVerified !== false) q.set("siteId", site.catalogId)
-  return `/freeplay/drive?${q}`
+  return `/open-exploration/drive?${q}`
 }
 
 type Params = { get(name: string): string | null }
@@ -46,7 +46,7 @@ export function timeFromDriveParams(p: Params): Date | null {
   return Number.isNaN(ms) ? null : new Date(ms)
 }
 
-/** The drive's science-provider site for a Freeplay site (same rules as driveHref). */
+/** The drive's science-provider site for a Open Exploration site (same rules as driveHref). */
 export function lunarSiteFor(site: FreeplaySite): LunarSite {
   return siteFromDriveParams(new URLSearchParams(driveHref(site, 0).split("?")[1]))!
 }

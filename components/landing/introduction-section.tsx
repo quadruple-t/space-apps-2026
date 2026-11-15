@@ -25,7 +25,7 @@ export function IntroductionSection() {
         <Reveal>
           <SectionHeading id="mission-title" title="See the mission from the surface.">
             <p>
-              Freeplay combines time and location controls with a first-person lunar scene. Sun and Earth positions
+              Open Exploration combines time and location controls with a first-person lunar scene. Sun and Earth positions
               come from JPL Horizons ephemerides; where available, precomputed LOLA horizon masks determine
               visibility and 24-hour lighting and communications metrics. The rendered ground is procedural, so it
               is a visual guide rather than a terrain-accurate surface.

@@ -1,5 +1,5 @@
 /**
- * Freeplay's data path (lib/lunar-data.ts, lib/orbit.ts) against the seeded Lunaris360
+ * Open Exploration's data path (lib/lunar-data.ts, lib/orbit.ts) against the seeded Lunaris360
  * ephemeris in data/seed/ephemerisGlobal (the same chunks the API serves).
  */
 import { describe, expect, it } from "vitest"

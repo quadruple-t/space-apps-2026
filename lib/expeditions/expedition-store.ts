@@ -5,8 +5,8 @@
  * expedition when signed in, otherwise this browser's local draft. Sign-in is optional; the
  * draft keeps signed-out work across reloads and can become an expedition after sign-in.
  *
- * Freeplay content (workspace, saved sites, chat) moves into the stores only while non-guided
- * Freeplay is mounted ("attached"), so Guided Mission's resets never reach saved work.
+ * Open Exploration content (workspace, saved sites, chat) moves into the stores only while non-guided
+ * Open Exploration is mounted ("attached"), so Guided Mission's resets never reach saved work.
  */
 import { create } from "zustand";
 import { useAssistant } from "@/lib/assistant/assistant-store";

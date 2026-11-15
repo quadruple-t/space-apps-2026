@@ -9,8 +9,9 @@ import { keyBelongsToControl } from "@/lib/keyboard";
 import { slopeAtLocal, sampleField, type DemGrid } from "@/lib/terrain/dem";
 import type { Placement } from "@/lib/drive-placements";
 import { Earth, SKY_DISTANCE, Starfield, Sun } from "./celestial";
-import { buildDemSurface, createRegolithDetailTexture, computeSunVisibility, createDemGeometry, fillColors, groundNormal, groundY, insideTile, patchSunVisibility, type DemSurface, type TerrainColorMode } from "./dem-terrain";
+import { buildDemSurface, createRegolithDetailTexture, createRegolithNormalTexture, computeSunVisibility, createDemGeometry, fillColors, groundNormal, groundY, insideTile, patchSunVisibility, type DemSurface, type TerrainColorMode } from "./dem-terrain";
 import { Beacon, SURFACE_OBJECTS, SunShaded, SurfaceObjectModel, type SurfaceObjectType } from "./surface-objects";
+import { SurfaceRocks } from "./surface-rocks";
 
 /**
  * Surface planner over measured elevation (scene units are metres; see dem-terrain.ts).
@@ -118,8 +119,8 @@ function DemSunLight({ direction, intensity, focusRef, coverM, mapSize, shadowDi
   </>;
 }
 
-function DemTerrain({ surface, colorMode, sunDir, autoLight, building, meshRef, onVisibility, onPointer, onPick }: {
-  surface: DemSurface; colorMode: TerrainColorMode; sunDir: THREE.Vector3; autoLight: boolean; building: boolean;
+function DemTerrain({ surface, colorMode, detail, sunDir, autoLight, building, meshRef, onVisibility, onPointer, onPick }: {
+  surface: DemSurface; colorMode: TerrainColorMode; detail: "high" | "low"; sunDir: THREE.Vector3; autoLight: boolean; building: boolean;
   meshRef: MutableRefObject<THREE.Mesh | null>;
   onVisibility: (field: Float32Array) => void;
   onPointer: (point: THREE.Vector3 | null) => void; onPick: (point: THREE.Vector3) => void;
@@ -128,12 +129,16 @@ function DemTerrain({ surface, colorMode, sunDir, autoLight, building, meshRef, 
   const geometry = useMemo(() => createDemGeometry(surface, "regolith"), [surface]);
   const detailTexture = useMemo(() => createRegolithDetailTexture(), []);
   useEffect(() => () => detailTexture.dispose(), [detailTexture]);
+  // Cosmetic micro-relief (craterlets, pebbles) as a normal map: shading only, heights untouched.
+  const normalTexture = useMemo(() => createRegolithNormalTexture(detail === "high" ? 512 : 256), [detail]);
+  useEffect(() => () => normalTexture.dispose(), [normalTexture]);
   const material = useMemo(() => {
+    const regolith = colorMode === "regolith";
     const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.97, metalness: 0,
-      map: colorMode === "regolith" ? detailTexture : null, bumpMap: colorMode === "regolith" ? detailTexture : null, bumpScale: 0.035 });
+      map: regolith ? detailTexture : null, normalMap: regolith ? normalTexture : null, normalScale: new THREE.Vector2(0.9, 0.9) });
     patchSunVisibility(m, "attribute");
     return m;
-  }, [colorMode, detailTexture]);
+  }, [colorMode, detailTexture, normalTexture]);
   useEffect(() => () => geometry.dispose(), [geometry]);
   useEffect(() => () => material.dispose(), [material]);
   useEffect(() => {
@@ -230,6 +235,33 @@ function FootprintRing({ radius, color }: { radius: number; color: string }) {
     <ringGeometry args={[radius, radius + Math.max(0.25, radius * 0.08), 40]} />
     <meshBasicMaterial color={color} transparent opacity={0.85} side={THREE.DoubleSide} depthWrite={false} toneMapped={false} />
   </mesh>;
+}
+
+/**
+ * Marks the site centre (the map's middle) with a light pillar and ground ring.
+ * The pillar keeps a readable on-screen size from far away; it is decoration only.
+ */
+function CentreBeacon({ surface }: { surface: DemSurface }) {
+  const y = groundY(surface, 0, 0);
+  const pillar = useRef<THREE.Group>(null);
+  const world = useRef(new THREE.Vector3());
+  useFrame(({ camera }) => {
+    const group = pillar.current;
+    if (!group) return;
+    group.getWorldPosition(world.current);
+    // Hidden while standing at the centre, so the camera is never inside the pillar.
+    group.visible = Math.hypot(camera.position.x - world.current.x, camera.position.z - world.current.z) > 15;
+    group.scale.setScalar(Math.max(1, camera.position.distanceTo(world.current) * 0.004));
+  });
+  return <group position={[0, y, 0]}>
+    <group ref={pillar}>
+      <mesh position={[0, 20, 0]} raycast={noRaycast}><cylinderGeometry args={[0.25, 0.6, 40, 8, 1, true]} /><meshBasicMaterial color="#ff5364" transparent opacity={0.55} depthWrite={false} toneMapped={false} side={THREE.DoubleSide} /></mesh>
+      <mesh position={[0, 41.5, 0]} raycast={noRaycast}><octahedronGeometry args={[1.6, 0]} /><meshBasicMaterial color="#fff3e8" toneMapped={false} /></mesh>
+    </group>
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.3, 0]} raycast={noRaycast} renderOrder={4}>
+      <ringGeometry args={[3, 3.8, 48]} /><meshBasicMaterial color="#ff5364" transparent opacity={0.9} side={THREE.DoubleSide} depthWrite={false} toneMapped={false} />
+    </mesh>
+  </group>;
 }
 
 type Sky = { sunAz: number; sunEl: number; earthAz: number; earthEl: number };
@@ -513,8 +545,8 @@ function DemRig({ grid, surface, radiusM, mode, zoom, lookSensitivity, still, bu
 
     if (mode === "first-person") {
       if (forward !== 0 || strafe !== 0) {
-        // Walking pace, scaled up on big areas so they stay crossable; shift hurries.
-        const speed = (k.has("shift") ? 48 : 8) * Math.max(1, radiusM / 10_000);
+        // Walking pace (48 m/s, 160 m/s with shift), scaled up on big areas so they stay crossable; shift hurries.
+        const speed = (k.has("shift") ? 160 : 48) * Math.max(1, radiusM / 10_000);
         const step = Math.min(delta, 0.05) * speed / Math.hypot(forward, strafe);
         const h = heading.current, limit = radiusM - 1.5;
         f.x = THREE.MathUtils.clamp(f.x + (Math.sin(h) * forward + Math.cos(h) * strafe) * step, -limit, limit);
@@ -621,13 +653,16 @@ function SceneContents(props: DemSceneProps) {
     <hemisphereLight args={autoLight ? ["#f0f0f0", "#707070", 1.5] : ["#929292", "#101010", 0.22]} />
     <ambientLight intensity={autoLight ? 0.7 : 0.03} />
     <DemSunLight direction={autoLight ? AUTO_LIGHT_DIR : sunDir} intensity={autoLight ? 3 : 4.2} focusRef={focus} coverM={Math.min(radiusM, detail === "high" ? 450 : 300)} mapSize={detail === "high" ? 2048 : 1024} shadowDirtyRef={shadowDirty} />
-    <DemTerrain meshRef={terrainRef} surface={surface} colorMode={colorMode} sunDir={sunDir} autoLight={autoLight} building={!!buildType} onVisibility={onVisibility}
+    <DemTerrain meshRef={terrainRef} surface={surface} colorMode={colorMode} detail={detail} sunDir={sunDir} autoLight={autoLight} building={!!buildType} onVisibility={onVisibility}
       onPointer={(point) => { if (buildType) { setHover(point ? point.clone() : null); invalidate(); } }}
       onPick={(point) => {
         if (!buildType) { onSelectObject(null); return; }
         if (checkPlacement(grid, radiusM, placements, buildType, point.x, -point.z).ok) onPlace(point.x, -point.z);
       }} />
     <BorderWalls surface={surface} />
+    <CentreBeacon surface={surface} />
+    {/* Decorative near-field rocks for motion cues while walking; never part of the analysed DEM. */}
+    {viewMode === "first-person" && <SurfaceRocks surface={surface} detail={detail} focusRef={focus} shadowDirtyRef={shadowDirty} visField={vis.field} visVersion={vis.version} placements={placements} />}
     {placements.map((placement) => <PlacedObject key={placement.id} placement={placement} surface={surface} vis={visAt(placement.eastM, -placement.northM)} sky={sky} selected={placement.id === selectedId} interactive={!buildType} onSelect={onSelectObject} onView={onViewObject} />)}
     {ghost && buildType && <group position={[ghost.x, ghost.y, ghost.z]} rotation={[0, -buildHeadingDeg * Math.PI / 180, 0]}>
       <SunShaded vis={visAt(ghost.x, ghost.z)}>

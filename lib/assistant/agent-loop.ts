@@ -39,7 +39,7 @@ export type TurnParams = {
   signal?: AbortSignal;
   maxRounds?: number;
   /** Injectable for tests. */
-  /** Changes the Freeplay view for show_in_freeplay. */
+  /** Changes the Open Exploration view for show_in_freeplay. */
   applyUi?: ApplyUi;
   execute?: (call: { name: unknown; args: unknown }, id: string, ctx: ToolContext, deps: { signal?: AbortSignal; applyUi?: ApplyUi }) => Promise<ToolOutcome>;
 };
