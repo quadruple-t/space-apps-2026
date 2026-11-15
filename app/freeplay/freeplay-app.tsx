@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, type ReactNode } from "react";
 import { ArrowLeft, Bot, Car, Globe2, Orbit } from "lucide-react";
+import { Logo } from "@/components/brand/logo";
 import { AssistantPanel, LAUNCHER_ID, PANEL_ID } from "@/components/freeplay/assistant-panel";
 import { usePlaybackClock } from "@/components/freeplay/time-controls";
 import type { FreeplaySite } from "@/data/sites";
@@ -57,6 +58,7 @@ export function FreeplayApp({ aside, guidedPanels, assistantEnabled = true, guid
       <div className="flex items-center gap-3">
         {guidedMode ? <>
           <Link href="/" aria-label="Exit Guided Mission to Lunaris360 home" className="grid size-9 place-items-center rounded border border-line text-muted-foreground hover:text-bone"><ArrowLeft size={17} /></Link>
+          <Logo compact />
           <div>
             <h1 className="type-heading text-sm text-bone">Guided Mission</h1>
           </div>
