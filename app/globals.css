@@ -62,36 +62,36 @@
 :root {
   color-scheme: dark;
 
-  --void: #080712;
-  --charcoal: #151327;
+  --void: #0e080d;
+  --charcoal: #2b1522;
   --regolith: #a39ab8;
   --bone: #f0ebf7;
   --sun: #ff5364;
-  --sun-dim: #963752;
+  --sun-dim: #aa374f;
   --earth: #4b9bff;
   --earth-dim: #365588;
   --retro-purple: #a986ff;
   --retro-blue: #4b9bff;
-  --retro-red: #ff5364;
-  --line: #302c4a;
+  --retro-red: #ff536b;
+  --line: #603044;
 
   --background: var(--void);
   --foreground: var(--bone);
   --card: var(--charcoal);
   --card-foreground: var(--bone);
-  --popover: #100e20;
+  --popover: #180d16;
   --popover-foreground: var(--bone);
   --primary: var(--bone);
   --primary-foreground: #100d20;
-  --secondary: #211d37;
+  --secondary: #351a2a;
   --secondary-foreground: var(--bone);
-  --muted: #211d37;
+  --muted: #2b1723;
   --muted-foreground: #b2abc4;
-  --accent: #292341;
+  --accent: #49202f;
   --accent-foreground: var(--bone);
-  --destructive: #ff5364;
+  --destructive: var(--retro-red);
   --border: var(--line);
-  --input: #45405f;
+  --input: #61374a;
   --ring: var(--sun);
   --radius: 0.375rem;
 
@@ -119,6 +119,10 @@
   body {
     @apply bg-background text-foreground;
     text-rendering: optimizeLegibility;
+    background-image:
+      radial-gradient(ellipse at 8% 4%, rgb(255 83 107 / 23%), transparent 42rem),
+      radial-gradient(ellipse at 92% 30%, rgb(255 83 107 / 14%), transparent 38rem);
+    background-attachment: fixed;
   }
   button:not(:disabled),
   [role="button"]:not(:disabled) {
@@ -160,10 +164,10 @@
   }
 
   .hud-panel {
-    border: 1px solid color-mix(in oklab, var(--retro-purple) 24%, var(--line));
+    border: 1px solid color-mix(in oklab, var(--retro-red) 50%, var(--line));
     border-radius: 0.6rem;
-    background: color-mix(in oklab, var(--void) 82%, transparent);
-    box-shadow: 0 18px 70px rgb(3 2 14 / 34%), inset 0 1px rgb(255 255 255 / 4%);
+    background: color-mix(in oklab, var(--void) 82%, var(--retro-red) 18%);
+    box-shadow: 0 18px 70px rgb(3 2 14 / 34%), 0 0 36px rgb(255 83 107 / 11%), inset 0 1px rgb(255 255 255 / 4%);
     -webkit-backdrop-filter: blur(18px);
     backdrop-filter: blur(18px);
   }
@@ -176,17 +180,17 @@
   }
   .hud-readout {
     min-width: 0;
-    border: 1px solid color-mix(in oklab, var(--line) 82%, transparent);
+    border: 1px solid color-mix(in oklab, var(--retro-red) 22%, var(--line));
     border-radius: 0.35rem;
-    background: color-mix(in oklab, var(--void) 62%, transparent);
+    background: color-mix(in oklab, var(--void) 92%, var(--retro-red) 8%);
     padding: 0.55rem 0.65rem;
   }
   .hud-input {
     display: block;
     width: 100%;
-    border: 1px solid var(--line);
+    border: 1px solid color-mix(in oklab, var(--retro-red) 28%, var(--line));
     border-radius: 0.25rem;
-    background: color-mix(in oklab, var(--void) 90%, transparent);
+    background: color-mix(in oklab, var(--void) 90%, var(--retro-red) 10%);
     padding: 0.45rem 0.55rem;
     color: var(--bone);
     font-size: 0.68rem;
@@ -232,8 +236,8 @@
   .mission-console {
     position: relative;
     isolation: isolate;
-    border: 1px solid rgb(236 233 226 / 22%);
-    background: rgb(7 8 9 / 82%);
+    border: 1px solid color-mix(in oklab, var(--retro-red) 35%, var(--line));
+    background: color-mix(in oklab, var(--void) 82%, var(--sun-dim) 18%);
     padding: clamp(1rem, 2.2vw, 1.6rem);
     clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
     box-shadow: 0 22px 90px rgb(0 0 0 / 35%);
@@ -277,7 +281,7 @@
     align-items: center;
     gap: 0.85rem;
     border: 1px solid rgb(236 233 226 / 14%);
-    background: linear-gradient(105deg, rgb(236 233 226 / 5%), rgb(236 233 226 / 1%));
+    background: linear-gradient(105deg, rgb(255 83 107 / 11%), rgb(255 83 107 / 3%));
     padding: 0.7rem 0.8rem;
     clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
     transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
@@ -285,8 +289,8 @@
 
   .route-choice:hover {
     transform: translateX(3px);
-    border-color: rgb(227 174 79 / 65%);
-    background-color: rgb(227 174 79 / 5%);
+    border-color: rgb(255 83 107 / 65%);
+    background-color: rgb(255 83 107 / 9%);
   }
 
   .route-choice:focus-visible {
@@ -320,7 +324,7 @@
 
   .route-choice:hover .route-arrow {
     transform: translateX(2px);
-    border-color: rgb(227 174 79 / 65%);
+    border-color: rgb(255 83 107 / 65%);
     color: var(--sun);
   }
 
@@ -384,7 +388,7 @@
     border-color: var(--sun);
     background: var(--sun);
     color: var(--void);
-    box-shadow: 0 0 14px rgb(227 174 79 / 28%);
+    box-shadow: 0 0 14px rgb(255 83 107 / 35%);
   }
 
   .chapter-label {
