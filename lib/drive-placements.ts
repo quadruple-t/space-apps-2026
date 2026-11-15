@@ -5,7 +5,7 @@ export type Placement = { id: string; type: SurfaceObjectType; eastM: number; no
 
 const STORAGE_KEY = "lunaris360-drive-placements-v1";
 const TYPES = new Set<string>(["solar", "rover", "dome", "modules", "inflatable", "comms"]);
-export const MAX_PLACEMENTS = 200;
+export const MAX_PLACEMENTS = 60;
 
 /** Solar array assumptions shared by the drive and the graphs: 3 × 6 m tracking panel, 30% efficient. */
 export const SOLAR_ARRAY_AREA_M2 = 18;

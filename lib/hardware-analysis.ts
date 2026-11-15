@@ -10,10 +10,30 @@ import { maskAt } from "@/lib/terrain/mask";
  * Each object sees the site's Sun and Earth positions re-expressed in its own horizon frame (the Moon's
  * curvature tilts the local vertical away from the site centre), tested against the terrain inside the
  * loaded elevation grid at the height of the panel or dish. Terrain outside the grid is not seen, so
- * results are upper bounds near its edge.
+ * results are upper bounds near its edge. Objects outside the grid are skipped and listed in
+ * `outside` rather than reported as having a clear horizon.
  */
 
 const BIN_DEG = 3;
+
+/** Whether a point is inside the loaded elevation grid; outside it no terrain is tested at all. */
+export const insideGrid = (grid: DemGrid, eastM: number, northM: number) => Math.abs(eastM) <= grid.halfExtentM && Math.abs(northM) <= grid.halfExtentM;
+
+// Profiles depend only on the grid, the position and the mast height, so adding one object
+// costs one profile instead of re-marching every placed object.
+const profileCache = new WeakMap<DemGrid, Map<string, number[]>>();
+export function cachedHorizonProfile(grid: DemGrid, eastM: number, northM: number, type: Placement["type"]): number[] {
+  let perGrid = profileCache.get(grid);
+  if (!perGrid) { perGrid = new Map(); profileCache.set(grid, perGrid); }
+  const key = `${eastM}|${northM}|${type}`;
+  let profile = perGrid.get(key);
+  if (!profile) {
+    profile = horizonProfile(grid, eastM, northM, BIN_DEG, OBSERVER_HEIGHT_M[type]);
+    perGrid.set(key, profile);
+    if (perGrid.size > 400) perGrid.delete(perGrid.keys().next().value!);
+  }
+  return profile;
+}
 
 export type CommWindow = VisibilityWindow;
 
@@ -37,18 +57,19 @@ export type CommsResult = {
   longestWindowHours: number; longestGapHours: number;
 };
 
-export type HardwareAnalysis = { xs: Float64Array; stepHours: number; solar: SolarArrayResult[]; comms: CommsResult[] };
+export type HardwareAnalysis = { xs: Float64Array; stepHours: number; solar: SolarArrayResult[]; comms: CommsResult[]; outside: string[] };
 
 export function analyseHardware(grid: DemGrid, centerLatDeg: number, samples: Sample[], placements: Placement[], endMs?: number): HardwareAnalysis {
   const n = samples.length;
   const xs = Float64Array.from(samples, (s) => s.t);
   const stepMs = n > 1 ? xs[1] - xs[0] : 3_600_000;
   const stepHours = stepMs / 3_600_000;
-  const solar: SolarArrayResult[] = [], comms: CommsResult[] = [];
+  const solar: SolarArrayResult[] = [], comms: CommsResult[] = [], outside: string[] = [];
 
   for (const p of placements) {
     if (p.type !== "solar" && p.type !== "comms") continue;
-    const profile = horizonProfile(grid, p.eastM, p.northM, BIN_DEG, OBSERVER_HEIGHT_M[p.type]);
+    if (!insideGrid(grid, p.eastM, p.northM)) { outside.push(p.id); continue; }
+    const profile = cachedHorizonProfile(grid, p.eastM, p.northM, p.type);
     if (p.type === "solar") {
       const kw = new Float64Array(n), sunOn: boolean[] = [];
       let peakKw = 0, energyKWh = 0, sunHours = 0;
@@ -87,5 +108,5 @@ export function analyseHardware(grid: DemGrid, centerLatDeg: number, samples: Sa
       });
     }
   }
-  return { xs, stepHours, solar, comms };
+  return { xs, stepHours, solar, comms, outside };
 }

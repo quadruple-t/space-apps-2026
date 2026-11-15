@@ -6,11 +6,12 @@
 import { ScienceApiError } from "@/integrations/science/api-provider";
 import { activeCriteria, DEFAULT_WEIGHTS, type RankCriterion } from "@/lib/science/rank";
 import {
-  APPROXIMATE_POINT_WORDING, COMPOSITION_WORDING, COVERAGE_LABEL, FALLBACK_WORDING, ICE_PROXY_WORDING, RANK_ROWS_SHOWN, GRID_CELL_WORDING, MAX_TOOL_RESULT_CHARS, NO_COVERAGE_WORDING,
-  RANK_ROWS_BUDGET_CHARS, TOOL_LABELS, UNRECOGNISED_HORIZON_WORDING, failureWording, type ToolName,
+  APPROXIMATE_POINT_WORDING, COMPOSITION_WORDING, COVERAGE_LABEL, FALLBACK_WORDING, ICE_PROXY_WORDING, LAUNCH_PLAN_WORDING, METEOR_STREAM_WORDING,
+  MAX_TOOL_RESULT_CHARS, NO_COVERAGE_WORDING, RANK_ROWS_SHOWN, GRID_CELL_WORDING,
+  RANK_ROWS_BUDGET_CHARS, SAVED_SITE_WORDING, SOLAR_POWER_WORDING, TOOL_LABELS, UNRECOGNISED_HORIZON_WORDING, failureWording, type ToolName,
 } from "./constants";
 import type { CatalogSite } from "@/data/sites";
-import type { ToolError } from "./tool-validation";
+import type { SavedSiteRef, ToolError } from "./tool-validation";
 
 export type HorizonKind = "site-lola-mask" | "lola-polar-grid" | "smooth-sphere-fallback" | "unrecognised";
 
@@ -33,6 +34,52 @@ export type SourceRecord = {
 };
 export type UiChange = { changes: string[]; link?: { label: string; href: string } };
 export type ToolOutcome = { response: Record<string, unknown>; record: SourceRecord };
+
+/** A browser-computed launch plan (lib/assistant/estimators.ts) in a transport-safe shape. */
+export type LaunchPlanData = {
+  plan: {
+    launchIso: string;
+    arrivalIso: string;
+    transitHours: number;
+    arrivalDistanceKm: number;
+    apogeeKm: number;
+    eccentricity: number;
+    alignment: { sunUpAtArrival: boolean; hoursSincePrevSunrise: number | null; hoursUntilNextSunrise: number | null; nearSunrise: boolean; summary: string } | null;
+  } | null;
+  outOfCoverage: boolean;
+  estimate: {
+    totalKmS: number; totalLowKmS: number; totalHighKmS: number;
+    phases: { id: string; label: string; kmS: number; lowKmS: number; highKmS: number }[];
+    propellantKg: number; leoMassKg: number; leoMassRangeKg: { low: number; high: number };
+    cost: { lowUsd: number; highUsd: number; classLabel: string; reference: string } | null;
+  };
+  artemis: { hoursToFlyby: number; flybyAltitudeKm: number } | null;
+};
+
+/** A browser-computed flat-panel solar power estimate. */
+export type PowerEstimateData = {
+  peakW: number;
+  meanW: number;
+  energyKWh: number;
+  litSharePercent: number;
+  hours: number;
+  horizonSource: string;
+  startIso: string;
+  endIso: string;
+  panelAreaM2: number;
+  panelEfficiency: number;
+};
+
+export type MeteorExposureData = {
+  streams: {
+    name: string;
+    referenceIso: string;
+    subRadiantLatDeg: number;
+    subRadiantLonDeg: number;
+    incidence: number | null;
+    facingHemisphere: boolean | null;
+  }[];
+};
 
 type Json = Record<string, unknown>;
 const r2 = (n: unknown) => (typeof n === "number" && Number.isFinite(n) ? Math.round(n * 100) / 100 : null);
@@ -197,6 +244,7 @@ function metricsCore(m: Json) {
     sunlightPercent: m.sunlightPercent, sunlightHours: m.sunlightHours, longestDarknessHours: m.longestDarknessHours,
     earthVisibilityPercent: m.earthVisibilityPercent, longestBlackoutHours: m.longestBlackoutHours,
     ...(m.slopeDeg !== undefined ? { slopeDeg: r2(m.slopeDeg) } : {}), ...(m.elevationMeters !== undefined ? { elevationMeters: r2(m.elevationMeters) } : {}),
+    ...(m.insidePsr !== undefined ? { insidePsr: m.insidePsr === true } : {}),
   };
 }
 
@@ -361,8 +409,94 @@ export function shapeComposition(id: string, site: string, raw: unknown): ToolOu
   return out;
 }
 
-/** Reads the point out of a /catalog/sites/{id} response. Null when the document has no usable coordinates. */
-export function catalogFromDetail(raw: unknown, requestedId: string): CatalogSite | null {
+export function shapeSavedSites(id: string, sites: SavedSiteRef[]): ToolOutcome {
+  return ok("list_saved_sites", id, {
+    site: null, dataRange: null,
+    data: {
+      count: sites.length,
+      sites: sites.slice(0, 30).map((s) => ({
+        id: s.id, name: clip(s.name, 60), latDeg: r2(s.latitudeDeg), lonDeg: r2(s.longitudeDeg), radiusKm: r2(s.radiusKm),
+      })),
+    },
+    notes: ["Use a saved preset id in compare_sites siteIds or in show_in_freeplay savedSiteId, compareSiteA and compareSiteB."],
+    extraMustSay: [SAVED_SITE_WORDING],
+  });
+}
+
+export function shapeLaunchPlan(id: string, site: string, data: LaunchPlanData): ToolOutcome {
+  const plan = data.plan;
+  const estimate = data.estimate;
+  return ok("get_launch_plan", id, {
+    site, dataRange: plan ? `${fmtUtc(plan.launchIso)} to ${fmtUtc(plan.arrivalIso)}` : null,
+    data: {
+      outOfCoverage: data.outOfCoverage,
+      plan: plan ? {
+        launchUtc: plan.launchIso, arrivalUtc: plan.arrivalIso, transitHours: r2(plan.transitHours),
+        arrivalDistanceKm: r2(plan.arrivalDistanceKm), apogeeKm: r2(plan.apogeeKm), eccentricity: r2(plan.eccentricity),
+        arrivalLighting: plan.alignment ? {
+          sunUpAtArrival: plan.alignment.sunUpAtArrival, nearSunrise: plan.alignment.nearSunrise,
+          hoursSincePrevSunrise: r2(plan.alignment.hoursSincePrevSunrise), hoursUntilNextSunrise: r2(plan.alignment.hoursUntilNextSunrise),
+          summary: plan.alignment.summary,
+        } : null,
+      } : null,
+      deltaV: {
+        totalKmS: r2(estimate.totalKmS), totalLowKmS: r2(estimate.totalLowKmS), totalHighKmS: r2(estimate.totalHighKmS),
+        phases: estimate.phases.map((p) => ({ id: p.id, label: p.label, kmS: r2(p.kmS), lowKmS: r2(p.lowKmS), highKmS: r2(p.highKmS) })),
+      },
+      mass: {
+        propellantKg: Math.round(estimate.propellantKg), leoMassKg: Math.round(estimate.leoMassKg),
+        leoMassRangeKg: { low: Math.round(estimate.leoMassRangeKg.low), high: Math.round(estimate.leoMassRangeKg.high) },
+      },
+      launchCost: estimate.cost ? {
+        lowUsd: Math.round(estimate.cost.lowUsd), highUsd: Math.round(estimate.cost.highUsd),
+        launchClass: estimate.cost.classLabel, reference: estimate.cost.reference,
+      } : null,
+      artemisReference: data.artemis ? { hoursToFlyby: r2(data.artemis.hoursToFlyby), flybyAltitudeKm: r2(data.artemis.flybyAltitudeKm) } : null,
+    },
+    notes: [
+      "Delta-v is an impulsive patched-conic budget and mass is the rocket equation with one Isp for all phases. The low-energy path is illustrative, not a weak-stability-boundary design.",
+      "Launch cost is a published-figure range: the low end is a pro-rata share of one launch and the high end a whole dedicated launch at list price; it excludes the spacecraft, operations and insurance.",
+      "Arrival lighting comes from the site's own horizon mask over the arrival time; 'near sunrise' means within 3 days of a local sunrise.",
+      ...(estimate.cost ? [] : ["The LEO mass is beyond the largest launcher in the stored table, so no cost range is given."]),
+    ],
+    extraMustSay: [LAUNCH_PLAN_WORDING],
+  });
+}
+
+export function shapeSolarPower(id: string, site: string, data: PowerEstimateData, adjustments: string[]): ToolOutcome {
+  const info = horizonInfo(data.horizonSource);
+  return ok("get_solar_power", id, {
+    site, horizon: info, dataRange: range(data.startIso, data.endIso),
+    data: {
+      panelAreaM2: r2(data.panelAreaM2), panelEfficiency: r2(data.panelEfficiency),
+      peakW: r2(data.peakW), meanW: r2(data.meanW), energyKWh: r2(data.energyKWh),
+      sunlitSharePercent: r2(data.litSharePercent), sampledHours: data.hours, sharesAreUpperBounds: info.upperBound,
+    },
+    notes: ["A flat panel: P = area × efficiency × 1361 W/m² / (Sun distance in AU)² × sin(Sun elevation), and zero when the terrain horizon blocks the Sun. The app's graphs and Mission comparison use the same model."],
+    adjustments, extraMustSay: [SOLAR_POWER_WORDING],
+  });
+}
+
+export function shapeMeteorStreams(id: string, requested: string | null, site: string | null, data: MeteorExposureData): ToolOutcome {
+  return ok("get_meteor_stream_exposure", id, {
+    site, dataRange: "2026 reference snapshots",
+    data: {
+      requestedStream: requested,
+      streams: data.streams.map((s) => ({
+        name: s.name, referenceUtc: s.referenceIso,
+        subRadiantLatDeg: r2(s.subRadiantLatDeg), subRadiantLonDeg: r2(s.subRadiantLonDeg),
+        incidence: s.incidence, facingHemisphere: s.facingHemisphere,
+      })),
+    },
+    notes: [
+      "incidence is the parallel-stream incidence on a smooth sphere: 1 means the stream comes straight down on that point, 0 means it grazes the horizon or the point faces away. The orange globe layer shows the whole facing hemisphere.",
+      "The reference snapshot is a published 2026 epoch, independent of the simulation clock. The layer is a geometry aid, not a map of storms or measured impact rates.",
+    ],
+    extraMustSay: [METEOR_STREAM_WORDING],
+  });
+}
+
+/** Reads the point out of a /catalog/sites/{id} response. Null when the document has no usable coordinates. */export function catalogFromDetail(raw: unknown, requestedId: string): CatalogSite | null {
   const body = asObj(raw), site = asObj(body.site);
   const point = asObj(site.coordinates).latDeg !== undefined ? asObj(site.coordinates) : asObj(site.representativePoint);
   if (typeof point.latDeg !== "number" || typeof point.lonDeg !== "number" || typeof site.name !== "string") return null;

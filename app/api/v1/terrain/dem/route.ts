@@ -14,6 +14,8 @@ const CACHE_LIMIT = 48;
 const cache = new Map<string, Payload>();
 const inflight = new Map<string, Promise<Payload>>();
 const UPSTREAM_TIMEOUT_MS = 25_000;
+/** Upstream fetches in flight per process; more get a 503 so a sweep cannot pile up on Lunaserv. */
+const MAX_CONCURRENT_UPSTREAM = 4;
 
 class UpstreamError extends Error {}
 
@@ -66,6 +68,9 @@ export async function GET(request: Request) {
     } else {
       let pending = inflight.get(key);
       if (!pending) {
+        if (inflight.size >= MAX_CONCURRENT_UPSTREAM) {
+          return Response.json({ error: { message: "Elevation service is busy; try again shortly" } }, { status: 503, headers: { "Retry-After": "5", "Cache-Control": "no-store" } });
+        }
         pending = fetchGrid(query).finally(() => inflight.delete(key));
         inflight.set(key, pending);
       }

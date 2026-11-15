@@ -2,7 +2,9 @@
 
 import { create } from "zustand";
 import { useFreeplay } from "@/lib/freeplay-store";
+import { useComparison } from "@/lib/comparison-store";
 import { runTurn } from "./agent-loop";
+import { planLaunch, estimatePower } from "./estimators";
 import { buildTemplateVariables, toToolContext, type FreeplaySnapshot } from "./context";
 import { describeError } from "./errors";
 import { TURN_INACTIVITY_MS } from "./constants";
@@ -72,7 +74,18 @@ const dbg = (...args: unknown[]) => { if (dev) console.info("[mission-control]",
 
 function snapshot(): FreeplaySnapshot {
   const s = useFreeplay.getState();
-  return { view: s.view, site: s.site, startIso: s.startIso, durationHours: s.durationHours, elapsedHours: s.elapsedHours, playing: s.playing, layers: s.layers, panelAreaM2: s.panelAreaM2, panelEfficiency: s.panelEfficiency };
+  const c = useComparison.getState();
+  // Comparison choices persist in localStorage; load them once so the assistant sees the same slots the screen shows.
+  c.hydrate();
+  const comparison = useComparison.getState();
+  return {
+    view: s.view, site: s.site, startIso: s.startIso, durationHours: s.durationHours, elapsedHours: s.elapsedHours, playing: s.playing,
+    layers: s.layers, panelAreaM2: s.panelAreaM2, panelEfficiency: s.panelEfficiency,
+    savedSites: s.savedSites.map((p) => ({ id: p.id, name: p.name, latitudeDeg: p.latitudeDeg, longitudeDeg: p.longitudeDeg, radiusKm: p.radiusKm })),
+    launchIso: s.launchIso, trajectoryType: s.trajectoryType, payloadKg: s.payloadKg, ispS: s.ispS, showArtemisReference: s.showArtemisReference,
+    meteorStream: s.meteorStream,
+    compareSiteAId: comparison.slotA?.id ?? null, compareSiteBId: comparison.slotB?.id ?? null, compareGraph: comparison.graphFocus,
+  };
 }
 
 export const useAssistant = create<AssistantState>((set, get) => ({
@@ -135,7 +148,7 @@ export const useAssistant = create<AssistantState>((set, get) => ({
       dbg("sending", { historyMessages: history.length, variables });
       const chat = createTurnChat(history, variables, signal);
       const result = await runTurn({
-        chat, userText: context ? `${text}\n\n${context}` : text, ctx: toToolContext(snap), signal, applyUi, execute,
+        chat, userText: context ? `${text}\n\n${context}` : text, ctx: toToolContext(snap), signal, applyUi, execute, planLaunch, estimatePower,
         events: {
           onText: (draft) => { watchdog.poke(); set({ draft, status: draft ? "streaming" : "thinking", progress: null }); },
           onToolStart: (progress) => { watchdog.poke(); dbg("tool start", progress, at()); set({ status: "tool", progress, announce: progress }); },

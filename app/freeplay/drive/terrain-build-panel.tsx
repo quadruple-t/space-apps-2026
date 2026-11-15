@@ -13,6 +13,8 @@ import { SURFACE_OBJECT_TYPES, SURFACE_OBJECTS, type SurfaceObjectType } from "@
 
 /** `daily` covers the simulation's UTC day, hourly, using only terrain inside the loaded walls. */
 export type PlacementStatus = {
+  /** Beyond the loaded terrain, so no sunlight or Earth result is given. */
+  outsideTerrain?: boolean;
   sunVisible: number; earthVisible: number; slopeDeg: number; powerKw: number | null;
   daily: { sunHours: number | null; earthHours: number; kwh: number } | null;
 };
@@ -115,7 +117,7 @@ export function TerrainBuildPanel({ radiusKm, onRadius, exaggeration, onExaggera
           <div className="flex items-center gap-1.5 type-data text-[.58rem] uppercase tracking-[.12em] text-retro-blue"><Box size={13} />Placed · {placements.length}</div>
           {placements.length > 0 && <button type="button" onClick={onClear} className="type-data text-[.54rem] uppercase tracking-[.1em] text-muted-foreground hover:text-retro-red">Clear all</button>}
         </div>
-        {placements.length === 0 ? <p className="mt-1.5 text-[.58rem] text-muted-foreground">Nothing placed at this site yet. Placements are saved in this browser for this site.</p>
+        {placements.length === 0 ? <p className="mt-1.5 text-[.58rem] text-muted-foreground">Nothing placed at this site yet. Placements are saved in this browser only (not with your expedition) for this site.</p>
           : <ul className="mt-1.5 space-y-1">{placements.map((p) => {
             const status = statusFor(p);
             const distance = Math.hypot(p.eastM, p.northM);
@@ -123,7 +125,8 @@ export function TerrainBuildPanel({ radiusKm, onRadius, exaggeration, onExaggera
               <button type="button" onClick={() => onSelect(p.id)} aria-pressed={p.id === selectedId} className="min-w-0 flex-1 text-left">
                 <div className="truncate text-[.64rem] text-bone">{SURFACE_OBJECTS[p.type].label}</div>
                 <div className="type-data text-[.52rem] text-muted-foreground">{km(distance)} from centre · slope {status ? status.slopeDeg.toFixed(1) : "—"}°</div>
-                {status && <div className="type-data text-[.52rem]">
+                {status?.outsideTerrain && <div className="type-data text-[.52rem] text-retro-red">Outside loaded terrain · increase the radius for sunlight and Earth contact</div>}
+                {status && !status.outsideTerrain && <div className="type-data text-[.52rem]">
                   <span className={status.sunVisible > 0 ? "text-retro-red" : "text-muted-foreground"}>{status.sunVisible > 0.99 ? "☀ Sunlit" : status.sunVisible > 0 ? "☀ Partly lit" : "☾ In shadow"}</span>
                   {p.type === "solar" && status.powerKw !== null && <span className="text-bone"> · ≈{status.powerKw.toFixed(1)} kW</span>}
                   {p.type === "comms" && <span className={status.earthVisible > 0 ? "text-retro-blue" : "text-muted-foreground"}> · {status.earthVisible > 0 ? "Earth in view" : "No Earth line of sight"}</span>}

@@ -18,6 +18,10 @@ export const DEM_SERVICE_URL = "https://wms.im-ldi.com/";
 export const DEM_NOMINAL_RESOLUTION_M = 100;
 export const DEM_MIN_RADIUS_KM = 0.1;
 export const DEM_MAX_RADIUS_KM = 500;
+export const DEM_COORD_DECIMALS = 3;
+/** Radii the grid can be requested at; other values round up to the next one. */
+export const DEM_RADIUS_PRESETS_KM = [0.1, 0.25, 0.5, 1, 2, 5, 10, 25, 50, 100, 250, 500];
+export const snapRadiusKm = (radiusKm: number) => DEM_RADIUS_PRESETS_KM.find((preset) => preset >= radiusKm - 1e-9) ?? DEM_MAX_RADIUS_KM;
 export const DEM_MIN_SIZE = 33;
 export const DEM_MAX_SIZE = 257;
 export const DEM_DEFAULT_SIZE = 257;
@@ -64,10 +68,12 @@ export function parseDemQuery(p: Params): DemQuery | { error: string } {
     return { error: `size must be an odd integer from ${DEM_MIN_SIZE} to ${DEM_MAX_SIZE}` };
   }
   const lon = ((lonRaw + 540) % 360) - 180;
+  // Snapping bounds the number of distinct upstream requests and makes CDN hits likelier.
+  // 0.001° is about 30 m, well inside the ~100 m source posting.
   return {
-    latDeg: Number(lat.toFixed(4)),
-    lonDeg: Number(lon.toFixed(4)),
-    radiusKm: Number(radiusKm.toPrecision(3)),
+    latDeg: Number(lat.toFixed(DEM_COORD_DECIMALS)),
+    lonDeg: Number(lon.toFixed(DEM_COORD_DECIMALS)),
+    radiusKm: snapRadiusKm(radiusKm),
     size: sizeRaw,
   };
 }
