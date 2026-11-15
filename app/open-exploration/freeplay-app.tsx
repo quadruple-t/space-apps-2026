@@ -46,8 +46,13 @@ function SurfaceLink() {
   const site = useFreeplay((s) => s.site);
   const startIso = useFreeplay((s) => s.startIso);
   const elapsedHours = useFreeplay((s) => s.elapsedHours);
+  const setView = useFreeplay((s) => s.setView);
   const t = currentTimeMs({ startIso, elapsedHours });
-  return <Link href={driveHref(site, t)} data-accept-site className={`${SEGMENT} ${SEGMENT_IDLE}`} title={site ? `Explore the surface at ${site.name}` : "Choose a place before exploring the surface"}>
+  // Without a site the drive has nowhere to start, so stay here and show the globe to pick one.
+  if (!site) return <button type="button" onClick={() => setView("globe")} className={`${SEGMENT} ${SEGMENT_IDLE}`} title="Choose a place on the globe before exploring the surface">
+    <Car size={13} />Walk on the Moon
+  </button>;
+  return <Link href={driveHref(site, t)} data-accept-site className={`${SEGMENT} ${SEGMENT_IDLE}`} title={`Explore the surface at ${site.name}`}>
     <Car size={13} />Walk on the Moon
   </Link>;
 }
